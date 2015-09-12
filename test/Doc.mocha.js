@@ -20,6 +20,7 @@ describe('Doc', () => {
     let lastDate = Date.now();
 
     let op = {
+      id: 'id',
       source: source,
       type: 'add',
       date: lastDate,
@@ -34,6 +35,7 @@ describe('Doc', () => {
     for (let i = 0; i < 10; i++) {
       lastDate = Date.now();
       op = {
+        id: 'id' + i,
         source: source,
         type: 'set',
         date: lastDate + i + 1,
