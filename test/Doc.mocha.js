@@ -1,12 +1,11 @@
 import assert from 'assert';
 import Doc from '../lib/Doc';
+import { source, collectionName, docId, field, value } from './util';
 
-let source = 'source';
 let source2 = 'source2';
-let collectionName = 'users';
-let docId = '1';
 
 describe('Doc', () => {
+
   it('should get fields from empty doc', () => {
     let doc = new Doc(docId);
 
@@ -27,7 +26,7 @@ describe('Doc', () => {
       collectionName: collectionName,
       docId: docId,
       value: {
-        name: 'Vasya'
+        [field]: value
       }
     }
     ops.push(op);
@@ -41,7 +40,7 @@ describe('Doc', () => {
         date: lastDate + i + 1,
         collectionName: collectionName,
         docId: docId,
-        field: 'name',
+        field: field,
         value: 'Ivan'
       }
       ops.push(op);
@@ -64,7 +63,7 @@ describe('Doc', () => {
       collectionName: collectionName,
       docId: docId,
       value: {
-        name: 'Vasya'
+        [field]: value
       }
     }
     ops.push(op);
@@ -81,10 +80,9 @@ describe('Doc', () => {
     ops.push(op);
 
     let doc = new Doc(docId, ops);
-    //doc.refreshState();
 
     assert.equal(doc.get('_id'), docId);
-    assert.equal(doc.get('name'), 'Vasya');
+    assert.equal(doc.get(field), value);
     assert.equal(doc.get('age'), 10);
     assert.equal(Object.keys(doc.get()).length, 3);
   });
@@ -99,7 +97,7 @@ describe('Doc', () => {
       collectionName: collectionName,
       docId: docId,
       value: {
-        name: 'Vasya'
+        [field]: value
       }
     }
     ops.push(op);
@@ -110,7 +108,7 @@ describe('Doc', () => {
       date: Date.now(),
       collectionName: collectionName,
       docId: docId,
-      field: 'name',
+      field: field,
       value: 'Ivan'
     }
     ops.push(op);
@@ -119,7 +117,7 @@ describe('Doc', () => {
     //doc.refreshState();
 
     assert.equal(doc.get('_id'), docId);
-    assert.equal(doc.get('name'), 'Ivan');
+    assert.equal(doc.get(field), 'Ivan');
     assert.equal(Object.keys(doc.get()).length, 2);
   });
 
@@ -133,7 +131,7 @@ describe('Doc', () => {
       collectionName: collectionName,
       docId: docId,
       value: {
-        name: 'Vasya'
+        [field]: value
       }
     }
     ops.push(op);
@@ -148,10 +146,9 @@ describe('Doc', () => {
     ops.push(op);
 
     let doc = new Doc(docId, ops);
-    //doc.refreshState();
 
     assert.equal(doc.get('_id'), undefined);
-    assert.equal(doc.get('name'), undefined);
+    assert.equal(doc.get(field), undefined);
     assert.equal(doc.get(), undefined);
   });
 
@@ -167,7 +164,7 @@ describe('Doc', () => {
       collectionName: collectionName,
       docId: docId,
       value: {
-        name: 'Vasya'
+        [field]: value
       }
     }
     ops.push(op);
@@ -178,7 +175,7 @@ describe('Doc', () => {
       date: date2,
       collectionName: collectionName,
       docId: docId,
-      field: 'name',
+      field: field,
       value: 'Ivan'
     }
     ops.push(op);
@@ -201,7 +198,7 @@ describe('Doc', () => {
       collectionName: collectionName,
       docId: docId,
       value: {
-        name: 'Vasya'
+        [field]: value
       }
     }
     ops.push(op);
@@ -212,7 +209,7 @@ describe('Doc', () => {
       date: date2,
       collectionName: collectionName,
       docId: docId,
-      field: 'name',
+      field: field,
       value: 'Ivan'
     }
     ops.push(op);
@@ -259,7 +256,7 @@ describe('Doc', () => {
       collectionName: collectionName,
       docId: docId,
       value: {
-        name: 'Vasya'
+        [field]: value
       }
     }
     ops.push(op);
@@ -270,7 +267,7 @@ describe('Doc', () => {
       date: date2,
       collectionName: collectionName,
       docId: docId,
-      field: 'name',
+      field: field,
       value: 'Ivan'
     }
     ops.push(op);
