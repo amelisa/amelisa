@@ -1,5 +1,5 @@
 import assert from 'assert';
-let { MemoryStorage, MongoStorage, ServerSocketChannel, Store } = require('../lib');
+import { MemoryStorage, MongoStorage, ServerSocketChannel, Store } from '../lib';
 import ServerChannel from '../lib/ServerChannel';
 import { source, collectionName, docId, field, value } from './util';
 

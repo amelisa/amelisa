@@ -4,6 +4,7 @@
   "description": "",
   "main": "lib/index.js",
   "scripts": {
+    "lint": "eslint lib",
     "test": "mocha --compilers js:babel/register"
   },
   "author": "",
