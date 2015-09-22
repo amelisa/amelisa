@@ -15,8 +15,13 @@ describe('Projection', () => {
     projection = new Projection(collectionName, dbCollectionName, fields);
   });
 
-  it('should project doc', () => {
+  it('should return hash', () => {
+    let hash = projection.getHash();
 
+    assert.equal(hash, '_id,name');
+  });
+
+  it('should project doc', () => {
     let doc = {
       _id: docId,
       name: value,
@@ -103,5 +108,90 @@ describe('Projection', () => {
     let projectedOp = projection.projectOp(op);
 
     assert(projectedOp);
+  });
+
+  it('should validate add op on right fields', () => {
+    let op = {
+      type: 'add',
+      value: {
+        _id: docId,
+        name: value
+      }
+    }
+
+    let error = projection.validateOp(op);
+
+    assert(!error);
+  });
+
+  it('should validate add op on wrong fields', () => {
+    let op = {
+      type: 'add',
+      value: {
+        _id: docId,
+        name: value,
+        age: 14,
+      }
+    }
+
+    let error = projection.validateOp(op);
+
+    assert(error);
+  });
+
+  it('should project set op on right field', () => {
+    let op = {
+      type: 'set',
+      field: 'name',
+      value: 'Petr'
+    }
+
+    let error = projection.validateOp(op);
+
+    assert(!error);
+  });
+
+  it('should project set op on right field', () => {
+    let op = {
+      type: 'set',
+      field: 'age',
+      value: 15
+    }
+
+    let error = projection.validateOp(op);
+
+    assert(error);
+  });
+
+  it('should project del op on right field', () => {
+    let op = {
+      type: 'del',
+      field: 'name'
+    }
+
+    let error = projection.validateOp(op);
+
+    assert(!error);
+  });
+
+  it('should project del op on right field', () => {
+    let op = {
+      type: 'del',
+      field: 'age'
+    }
+
+    let error = projection.validateOp(op);
+
+    assert(error);
+  });
+
+  it('should project del op without field', () => {
+    let op = {
+      type: 'del'
+    }
+
+    let error = projection.validateOp(op);
+
+    assert(!error);
   });
 });
