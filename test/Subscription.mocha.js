@@ -6,7 +6,7 @@ let storage;
 let store;
 let model;
 
-describe('Integration', () => {
+describe('Subscription', () => {
 
   beforeEach((done) => {
     storage = new MemoryStorage();
@@ -27,6 +27,10 @@ describe('Integration', () => {
     let subscription = model.subscribe(queries);
 
     subscription.on('change', () => {
+      let data = subscription.get();
+      assert.equal(Object.keys(data).length, 1);
+      assert.equal(data.doc, undefined);
+
       assert.equal(model.get(collectionName, docId), undefined);
       done();
     });
@@ -48,6 +52,11 @@ describe('Integration', () => {
       let subscription = model.subscribe(queries);
 
       subscription.on('change', () => {
+        let data = subscription.get();
+        assert.equal(Object.keys(data).length, 1);
+        assert(data.doc);
+        assert.equal(data.doc[field], value);
+
         assert.equal(model.get(collectionName, docId, field), value);
         done();
       });
@@ -62,13 +71,18 @@ describe('Integration', () => {
     let subscription = model.subscribe(queries);
 
     subscription.on('change', () => {
+      let data = subscription.get();
+      assert.equal(Object.keys(data).length, 1);
+      assert(data.query);
+      assert.equal(data.query.length, 0);
+
       let docs = model.query(collectionName, expression).get();
       assert.equal(docs.length, 0);
       done();
     });
   });
 
-  it.only('should subscribe query', (done) => {
+  it('should subscribe query', (done) => {
     let doc = {
       _id: docId,
       [field]: value
@@ -82,9 +96,49 @@ describe('Integration', () => {
       let subscription = model.subscribe(queries);
 
       subscription.on('change', () => {
+        let data = subscription.get();
+        assert.equal(Object.keys(data).length, 1);
+        assert(data.query);
+        assert.equal(data.query.length, 1);
+        assert.equal(data.query[0][field], value);
+
         let docs = model.query(collectionName, expression).get();
         assert.equal(docs.length, 1);
         assert.equal(docs[0][field], value);
+        done();
+      });
+    });
+  });
+
+  it('should subscribe doc and query', (done) => {
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+
+    model.add(collectionName, doc, (err) => {
+      let queries = {
+        doc: [collectionName, docId],
+        query: [collectionName, expression]
+      }
+
+      let subscription = model.subscribe(queries);
+
+      subscription.on('change', () => {
+        let data = subscription.get();
+        assert.equal(Object.keys(data).length, 2);
+        assert(data.doc);
+        assert(data.query);
+        assert.equal(data.doc[field], value);
+        assert.equal(data.query.length, 1);
+        assert.equal(data.query[0][field], value);
+
+        assert.equal(model.get(collectionName, docId, field), value);
+
+        let docs = model.query(collectionName, expression).get();
+        assert.equal(docs.length, 1);
+        assert.equal(docs[0][field], value);
+
         done();
       });
     });
