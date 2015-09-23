@@ -16,7 +16,9 @@ describe('multymodel', () => {
       .then(() => {
         store = new Store(storage);
         model = store.createModel();
+        model.source = 'model1';
         model2 = store.createModel();
+        model2.source = 'model2';
         done();
       });
   });

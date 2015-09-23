@@ -5,6 +5,10 @@
   "main": "lib/index.js",
   "scripts": {
     "lint": "eslint lib",
+    "load-generator": "babel-node test/load/generator.js",
+    "load-ops": "babel-node test/load/ops.js",
+    "load-subscriber": "babel-node test/load/subscriber.js",
+    "load-server": "babel-node test/load/server.js",
     "test": "mocha --compilers js:babel/register"
   },
   "author": "",
@@ -27,6 +31,9 @@
     "webpack": "^1.9.11"
   },
   "devDependencies": {
-    "mocha": "^2.3.0"
+    "express": "^4.13.3",
+    "express-ws": "^1.0.0-rc.1",
+    "mocha": "^2.3.0",
+    "ws": "^0.8.0"
   }
 }

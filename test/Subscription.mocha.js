@@ -6,7 +6,7 @@ let storage;
 let store;
 let model;
 
-describe('Subscription', () => {
+describe.only('Subscription', () => {
 
   beforeEach((done) => {
     storage = new MemoryStorage();
@@ -63,6 +63,35 @@ describe('Subscription', () => {
     });
   });
 
+  it('should subscribe add doc and ops', (done) => {
+    let queries = {
+      doc: [collectionName, docId]
+    }
+
+    let subscription = model.subscribe(queries);
+
+    subscription.once('change', () => {
+      let doc = {
+        _id: docId,
+        [field]: value
+      }
+
+      subscription.once('change', () => {
+        subscription.once('change', () => {
+          subscription.once('change', () => {
+            subscription.once('change', () => {
+              done();
+            });
+            model.del(collectionName, docId);
+          });
+          model.del(collectionName, docId, field);
+        });
+        model.set(collectionName, docId, field, value);
+      });
+      model.add(collectionName, doc);
+    });
+  });
+
   it('should subscribe empty query', (done) => {
     let queries = {
       query: [collectionName, expression]
@@ -110,6 +139,27 @@ describe('Subscription', () => {
     });
   });
 
+  it('should subscribe query and ops', (done) => {
+    let queries = {
+      query: [collectionName, expression]
+    }
+
+    let subscription = model.subscribe(queries);
+
+    subscription.once('change', () => {
+      let doc = {
+        _id: docId,
+        [field]: value
+      }
+
+      subscription.on('change', () => {
+        done();
+      });
+
+      model.add(collectionName, doc);
+    });
+  });
+
   it('should subscribe doc and query', (done) => {
     let doc = {
       _id: docId,
@@ -141,6 +191,29 @@ describe('Subscription', () => {
 
         done();
       });
+    });
+  });
+
+  it('should subscribe doc and query and ops', (done) => {
+    let queries = {
+      doc: [collectionName, docId],
+      query: [collectionName, expression]
+    }
+
+    let subscription = model.subscribe(queries);
+
+    subscription.once('change', () => {
+      let doc = {
+        _id: docId,
+        [field]: value
+      }
+
+      // TODO: could we emit change once?
+      subscription.once('change', () => {
+        done();
+      });
+
+      model.add(collectionName, doc);
     });
   });
 });
