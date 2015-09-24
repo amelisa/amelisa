@@ -62,6 +62,36 @@ describe('projections', () => {
     });
   });
 
+  it('should subscribe to projected query', (done) => {
+    let queries = {
+      query: [collectionName, expression]
+    }
+
+    let subscription = model.subscribe(queries);
+
+    subscription.once('change', () => {
+      let data = subscription.get();
+      assert(!data.query.length);
+
+      let doc = {
+        _id: docId,
+        [field]: value,
+        age: 14
+      }
+
+      model2.add(dbCollectionName, doc);
+
+      subscription.on('change', () => {
+        let docs = model.query(collectionName, expression).get();
+        assert.equal(docs.length, 1);
+        assert.equal(docs[0][field], value);
+        assert.equal(docs[0].age, undefined);
+
+        done();
+      });
+    });
+  });
+
   it('should add projected doc to projected collection', (done) => {
     let doc = {
       _id: docId,
