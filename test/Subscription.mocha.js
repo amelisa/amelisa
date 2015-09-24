@@ -6,7 +6,7 @@ let storage;
 let store;
 let model;
 
-describe.only('Subscription', () => {
+describe('Subscription', () => {
 
   beforeEach((done) => {
     storage = new MemoryStorage();

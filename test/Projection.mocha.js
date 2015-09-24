@@ -45,13 +45,13 @@ describe('Projection', () => {
       value: {
         _id: docId,
         name: value,
-        age: 14,
+        age: 14
       }
     }
 
     let projectedOp = projection.projectOp(op);
 
-    assert.equal(Object.keys(projectedOp).length, 2);
+    assert.equal(Object.keys(projectedOp.value).length, 2);
   });
 
   it('should project set op on right field', () => {
