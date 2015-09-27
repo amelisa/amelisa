@@ -2,7 +2,7 @@ import assert from 'assert';
 import ClientQuery from '../lib/ClientQuery';
 import Model from '../lib/Model';
 import ServerChannel from '../lib/ServerChannel';
-import { source, collectionName, docId, field, value } from './util';
+import { source, collectionName, localCollectionName, docId, field, value } from './util';
 
 let channel;
 let model;
@@ -103,6 +103,14 @@ describe('Model', () => {
       assert.equal(prev, value);
       let name = model.get(collectionName, docId, field);
       assert.equal(name, newValue);
+    });
+
+    it('should set on empty doc', () => {
+      let prev = model.set(collectionName, docId, field, value);
+
+      assert.equal(prev, undefined);
+      let name = model.get(collectionName, docId, field);
+      assert.equal(name, value);
     });
 
     it('should return query', () => {
