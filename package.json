@@ -9,7 +9,7 @@
     "load-ops": "babel-node test/load/ops.js",
     "load-subscriber": "babel-node test/load/subscriber.js",
     "load-server": "babel-node test/load/server.js",
-    "test": "mocha --compilers js:babel/register"
+    "test": "mocha --compilers js:babel/register \"test/**/*.mocha.js\""
   },
   "author": "",
   "license": "MIT",
