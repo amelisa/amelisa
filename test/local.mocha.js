@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { MemoryStorage, MongoStorage, ServerSocketChannel, Store } from '../lib';
-import { source, collectionName, docId, expression, field, value } from './util';
+import { source, collectionName, localCollectionName, docId, expression, field, value } from './util';
 import ServerChannel from '../lib/ServerChannel';
 
 let storage;
@@ -24,9 +24,9 @@ describe('local', () => {
       });
   });
 
-  it('should not send ops', (done) => {
+  it('should not send ops for local doc', (done) => {
     let queries = {
-      doc: [collectionName, docId]
+      doc: [localCollectionName, docId]
     }
 
     let subscription = model.subscribe(queries);
@@ -36,13 +36,35 @@ describe('local', () => {
       [field]: value
     }
 
-    model2.channel.emit('close');
-
-    model2.add('_' + collectionName, doc);
-    assert(model2.get('_' + collectionName, docId));
+    model2.add(localCollectionName, doc);
+    assert(model2.get(localCollectionName, docId));
+    assert.equal(model2.get(localCollectionName, docId, field), value);
 
     setTimeout(() => {
-      assert(!model.get('_' + collectionName, docId));
+      assert(!model.get(localCollectionName, docId));
+      done();
+    }, 10);
+  });
+
+  it('should not send ops for local query', (done) => {
+    let queries = {
+      query: [localCollectionName, expression]
+    }
+
+    let subscription = model.subscribe(queries);
+
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+
+    model2.add(localCollectionName, doc);
+    let docs = model2.getQuery(localCollectionName, expression);
+    assert.equal(docs.length, 1);
+    assert.equal(docs[0]._id, docId);
+
+    setTimeout(() => {
+      assert.equal(model.getQuery(localCollectionName, expression).length, 0);
       done();
     }, 10);
   });
