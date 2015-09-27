@@ -5,7 +5,7 @@ import { source, collectionName, docId, field, value } from './util';
 let mongoUrl = 'mongodb://localhost:27017/test';
 let storage = new MongoStorage(mongoUrl);
 
-describe('MongoStorage', () => {
+describe.skip('MongoStorage', () => {
 
   before(() => {
     return storage.init();

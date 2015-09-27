@@ -152,7 +152,7 @@ describe('Subscription', () => {
         [field]: value
       }
 
-      subscription.on('change', () => {
+      subscription.once('change', () => {
         done();
       });
 
