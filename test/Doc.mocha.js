@@ -36,6 +36,26 @@ describe('Doc', () => {
     assert.equal(doc.get(field), value);
   });
 
+  it('should get field that not exists', () => {
+    let ops = [];
+    let lastDate = Date.now();
+
+    let op = {
+      id: 'id',
+      source: source,
+      type: 'add',
+      date: lastDate,
+      collectionName: collectionName,
+      docId: docId,
+      value: {}
+    }
+    ops.push(op);
+
+    let doc = new Doc(docId, ops);
+
+    assert.equal(doc.get('notexists.name'), undefined);
+  });
+
   it('should get nested field', () => {
     let ops = [];
     let lastDate = Date.now();
