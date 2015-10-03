@@ -31,10 +31,11 @@ describe('Model', () => {
         [field]: value
       }
 
-      let newId = model.add(collectionName, doc);
+      model.add(collectionName, doc);
 
-      let name = model.get(collectionName, newId, field);
-      assert.equal(name, value);
+      let collectionData = model.get(collectionName);
+      assert.equal(Object.keys(collectionData).length, 1);
+      let newId = Object.keys(collectionData)[0];
       let newDoc = model.get(collectionName, newId);
       assert.equal(newDoc._id, newId);
       assert.equal(newDoc.name, doc.name);
@@ -46,8 +47,11 @@ describe('Model', () => {
         [field]: value
       }
 
-      let newId = model.add(collectionName, doc);
+      model.add(collectionName, doc);
 
+      let collectionData = model.get(collectionName);
+      assert.equal(Object.keys(collectionData).length, 1);
+      let newId = Object.keys(collectionData)[0];
       assert.equal(newId, docId);
       let name = model.get(collectionName, newId, field);
       assert.equal(name, value);
@@ -63,9 +67,8 @@ describe('Model', () => {
       }
       model.add(collectionName, doc);
 
-      let prev = model.del(collectionName, docId, field);
+      model.del([collectionName, docId, field]);
 
-      assert.equal(prev, value);
       let name = model.get(collectionName, docId, field);
       assert.equal(name, undefined);
       let newDoc = model.get(collectionName, docId);
@@ -80,17 +83,15 @@ describe('Model', () => {
       }
       model.add(collectionName, doc);
 
-      let prev = model.del(collectionName, docId);
+      model.del([collectionName, docId]);
 
-      assert.equal(prev._id, docId);
-      assert.equal(prev.name, doc.name);
       let newDoc = model.get(collectionName, docId);
       assert.equal(newDoc, undefined);
       let name = model.get(collectionName, docId, field);
       assert.equal(name, undefined);
     });
 
-    it('should set', () => {
+    it('should set when array', () => {
       let doc = {
         _id: docId,
         [field]: value
@@ -98,17 +99,43 @@ describe('Model', () => {
       model.add(collectionName, doc);
       let newValue = 'Vasya';
 
-      let prev = model.set(collectionName, docId, field, newValue);
+      model.set([collectionName, docId, field], newValue);
 
-      assert.equal(prev, value);
       let name = model.get(collectionName, docId, field);
       assert.equal(name, newValue);
     });
 
-    it('should set on empty doc', () => {
-      let prev = model.set(collectionName, docId, field, value);
+    it('should set when path', () => {
+      let doc = {
+        _id: docId,
+        [field]: value
+      }
+      model.add(collectionName, doc);
+      let newValue = 'Vasya';
 
-      assert.equal(prev, undefined);
+      model.set(`${collectionName}.${docId}.${field}`, newValue);
+
+      let name = model.get(collectionName, docId, field);
+      assert.equal(name, newValue);
+    });
+
+    it('should set doc', () => {
+      let doc = {
+        [field]: value
+      }
+
+      model.set([collectionName, docId], doc);
+
+      let newDoc = model.get(collectionName, docId);
+      assert.equal(newDoc._id, docId);
+      assert.equal(newDoc[field], value);
+      let name = model.get(collectionName, docId, field);
+      assert.equal(name, value);
+    });
+
+    it('should set on empty doc', () => {
+      model.set([collectionName, docId, field], value);
+
       let name = model.get(collectionName, docId, field);
       assert.equal(name, value);
     });
@@ -192,7 +219,7 @@ describe('Model', () => {
         done();
       }
 
-      model.set(collectionName, docId, field, value);
+      model.set([collectionName, docId, field], value);
     });
 
     it('should send op on del doc', (done) => {
@@ -208,7 +235,7 @@ describe('Model', () => {
         done();
       }
 
-      model.del(collectionName, docId);
+      model.del([collectionName, docId]);
     });
 
     it('should send op on del field', (done) => {
@@ -224,7 +251,7 @@ describe('Model', () => {
         done();
       }
 
-      model.del(collectionName, docId, field);
+      model.del([collectionName, docId, field]);
     });
   });
 });

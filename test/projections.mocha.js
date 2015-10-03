@@ -126,7 +126,7 @@ describe('projections', () => {
     model.add(collectionName, doc, (err) => {
       assert(!err);
 
-      model.set(collectionName, docId, field, 'Vasya', (err) => {
+      model.set([collectionName, docId, field], 'Vasya', (err) => {
         assert(!err);
         done();
       });
@@ -142,7 +142,7 @@ describe('projections', () => {
     model.add(collectionName, doc, (err) => {
       assert(!err);
 
-      model.set(collectionName, docId, 'age', 15, (err) => {
+      model.set([collectionName, docId, 'age'], 15, (err) => {
         assert(err);
         done();
       });

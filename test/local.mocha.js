@@ -25,47 +25,47 @@ describe('local', () => {
   });
 
   it('should not send ops for local doc', (done) => {
-    let queries = {
-      doc: [localCollectionName, docId]
-    }
+    let subscribes = [[localCollectionName, docId]];
 
-    let subscription = model.subscribe(queries);
+    model
+      .subscribe(subscribes)
+      .then((subscription) => {
+        let doc = {
+          _id: docId,
+          [field]: value
+        }
 
-    let doc = {
-      _id: docId,
-      [field]: value
-    }
+        model2.add(localCollectionName, doc);
+        assert(model2.get(localCollectionName, docId));
+        assert.equal(model2.get(localCollectionName, docId, field), value);
 
-    model2.add(localCollectionName, doc);
-    assert(model2.get(localCollectionName, docId));
-    assert.equal(model2.get(localCollectionName, docId, field), value);
-
-    setTimeout(() => {
-      assert(!model.get(localCollectionName, docId));
-      done();
-    }, 10);
+        setTimeout(() => {
+          assert(!model.get(localCollectionName, docId));
+          done();
+        }, 10);
+      });
   });
 
   it('should not send ops for local query', (done) => {
-    let queries = {
-      query: [localCollectionName, expression]
-    }
+    let subscribes = [[localCollectionName, expression]];
 
-    let subscription = model.subscribe(queries);
+    model
+      .subscribe(subscribes)
+      .then((subscription) => {
+        let doc = {
+          _id: docId,
+          [field]: value
+        }
 
-    let doc = {
-      _id: docId,
-      [field]: value
-    }
+        model2.add(localCollectionName, doc);
+        let docs = model2.getQuery(localCollectionName, expression);
+        assert.equal(docs.length, 1);
+        assert.equal(docs[0]._id, docId);
 
-    model2.add(localCollectionName, doc);
-    let docs = model2.getQuery(localCollectionName, expression);
-    assert.equal(docs.length, 1);
-    assert.equal(docs[0]._id, docId);
-
-    setTimeout(() => {
-      assert.equal(model.getQuery(localCollectionName, expression).length, 0);
-      done();
-    }, 10);
+        setTimeout(() => {
+          assert.equal(model.getQuery(localCollectionName, expression).length, 0);
+          done();
+        }, 10);
+      });
   });
 });
