@@ -194,4 +194,52 @@ describe('Subscription', () => {
         model.add(collectionName, doc);
       });
   });
+
+  it('should fetch doc when no array', (done) => {
+    model
+      .fetch(collectionName, docId)
+      .then(() => done());
+  });
+
+  it('should fetch doc when path', (done) => {
+    model
+      .fetch(`${collectionName}.${docId}`)
+      .then(() => done());
+  });
+
+  it('should fetch doc when array', (done) => {
+    model
+      .fetch([collectionName, docId])
+      .then(() => done());
+  });
+
+  it('should fetch doc when array of arrays', (done) => {
+    model
+      .fetch([[collectionName, docId]])
+      .then(() => done());
+  });
+
+  it('should subscribe doc when no array', (done) => {
+    model
+      .subscribe(collectionName, docId)
+      .then(() => done());
+  });
+
+  it('should subscribe doc when path', (done) => {
+    model
+      .subscribe(`${collectionName}.${docId}`)
+      .then(() => done());
+  });
+
+  it('should subscribe doc when array', (done) => {
+    model
+      .subscribe([collectionName, docId])
+      .then(() => done());
+  });
+
+  it('should subscribe doc when array of arrays', (done) => {
+    model
+      .subscribe([[collectionName, docId]])
+      .then(() => done());
+  });
 });
