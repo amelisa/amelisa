@@ -30,56 +30,56 @@ describe('multystore', () => {
   });
 
   it('should subscribe doc and get it', (done) => {
-    let queries = {
-      doc: [collectionName, docId]
-    }
+    let subscribes = [[collectionName, docId]];
 
-    let subscription = model.subscribe(queries);
-
-    subscription.once('change', () => {
-      let data = subscription.get();
-      assert(!data.doc);
-
-      let doc = {
-        _id: docId,
-        [field]: value
-      }
-
-      model2.add(collectionName, doc);
-
-      subscription.on('change', () => {
+    model
+      .subscribe(subscribes)
+      .then((subscription) => {
         let data = subscription.get();
-        assert(data.doc);
+        let doc = data[0]
+        assert(!doc);
 
-        done();
+        let docData = {
+          _id: docId,
+          [field]: value
+        }
+
+        model2.add(collectionName, docData);
+
+        subscription.on('change', () => {
+          let data = subscription.get();
+          doc = data[0];
+          assert(doc);
+
+          done();
+        });
       });
-    });
   });
 
   it('should subscribe query and get it', (done) => {
-    let queries = {
-      query: [collectionName, expression]
-    }
+    let subscribes = [[collectionName, expression]];
 
-    let subscription = model.subscribe(queries);
-
-    subscription.once('change', () => {
-      let data = subscription.get();
-      assert.equal(data.query.length, 0);
-
-      let doc = {
-        _id: docId,
-        [field]: value
-      }
-
-      model2.add(collectionName, doc);
-
-      subscription.on('change', () => {
+    model
+      .subscribe(subscribes)
+      .then((subscription) => {
         let data = subscription.get();
-        assert.equal(data.query.length, 1);
+        let query = data[0];
+        assert.equal(query.length, 0);
 
-        done();
+        let doc = {
+          _id: docId,
+          [field]: value
+        }
+
+        model2.add(collectionName, doc);
+
+        subscription.on('change', () => {
+          let data = subscription.get();
+          let query = data[0];
+          assert.equal(query.length, 1);
+
+          done();
+        });
       });
-    });
   });
 });

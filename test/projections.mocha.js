@@ -35,61 +35,59 @@ describe('projections', () => {
   });
 
   it('should subscribe to projected doc', (done) => {
-    let queries = {
-      doc: [collectionName, docId]
-    }
+    let subscribes = [[collectionName, docId]];
 
-    let subscription = model.subscribe(queries);
+    model
+      .subscribe(subscribes)
+      .then((subscription) => {
+        let data = subscription.get();
+        let doc = data[0];
+        assert(!doc);
 
-    subscription.once('change', () => {
-      let data = subscription.get();
-      assert(!data.doc);
+        let docData = {
+          _id: docId,
+          [field]: value,
+          age: 14
+        }
 
-      let doc = {
-        _id: docId,
-        [field]: value,
-        age: 14
-      }
+        model2.add(dbCollectionName, docData);
 
-      model2.add(dbCollectionName, doc);
+        subscription.on('change', () => {
+          assert(model.get(collectionName, docId, field));
+          assert(!model.get(collectionName, docId, 'age'));
 
-      subscription.on('change', () => {
-        assert(model.get(collectionName, docId, field));
-        assert(!model.get(collectionName, docId, 'age'));
-
-        done();
+          done();
+        });
       });
-    });
   });
 
   it('should subscribe to projected query', (done) => {
-    let queries = {
-      query: [collectionName, expression]
-    }
+    let subscribes = [[collectionName, expression]];
 
-    let subscription = model.subscribe(queries);
+    model
+      .subscribe(subscribes)
+      .then((subscription) => {
+        let data = subscription.get();
+        let query = data[0];
+        assert(!query.length);
 
-    subscription.once('change', () => {
-      let data = subscription.get();
-      assert(!data.query.length);
+        let doc = {
+          _id: docId,
+          [field]: value,
+          age: 14
+        }
 
-      let doc = {
-        _id: docId,
-        [field]: value,
-        age: 14
-      }
+        model2.add(dbCollectionName, doc);
 
-      model2.add(dbCollectionName, doc);
+        subscription.on('change', () => {
+          let docs = model.query(collectionName, expression).get();
+          assert.equal(docs.length, 1);
+          assert.equal(docs[0][field], value);
+          assert.equal(docs[0].age, undefined);
 
-      subscription.on('change', () => {
-        let docs = model.query(collectionName, expression).get();
-        assert.equal(docs.length, 1);
-        assert.equal(docs[0][field], value);
-        assert.equal(docs[0].age, undefined);
-
-        done();
+          done();
+        });
       });
-    });
   });
 
   it('should add projected doc to projected collection', (done) => {
@@ -98,10 +96,9 @@ describe('projections', () => {
       [field]: value
     }
 
-    model.add(collectionName, doc, (err) => {
-      assert(!err);
-      done();
-    });
+    model
+      .add(collectionName, doc)
+      .then(done);
   });
 
   it('should not add not projected doc to projected collection', (done) => {
@@ -111,10 +108,12 @@ describe('projections', () => {
       age: 14
     }
 
-    model.add(collectionName, doc, (err) => {
-      assert(err);
-      done();
-    });
+    model
+      .add(collectionName, doc)
+      .catch((err) => {
+        assert(err);
+        done();
+      });
   });
 
   it('should mutate on projected field in projected collection', (done) => {
@@ -123,14 +122,10 @@ describe('projections', () => {
       [field]: value
     }
 
-    model.add(collectionName, doc, (err) => {
-      assert(!err);
-
-      model.set([collectionName, docId, field], 'Vasya', (err) => {
-        assert(!err);
-        done();
-      });
-    });
+    model
+      .add(collectionName, doc)
+      .then(() => model.set([collectionName, docId, field], 'Vasya'))
+      .then(done);
   });
 
   it('should not mutate on not projected field in projected collection', (done) => {
@@ -139,13 +134,12 @@ describe('projections', () => {
       [field]: value
     }
 
-    model.add(collectionName, doc, (err) => {
-      assert(!err);
-
-      model.set([collectionName, docId, 'age'], 15, (err) => {
+    model
+      .add(collectionName, doc)
+      .then(() => model.set([collectionName, docId, 'age'], 15))
+      .catch((err) => {
         assert(err);
         done();
       });
-    });
   });
 });

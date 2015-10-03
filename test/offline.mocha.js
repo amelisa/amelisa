@@ -25,64 +25,64 @@ describe('offline', () => {
   });
 
   it('should send ops on online', (done) => {
-    let queries = {
-      doc: [collectionName, docId]
-    }
+    let subscribes = [[collectionName, docId]];
 
-    let subscription = model.subscribe(queries);
+    model
+      .subscribe(subscribes)
+      .then((subscription) => {
+        let doc = {
+          _id: docId,
+          [field]: value
+        }
 
-    let doc = {
-      _id: docId,
-      [field]: value
-    }
+        model2.channel.emit('close');
 
-    model2.channel.emit('close');
+        model2.add(collectionName, doc);
 
-    model2.add(collectionName, doc);
+        setTimeout(() => {
+          assert.equal(model.get(collectionName, docId), undefined);
 
-    setTimeout(() => {
-      assert(!model.get(collectionName, docId));
+          model2.channel.emit('open');
 
-      model2.channel.emit('open');
-
-      setTimeout(() => {
-        assert(model.get(collectionName, docId));
-        done();
-      }, 10);
-    }, 10);
+          setTimeout(() => {
+            assert(model.get(collectionName, docId));
+            done();
+          }, 10);
+        }, 10);
+      });
   });
 
   it('should receive ops on online', (done) => {
-    let queries = {
-      doc: [collectionName, docId]
-    }
+    let subscribes = [[collectionName, docId]];
 
-    let subscription = model.subscribe(queries);
-
-    setTimeout(() => {
-      let doc = {
-        _id: docId,
-        [field]: value
-      }
-
-      model.channel.emit('close');
-      model.channel.pipedChannel.emit('close');
-
-      model2.add(collectionName, doc);
-
-      setTimeout(() => {
-        assert(!model.get(collectionName, docId));
-
-        let channel2 = new ServerChannel();
-        model.channel.pipe(channel2).pipe(model.channel);
-        store.client(channel2);
-        model.channel.emit('open');
-
+    model
+      .subscribe(subscribes)
+      .then((subscription) => {
         setTimeout(() => {
-          assert(model.get(collectionName, docId));
-          done();
+          let doc = {
+            _id: docId,
+            [field]: value
+          }
+
+          model.channel.emit('close');
+          model.channel.pipedChannel.emit('close');
+
+          model2.add(collectionName, doc);
+
+          setTimeout(() => {
+            assert(!model.get(collectionName, docId));
+
+            let channel2 = new ServerChannel();
+            model.channel.pipe(channel2).pipe(model.channel);
+            store.client(channel2);
+            model.channel.emit('open');
+
+            setTimeout(() => {
+              assert(model.get(collectionName, docId));
+              done();
+            }, 10);
+          }, 10);
         }, 10);
-      }, 10);
-    }, 10);
+      });
   });
 });
