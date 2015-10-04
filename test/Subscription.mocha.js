@@ -8,39 +8,37 @@ let model;
 
 describe('Subscription', () => {
 
-  beforeEach((done) => {
+  beforeEach(() => {
     storage = new MemoryStorage();
-    storage
+    return storage
       .init()
       .then(() => {
         store = new Store(storage);
         model = store.createModel();
-        done();
       });
   });
 
-  it('should subscribe empty doc', (done) => {
+  it('should subscribe empty doc', () => {
     let subscribes = [[collectionName, docId]];
 
-    model
+    return model
       .subscribe(subscribes)
       .then((subscription) => {
         let data = subscription.get();
         assert.equal(data.length, 1);
         assert.equal(data[0], undefined);
         assert.equal(model.get(collectionName, docId), undefined);
-        done();
       });
   });
 
-  it('should subscribe doc', (done) => {
+  it('should subscribe doc', () => {
     let subscribes = [[collectionName, docId]];
     let doc = {
       _id: docId,
       [field]: value
     }
 
-    model
+    return model
       .add(collectionName, doc)
       .then(() => model.subscribe(subscribes))
       .then((subscription) => {
@@ -51,14 +49,13 @@ describe('Subscription', () => {
         assert.equal(doc[field], value);
 
         assert.equal(model.get(collectionName, docId, field), value);
-        done();
       });
   });
 
-  it('should subscribe add doc and ops', (done) => {
+  it('should subscribe add doc and ops', () => {
     let subscribes = [[collectionName, docId]];
 
-    model
+    return model
       .subscribe(subscribes)
       .then((subscription) => {
         let doc = {
@@ -66,26 +63,28 @@ describe('Subscription', () => {
           [field]: value
         }
 
-        subscription.once('change', () => {
+        return new Promise((resolve, reject) => {
           subscription.once('change', () => {
             subscription.once('change', () => {
               subscription.once('change', () => {
-                done();
+                subscription.once('change', () => {
+                  resolve();
+                });
+                model.del([collectionName, docId]);
               });
-              model.del([collectionName, docId]);
+              model.del([collectionName, docId, field]);
             });
-            model.del([collectionName, docId, field]);
+            model.set([collectionName, docId, field], value);
           });
-          model.set([collectionName, docId, field], value);
+          model.add(collectionName, doc);
         });
-        model.add(collectionName, doc);
       });
   });
 
-  it('should subscribe empty query', (done) => {
+  it('should subscribe empty query', () => {
     let subscribes = [[collectionName, expression]];
 
-    model
+    return model
       .subscribe(subscribes)
       .then((subscription) => {
         let data = subscription.get();
@@ -96,18 +95,17 @@ describe('Subscription', () => {
 
         let docs = model.query(collectionName, expression).get();
         assert.equal(docs.length, 0);
-        done();
       });
   });
 
-  it('should subscribe query', (done) => {
+  it('should subscribe query', () => {
     let subscribes = [[collectionName, expression]];
     let doc = {
       _id: docId,
       [field]: value
     }
 
-    model
+    return model
       .add(collectionName, doc)
       .then(() => model.subscribe(subscribes))
       .then((subscription) => {
@@ -121,14 +119,13 @@ describe('Subscription', () => {
         let docs = model.query(collectionName, expression).get();
         assert.equal(docs.length, 1);
         assert.equal(docs[0][field], value);
-        done();
       });
   });
 
-  it('should subscribe query and ops', (done) => {
+  it('should subscribe query and ops', () => {
     let subscribes = [[collectionName, expression]];
 
-    model
+    return model
       .subscribe(subscribes)
       .then((subscription) => {
         let doc = {
@@ -136,22 +133,24 @@ describe('Subscription', () => {
           [field]: value
         }
 
-        subscription.once('change', () => {
-          done();
-        });
+        return new Promise((resolve, reject) => {
+          subscription.once('change', () => {
+            resolve();
+          });
 
-        model.add(collectionName, doc);
+          model.add(collectionName, doc);
+        });
       });
   });
 
-  it('should subscribe doc and query', (done) => {
+  it('should subscribe doc and query', () => {
     let subscribes = [[collectionName, docId], [collectionName, expression]];
     let docData = {
       _id: docId,
       [field]: value
     }
 
-    model
+    return model
       .add(collectionName, docData)
       .then(() => model.subscribe(subscribes))
       .then((subscription) => {
@@ -170,15 +169,13 @@ describe('Subscription', () => {
         let docs = model.query(collectionName, expression).get();
         assert.equal(docs.length, 1);
         assert.equal(docs[0][field], value);
-
-        done();
       });
   });
 
-  it('should subscribe doc and query and ops', (done) => {
+  it('should subscribe doc and query and ops', () => {
     let subscribes = [[collectionName, docId], [collectionName, expression]];
 
-    model
+    return model
       .subscribe(subscribes)
       .then((subscription) => {
         let doc = {
@@ -186,60 +183,46 @@ describe('Subscription', () => {
           [field]: value
         }
 
-        // TODO: could we emit change once?
-        subscription.once('change', () => {
-          done();
-        });
+        return new Promise((resolve, reject) => {
+          // TODO: could we emit change once?
+          subscription.once('change', () => {
+            resolve();
+          });
 
-        model.add(collectionName, doc);
+          model.add(collectionName, doc);
+        });
       });
   });
 
-  it('should fetch doc when no array', (done) => {
-    model
-      .fetch(collectionName, docId)
-      .then(() => done());
+  it('should fetch doc when no array', () => {
+    return model.fetch(collectionName, docId);
   });
 
-  it('should fetch doc when path', (done) => {
-    model
-      .fetch(`${collectionName}.${docId}`)
-      .then(() => done());
+  it('should fetch doc when path', () => {
+    return model.fetch(`${collectionName}.${docId}`);
   });
 
-  it('should fetch doc when array', (done) => {
-    model
-      .fetch([collectionName, docId])
-      .then(() => done());
+  it('should fetch doc when array', () => {
+    return model.fetch([collectionName, docId]);
   });
 
-  it('should fetch doc when array of arrays', (done) => {
-    model
-      .fetch([[collectionName, docId]])
-      .then(() => done());
+  it('should fetch doc when array of arrays', () => {
+    return model.fetch([[collectionName, docId]]);
   });
 
-  it('should subscribe doc when no array', (done) => {
-    model
-      .subscribe(collectionName, docId)
-      .then(() => done());
+  it('should subscribe doc when no array', () => {
+    return model.subscribe(collectionName, docId);
   });
 
-  it('should subscribe doc when path', (done) => {
-    model
-      .subscribe(`${collectionName}.${docId}`)
-      .then(() => done());
+  it('should subscribe doc when path', () => {
+    return model.subscribe(`${collectionName}.${docId}`);
   });
 
-  it('should subscribe doc when array', (done) => {
-    model
-      .subscribe([collectionName, docId])
-      .then(() => done());
+  it('should subscribe doc when array', () => {
+    return model.subscribe([collectionName, docId]);
   });
 
-  it('should subscribe doc when array of arrays', (done) => {
-    model
-      .subscribe([[collectionName, docId]])
-      .then(() => done());
+  it('should subscribe doc when array of arrays', () => {
+    return model.subscribe([[collectionName, docId]]);
   });
 });

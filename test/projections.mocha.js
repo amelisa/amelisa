@@ -20,9 +20,9 @@ let options = {
 
 describe('projections', () => {
 
-  beforeEach((done) => {
+  beforeEach(() => {
     storage = new MemoryStorage();
-    storage
+    return storage
       .init()
       .then(() => {
         store = new Store(storage, null, null, options);
@@ -30,14 +30,13 @@ describe('projections', () => {
         model.source = 'model1';
         model2 = store.createModel();
         model2.source = 'model2';
-        done();
       });
   });
 
-  it('should subscribe to projected doc', (done) => {
+  it('should subscribe to projected doc', () => {
     let subscribes = [[collectionName, docId]];
 
-    model
+    return model
       .subscribe(subscribes)
       .then((subscription) => {
         let data = subscription.get();
@@ -50,21 +49,23 @@ describe('projections', () => {
           age: 14
         }
 
-        model2.add(dbCollectionName, docData);
+        return new Promise((resolve, reject) => {
+          model2.add(dbCollectionName, docData);
 
-        subscription.on('change', () => {
-          assert(model.get(collectionName, docId, field));
-          assert(!model.get(collectionName, docId, 'age'));
+          subscription.on('change', () => {
+            assert(model.get(collectionName, docId, field));
+            assert(!model.get(collectionName, docId, 'age'));
 
-          done();
+            resolve();
+          });
         });
       });
   });
 
-  it('should subscribe to projected query', (done) => {
+  it('should subscribe to projected query', () => {
     let subscribes = [[collectionName, expression]];
 
-    model
+    return model
       .subscribe(subscribes)
       .then((subscription) => {
         let data = subscription.get();
@@ -77,69 +78,66 @@ describe('projections', () => {
           age: 14
         }
 
-        model2.add(dbCollectionName, doc);
+        return new Promise((resolve, reject) => {
+          model2.add(dbCollectionName, doc);
 
-        subscription.on('change', () => {
-          let docs = model.query(collectionName, expression).get();
-          assert.equal(docs.length, 1);
-          assert.equal(docs[0][field], value);
-          assert.equal(docs[0].age, undefined);
+          subscription.on('change', () => {
+            let docs = model.query(collectionName, expression).get();
+            assert.equal(docs.length, 1);
+            assert.equal(docs[0][field], value);
+            assert.equal(docs[0].age, undefined);
 
-          done();
+            resolve();
+          });
         });
       });
   });
 
-  it('should add projected doc to projected collection', (done) => {
+  it('should add projected doc to projected collection', () => {
     let doc = {
       _id: docId,
       [field]: value
     }
 
-    model
-      .add(collectionName, doc)
-      .then(done);
+    return model.add(collectionName, doc);
   });
 
-  it('should not add not projected doc to projected collection', (done) => {
+  it('should not add not projected doc to projected collection', () => {
     let doc = {
       _id: docId,
       [field]: value,
       age: 14
     }
 
-    model
+    return model
       .add(collectionName, doc)
       .catch((err) => {
         assert(err);
-        done();
       });
   });
 
-  it('should mutate on projected field in projected collection', (done) => {
+  it('should mutate on projected field in projected collection', () => {
     let doc = {
       _id: docId,
       [field]: value
     }
 
-    model
+    return model
       .add(collectionName, doc)
-      .then(() => model.set([collectionName, docId, field], 'Vasya'))
-      .then(done);
+      .then(() => model.set([collectionName, docId, field], 'Vasya'));
   });
 
-  it('should not mutate on not projected field in projected collection', (done) => {
+  it('should not mutate on not projected field in projected collection', () => {
     let doc = {
       _id: docId,
       [field]: value
     }
 
-    model
+    return model
       .add(collectionName, doc)
       .then(() => model.set([collectionName, docId, 'age'], 15))
       .catch((err) => {
         assert(err);
-        done();
       });
   });
 });

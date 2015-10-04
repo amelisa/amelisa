@@ -216,67 +216,72 @@ describe('Model', () => {
       model.online = true;
     });
 
-    it('should send op on add', (done) => {
+    it('should send op on add', () => {
       let doc = {
         _id: docId,
         [field]: value
       }
 
-      channel.send = (op) => {
-        assert(op);
-        assert.equal(op.type, 'add');
-        done();
-      }
+      return new Promise((resolve, reject) => {
+        channel.send = (op) => {
+          assert(op);
+          assert.equal(op.type, 'add');
+          resolve();
+        }
 
-      model.add(collectionName, doc);
+        model.add(collectionName, doc);
+      });
     });
 
-    it('should send op on set', (done) => {
+    it('should send op on set', () => {
       let doc = {
         _id: docId,
         [field]: value
       }
-      model.add(collectionName, doc);
 
-      channel.send = (op) => {
-        assert(op);
-        assert.equal(op.type, 'set');
-        done();
-      }
+      return new Promise((resolve, reject) => {
+        channel.send = (op) => {
+          assert(op);
+          assert.equal(op.type, 'set');
+          resolve();
+        }
 
-      model.set([collectionName, docId, field], value);
+        model.set([collectionName, docId, field], value);
+      });
     });
 
-    it('should send op on del doc', (done) => {
+    it('should send op on del doc', () => {
       let doc = {
         _id: docId,
         [field]: value
       }
-      model.add(collectionName, doc);
 
-      channel.send = (op) => {
-        assert(op);
-        assert.equal(op.type, 'del');
-        done();
-      }
+      return new Promise((resolve, reject) => {
+        channel.send = (op) => {
+          assert(op);
+          assert.equal(op.type, 'del');
+          resolve();
+        }
 
-      model.del([collectionName, docId]);
+        model.del([collectionName, docId]);
+      });
     });
 
-    it('should send op on del field', (done) => {
+    it('should send op on del field', () => {
       let doc = {
         _id: docId,
         [field]: value
       }
-      model.add(collectionName, doc);
 
-      channel.send = (op) => {
-        assert(op);
-        assert.equal(op.type, 'del');
-        done();
-      }
+      return new Promise((resolve, reject) => {
+        channel.send = (op) => {
+          assert(op);
+          assert.equal(op.type, 'del');
+          resolve();
+        }
 
-      model.del([collectionName, docId, field]);
+        model.del([collectionName, docId, field]);
+      });
     });
   });
 });

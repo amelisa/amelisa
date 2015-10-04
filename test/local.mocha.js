@@ -10,9 +10,9 @@ let model2;
 
 describe('local', () => {
 
-  beforeEach((done) => {
+  beforeEach(() => {
     storage = new MemoryStorage();
-    storage
+    return storage
       .init()
       .then(() => {
         store = new Store(storage);
@@ -20,14 +20,13 @@ describe('local', () => {
         model.source = 'model1';
         model2 = store.createModel();
         model2.source = 'model2';
-        done();
       });
   });
 
-  it('should not send ops for local doc', (done) => {
+  it('should not send ops for local doc', () => {
     let subscribes = [[localCollectionName, docId]];
 
-    model
+    return model
       .subscribe(subscribes)
       .then((subscription) => {
         let doc = {
@@ -39,17 +38,19 @@ describe('local', () => {
         assert(model2.get(localCollectionName, docId));
         assert.equal(model2.get(localCollectionName, docId, field), value);
 
-        setTimeout(() => {
-          assert(!model.get(localCollectionName, docId));
-          done();
-        }, 10);
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            assert(!model.get(localCollectionName, docId));
+            resolve();
+          }, 10);
+        });
       });
   });
 
-  it('should not send ops for local query', (done) => {
+  it('should not send ops for local query', () => {
     let subscribes = [[localCollectionName, expression]];
 
-    model
+    return model
       .subscribe(subscribes)
       .then((subscription) => {
         let doc = {
@@ -62,10 +63,12 @@ describe('local', () => {
         assert.equal(docs.length, 1);
         assert.equal(docs[0]._id, docId);
 
-        setTimeout(() => {
-          assert.equal(model.getQuery(localCollectionName, expression).length, 0);
-          done();
-        }, 10);
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            assert.equal(model.getQuery(localCollectionName, expression).length, 0);
+            resolve();
+          }, 10);
+        });
       });
   });
 });

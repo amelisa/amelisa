@@ -13,26 +13,25 @@ let model2;
 
 describe('multystore', () => {
 
-  beforeEach((done) => {
+  beforeEach(() => {
     storage = new MemoryStorage();
     channel = new ServerChannel();
     channel2 = new ServerChannel();
     channel.pipe(channel2).pipe(channel);
-    storage
+    return storage
       .init()
       .then(() => {
         store = new Store(storage, channel, channel2, {source: 'store1'});
         store2 = new Store(storage, channel, channel2, {source: 'store2'});
         model = store.createModel();
         model2 = store2.createModel();
-        done();
       });
   });
 
-  it('should subscribe doc and get it', (done) => {
+  it('should subscribe doc and get it', () => {
     let subscribes = [[collectionName, docId]];
 
-    model
+    return model
       .subscribe(subscribes)
       .then((subscription) => {
         let data = subscription.get();
@@ -44,22 +43,24 @@ describe('multystore', () => {
           [field]: value
         }
 
-        model2.add(collectionName, docData);
+        return new Promise((resolve, reject) => {
+          subscription.on('change', () => {
+            let data = subscription.get();
+            doc = data[0];
+            assert(doc);
 
-        subscription.on('change', () => {
-          let data = subscription.get();
-          doc = data[0];
-          assert(doc);
+            resolve();
+          });
 
-          done();
+          model2.add(collectionName, docData);
         });
       });
   });
 
-  it('should subscribe query and get it', (done) => {
+  it('should subscribe query and get it', () => {
     let subscribes = [[collectionName, expression]];
 
-    model
+    return model
       .subscribe(subscribes)
       .then((subscription) => {
         let data = subscription.get();
@@ -71,14 +72,16 @@ describe('multystore', () => {
           [field]: value
         }
 
-        model2.add(collectionName, doc);
+        return new Promise((resolve, reject) => {
+          subscription.on('change', () => {
+            let data = subscription.get();
+            let query = data[0];
+            assert.equal(query.length, 1);
 
-        subscription.on('change', () => {
-          let data = subscription.get();
-          let query = data[0];
-          assert.equal(query.length, 1);
+            resolve();
+          });
 
-          done();
+          model2.add(collectionName, doc);
         });
       });
   });

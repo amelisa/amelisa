@@ -10,9 +10,9 @@ let model2;
 
 describe('offline', () => {
 
-  beforeEach((done) => {
+  beforeEach(() => {
     storage = new MemoryStorage();
-    storage
+    return storage
       .init()
       .then(() => {
         store = new Store(storage);
@@ -20,14 +20,13 @@ describe('offline', () => {
         model.source = 'model1';
         model2 = store.createModel();
         model2.source = 'model2';
-        done();
       });
   });
 
-  it('should send ops on online', (done) => {
+  it('should send ops on online', () => {
     let subscribes = [[collectionName, docId]];
 
-    model
+    return model
       .subscribe(subscribes)
       .then((subscription) => {
         let doc = {
@@ -39,50 +38,54 @@ describe('offline', () => {
 
         model2.add(collectionName, doc);
 
-        setTimeout(() => {
-          assert.equal(model.get(collectionName, docId), undefined);
-
-          model2.channel.emit('open');
-
+        return new Promise((resolve, reject) => {
           setTimeout(() => {
-            assert(model.get(collectionName, docId));
-            done();
-          }, 10);
-        }, 10);
-      });
-  });
+            assert.equal(model.get(collectionName, docId), undefined);
 
-  it('should receive ops on online', (done) => {
-    let subscribes = [[collectionName, docId]];
-
-    model
-      .subscribe(subscribes)
-      .then((subscription) => {
-        setTimeout(() => {
-          let doc = {
-            _id: docId,
-            [field]: value
-          }
-
-          model.channel.emit('close');
-          model.channel.pipedChannel.emit('close');
-
-          model2.add(collectionName, doc);
-
-          setTimeout(() => {
-            assert(!model.get(collectionName, docId));
-
-            let channel2 = new ServerChannel();
-            model.channel.pipe(channel2).pipe(model.channel);
-            store.client(channel2);
-            model.channel.emit('open');
+            model2.channel.emit('open');
 
             setTimeout(() => {
               assert(model.get(collectionName, docId));
-              done();
+              resolve();
             }, 10);
           }, 10);
-        }, 10);
+        });
+      });
+  });
+
+  it('should receive ops on online', () => {
+    let subscribes = [[collectionName, docId]];
+
+    return model
+      .subscribe(subscribes)
+      .then((subscription) => {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            let doc = {
+              _id: docId,
+              [field]: value
+            }
+
+            model.channel.emit('close');
+            model.channel.pipedChannel.emit('close');
+
+            model2.add(collectionName, doc);
+
+            setTimeout(() => {
+              assert(!model.get(collectionName, docId));
+
+              let channel2 = new ServerChannel();
+              model.channel.pipe(channel2).pipe(model.channel);
+              store.client(channel2);
+              model.channel.emit('open');
+
+              setTimeout(() => {
+                assert(model.get(collectionName, docId));
+                resolve();
+              }, 10);
+            }, 10);
+          }, 10);
+        });
       });
   });
 });

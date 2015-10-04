@@ -9,9 +9,9 @@ let model2;
 
 describe('multymodel', () => {
 
-  beforeEach((done) => {
+  beforeEach(() => {
     storage = new MemoryStorage();
-    storage
+    return storage
       .init()
       .then(() => {
         store = new Store(storage);
@@ -19,14 +19,13 @@ describe('multymodel', () => {
         model.source = 'model1';
         model2 = store.createModel();
         model2.source = 'model2';
-        done();
       });
   });
 
-  it('should subscribe doc and get it', (done) => {
+  it('should subscribe doc and get it', () => {
     let subscribes = [[collectionName, docId]];
 
-    model
+    return model
       .subscribe(subscribes)
       .then((subscription) => {
         let data = subscription.get();
@@ -38,22 +37,23 @@ describe('multymodel', () => {
           [field]: value
         }
 
-        model2.add(collectionName, docData);
+        return new Promise((resolve, reject) => {
+          subscription.on('change', () => {
+            let data = subscription.get();
+            let doc = data[0]
+            assert(doc);
+            resolve();
+          });
 
-        subscription.on('change', () => {
-          let data = subscription.get();
-          let doc = data[0]
-          assert(doc);
-
-          done();
+          model2.add(collectionName, docData);
         });
       });
   });
 
-  it('should subscribe query and get it', (done) => {
+  it('should subscribe query and get it', () => {
     let subscribes = [[collectionName, expression]];
 
-    model
+    return model
       .subscribe(subscribes)
       .then((subscription) => {
         let data = subscription.get();
@@ -65,15 +65,18 @@ describe('multymodel', () => {
           [field]: value
         }
 
-        model2.add(collectionName, doc);
+        return new Promise((resolve, reject) => {
+          subscription.on('change', () => {
+            let data = subscription.get();
+            query = data[0];
+            assert.equal(query.length, 1);
 
-        subscription.on('change', () => {
-          let data = subscription.get();
-          query = data[0];
-          assert.equal(query.length, 1);
+            resolve();
+          });
 
-          done();
+          model2.add(collectionName, doc);
         });
+
       });
   });
 });

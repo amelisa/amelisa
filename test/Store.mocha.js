@@ -9,9 +9,9 @@ let channel;
 
 describe('Store', () => {
 
-  beforeEach((done) => {
+  beforeEach(() => {
     storage = new MemoryStorage();
-    storage
+    return storage
       .init()
       .then(() => {
 
@@ -20,11 +20,10 @@ describe('Store', () => {
         let channel2 = new ServerChannel();
         channel.pipe(channel2).pipe(channel);
         store.client(channel2);
-        done();
       });
   });
 
-  it('should sub to empty doc', (done) => {
+  it('should sub to empty doc', () => {
     let op = {
       type: 'sub',
       collectionName: collectionName,
@@ -32,15 +31,17 @@ describe('Store', () => {
       version: '1'
     };
 
-    channel.on('message', (message) => {
-      assert.equal(message.type, op.type);
-      done();
-    })
+    return new Promise((resolve, reject) => {
+      channel.once('message', (message) => {
+        assert.equal(message.type, op.type);
+        resolve();
+      });
 
-    channel.send(op);
+      channel.send(op);
+    });
   });
 
-  it('should sub to doc', (done) => {
+  it('should sub to doc', () => {
     let op = {
       type: 'sub',
       collectionName: collectionName,
@@ -54,16 +55,17 @@ describe('Store', () => {
       name: 'name'
     };
     let ops = [];
-    storage
+    return storage
       .saveDoc(collectionName, docId, prevVersion, version, state, ops)
       .then(() => {
-        channel.on('message', (message) => {
-          assert.equal(message.type, op.type);
-          done();
+        return new Promise((resolve, reject) => {
+          channel.once('message', (message) => {
+            assert.equal(message.type, op.type);
+            resolve();
+          });
+
+          channel.send(op);
         });
-
-        channel.send(op);
       });
-
   });
 });
