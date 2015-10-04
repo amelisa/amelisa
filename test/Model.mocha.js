@@ -133,6 +133,31 @@ describe('Model', () => {
       assert.equal(name, value);
     });
 
+    it('should set value as doc', () => {
+      model.set([collectionName, docId], value);
+
+      let newDoc = model.get(collectionName, docId);
+      assert.equal(newDoc, value);
+    });
+
+    it('should set value as doc on local collection', () => {
+      model.set([localCollectionName, docId], value);
+
+      let newDoc = model.get(localCollectionName, docId);
+      assert.equal(newDoc, value);
+      let collectionData = model.get(localCollectionName);
+      assert.equal(collectionData[docId], value);
+    });
+
+    it('should set value as doc on local collection when not array', () => {
+      model.set(`${collectionName}.${docId}`, value);
+
+      let newDoc = model.get(`${collectionName}.${docId}`);
+      assert.equal(newDoc, value);
+      let collectionData = model.get(collectionName);
+      assert.equal(collectionData[docId], value);
+    });
+
     it('should set on empty doc', () => {
       model.set([collectionName, docId, field], value);
 
