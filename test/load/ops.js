@@ -12,16 +12,20 @@ createClient()
         name: null
       }
 
-      model.add('items', doc, (err) => {
-        console.log('item created', err);
-      });
+      model
+        .add('items', doc)
+        .then(() => {
+          console.log('item created');
+        });
     }
 
     function mutateDoc() {
-      model.set('items', '1', 'name', index++, (err) => {
-        count++;
-        mutateDoc();
-      });
+      model
+        .set('items', '1', 'name', index++)
+        .then(() => {
+          count++;
+          mutateDoc();
+        });
     }
 
     function showCount() {

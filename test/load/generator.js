@@ -11,10 +11,11 @@ createClient()
         name: index++
       }
 
-      model.add('items', doc, (err) => {
-        // console.log('item created', err, Date.now() - start);
-        count++;
-      });
+      model
+        .add('items', doc)
+        .then(() => {
+          count++;
+        });
     }
 
     function showCount() {
