@@ -1,6 +1,7 @@
 import assert from 'assert';
 import { MemoryStorage, MongoStorage, ServerSocketChannel, Store } from '../lib';
-import { source, collectionName, dbCollectionName, docId, expression, field, value } from './util';
+import { source, collectionName, dbCollectionName, docId, expression, countExpression, field, value } from './util';
+import ServerChannel from '../lib/ServerChannel';
 
 let storage;
 let store;
@@ -138,6 +139,146 @@ describe('projections', () => {
       .then(() => model.set([collectionName, docId, 'age'], 15))
       .catch((err) => {
         assert(err);
+      });
+  });
+
+  it('should send and receive ops on online when subscribed to projected doc', () => {
+    let subscribes = [[collectionName, docId]];
+
+    return model
+      .subscribe(subscribes)
+      .then((subscription) => {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            let doc = {
+              _id: docId,
+              [field]: value
+            }
+
+            model.channel.emit('close');
+            model.channel.pipedChannel.emit('close');
+
+            model2.channel.emit('close');
+            model2.channel.pipedChannel.emit('close');
+
+            model2.add(collectionName, doc);
+
+            setTimeout(() => {
+              assert(!model.get(collectionName, docId));
+
+              let channel2 = new ServerChannel();
+              model.channel.pipe(channel2).pipe(model.channel);
+              store.client(channel2);
+              model.channel.emit('open');
+
+              let channel3 = new ServerChannel();
+              model2.channel.pipe(channel3).pipe(model2.channel);
+              store.client(channel3);
+              model2.channel.emit('open');
+
+              setTimeout(() => {
+                assert(model.get(collectionName, docId));
+                resolve();
+              }, 10);
+            }, 10);
+          }, 10);
+        });
+      });
+  });
+
+  it('should send and receive ops on online when subscribed to projected query', () => {
+    let subscribes = [[collectionName, expression]];
+
+    return model
+      .subscribe(subscribes)
+      .then((subscription) => {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            let doc = {
+              _id: docId,
+              [field]: value
+            }
+
+            model.channel.emit('close');
+            model.channel.pipedChannel.emit('close');
+
+            model2.channel.emit('close');
+            model2.channel.pipedChannel.emit('close');
+
+            model2.add(collectionName, doc);
+
+            setTimeout(() => {
+              assert.equal(model.getQuery(collectionName, expression).length, 0);
+
+              let channel3 = new ServerChannel();
+              model2.channel.pipe(channel3).pipe(model2.channel);
+              store.client(channel3);
+              model2.channel.emit('open');
+
+              setTimeout(() => {
+                assert.equal(model.getQuery(collectionName, expression).length, 0);
+
+                let channel2 = new ServerChannel();
+                model.channel.pipe(channel2).pipe(model.channel);
+                store.client(channel2);
+                model.channel.emit('open');
+
+                setTimeout(() => {
+                  assert.equal(model.getQuery(collectionName, expression).length, 1);
+                  resolve();
+                }, 10);
+              }, 10);
+            }, 10);
+          }, 10);
+        });
+      });
+  });
+
+  it('should send and receive ops on online when subscribed to projected count query', () => {
+    let subscribes = [[collectionName, countExpression]];
+
+    return model
+      .subscribe(subscribes)
+      .then((subscription) => {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            let doc = {
+              _id: docId,
+              [field]: value
+            }
+
+            model.channel.emit('close');
+            model.channel.pipedChannel.emit('close');
+
+            model2.channel.emit('close');
+            model2.channel.pipedChannel.emit('close');
+
+            model2.add(collectionName, doc);
+
+            setTimeout(() => {
+              assert.equal(model.getQuery(collectionName, countExpression), 0);
+
+              let channel3 = new ServerChannel();
+              model2.channel.pipe(channel3).pipe(model2.channel);
+              store.client(channel3);
+              model2.channel.emit('open');
+
+              setTimeout(() => {
+                assert.equal(model.getQuery(collectionName, countExpression), 0);
+
+                let channel2 = new ServerChannel();
+                model.channel.pipe(channel2).pipe(model.channel);
+                store.client(channel2);
+                model.channel.emit('open');
+
+                setTimeout(() => {
+                  assert.equal(model.getQuery(collectionName, countExpression), 1);
+                  resolve();
+                }, 10);
+              }, 10);
+            }, 10);
+          }, 10);
+        });
       });
   });
 });
