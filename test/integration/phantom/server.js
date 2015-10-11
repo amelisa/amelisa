@@ -1,18 +1,11 @@
-process.env.DEBUG = '*,-express:*';
 let http = require('http');
-let { MongoStorage, RedisChannel, ServerSocketChannel, Store } = require('../../lib');
-/*
-import http from 'http';
-import ws from 'ws';
-import { MongoStorage, Store } from 'engine';
-import app from './server/app';
-*/
+let { MongoStorage, MemoryStorage, RedisChannel, ServerSocketChannel, Store } = require('../../../lib');
 
-let port = 6003; // 3010 + Math.floor(Math.random() * 10);
-let mongoUrl = 'mongodb://localhost:27017/test';
-let redisUrl = 'redis://localhost:6379/13';
+const mongoUrl = 'mongodb://localhost:27017/test';
+const redisUrl = 'redis://localhost:6379/13';
 
-let storage = new MongoStorage(mongoUrl);
+// let storage = new MongoStorage(mongoUrl);
+let storage = new MemoryStorage();
 let redis = new RedisChannel(redisUrl);
 let pubsub = new RedisChannel(redisUrl);
 
@@ -56,9 +49,8 @@ export default function(serverDone) {
         done();
       }
 
-      let url = 'localhost:' + port;
       let httpServer = http.createServer();
-      let app = require('./app')(store, httpServer, mongoUrl, url);
+      let app = require('./app')(store, httpServer, mongoUrl);
       app.ws('/', (client, req) => {
         let channel = new ServerSocketChannel(client, req);
         store.client(channel);
@@ -66,13 +58,6 @@ export default function(serverDone) {
 
       httpServer.on('request', app);
 
-      httpServer.listen(port, (err) => {
-        if (err) {
-          console.error('Can\'t start server, Error:', err);
-        } else {
-          console.info(`${process.pid} listening. Go to: http://localhost:${port}`);
-        }
-        serverDone(err, url, httpServer);
-      });
+      serverDone(null, httpServer, store);
     });
 }

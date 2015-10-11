@@ -32,7 +32,8 @@ describe('Store', () => {
     };
 
     return new Promise((resolve, reject) => {
-      channel.once('message', (message) => {
+      channel.on('message', (message) => {
+        if (message.type !== 'sub') return;
         assert.equal(message.type, op.type);
         resolve();
       });
@@ -59,7 +60,8 @@ describe('Store', () => {
       .saveDoc(collectionName, docId, prevVersion, version, state, ops)
       .then(() => {
         return new Promise((resolve, reject) => {
-          channel.once('message', (message) => {
+          channel.on('message', (message) => {
+            if (message.type !== 'sub') return;
             assert.equal(message.type, op.type);
             resolve();
           });
