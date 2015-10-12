@@ -32,6 +32,6 @@ describe('HtmlLayout', () => {
 
   it('should render empty bundle json', () => {
     let html = React.renderToString(React.createElement(Root, {model}));
-    assert(html.indexOf('{"collections":{}}') > -1)
+    assert(html.indexOf('{"collections":{') > -1)
   });
 });
