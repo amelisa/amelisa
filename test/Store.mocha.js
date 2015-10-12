@@ -19,7 +19,7 @@ describe('Store', () => {
         channel = new ServerChannel();
         let channel2 = new ServerChannel();
         channel.pipe(channel2).pipe(channel);
-        store.client(channel2);
+        store.onChannel(channel2);
       });
   });
 

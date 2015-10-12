@@ -53,7 +53,7 @@ export default function(serverDone) {
       let app = require('./app')(store, httpServer, mongoUrl);
       app.ws('/', (client, req) => {
         let channel = new ServerSocketChannel(client, req);
-        store.client(channel);
+        store.onChannel(channel);
       });
 
       httpServer.on('request', app);

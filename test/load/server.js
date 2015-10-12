@@ -25,7 +25,7 @@ storage
 
     app.ws('/', (client, req) => {
       let channel = new ServerSocketChannel(client, req);
-      store.client(channel);
+      store.onChannel(channel);
     });
 
     httpServer.on('request', app);

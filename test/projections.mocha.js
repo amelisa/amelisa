@@ -168,12 +168,12 @@ describe('projections', () => {
 
               let channel2 = new ServerChannel();
               model.channel.pipe(channel2).pipe(model.channel);
-              store.client(channel2);
+              store.onChannel(channel2);
               model.channel.emit('open');
 
               let channel3 = new ServerChannel();
               model2.channel.pipe(channel3).pipe(model2.channel);
-              store.client(channel3);
+              store.onChannel(channel3);
               model2.channel.emit('open');
 
               setTimeout(() => {
@@ -212,7 +212,7 @@ describe('projections', () => {
 
               let channel3 = new ServerChannel();
               model2.channel.pipe(channel3).pipe(model2.channel);
-              store.client(channel3);
+              store.onChannel(channel3);
               model2.channel.emit('open');
 
               setTimeout(() => {
@@ -220,7 +220,7 @@ describe('projections', () => {
 
                 let channel2 = new ServerChannel();
                 model.channel.pipe(channel2).pipe(model.channel);
-                store.client(channel2);
+                store.onChannel(channel2);
                 model.channel.emit('open');
 
                 setTimeout(() => {
@@ -260,7 +260,7 @@ describe('projections', () => {
 
               let channel3 = new ServerChannel();
               model2.channel.pipe(channel3).pipe(model2.channel);
-              store.client(channel3);
+              store.onChannel(channel3);
               model2.channel.emit('open');
 
               setTimeout(() => {
@@ -268,7 +268,7 @@ describe('projections', () => {
 
                 let channel2 = new ServerChannel();
                 model.channel.pipe(channel2).pipe(model.channel);
-                store.client(channel2);
+                store.onChannel(channel2);
                 model.channel.emit('open');
 
                 setTimeout(() => {
