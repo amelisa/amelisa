@@ -7,7 +7,7 @@ let storage;
 let store;
 let model;
 
-class Root extends RootComponent{
+class Root extends RootComponent {
 
   render() {
     return (
