@@ -79,4 +79,42 @@ describe('multymodel', () => {
 
       });
   });
+
+  it('should subscribe query, and get doc changes', () => {
+    let subscribes = [[collectionName, expression]];
+    let value2 = 'value2';
+
+    return model
+      .subscribe(subscribes)
+      .then((subscription) => {
+        let data = subscription.get();
+        let query = data[0];
+        assert.equal(query.length, 0);
+
+        let doc = {
+          _id: docId,
+          [field]: value
+        }
+
+        return new Promise((resolve, reject) => {
+          subscription.once('change', () => {
+            let data = subscription.get();
+            query = data[0];
+            assert.equal(query.length, 1);
+
+            subscription.on('change', () => {
+              assert.equal(model.get(collectionName, docId, field), value2);
+
+              resolve();
+            });
+
+            model2.set([collectionName, docId, field], value2);
+
+          });
+
+          model2.add(collectionName, doc);
+        });
+
+      });
+  });
 });
