@@ -18,7 +18,7 @@ describe('MemoryStorage', () => {
     };
     let ops = [];
     return storage
-      .saveDoc(collectionName, docId, prevVersion, version, state, ops)
+      .saveDoc(collectionName, docId, state, prevVersion, version, ops)
       .then(() => {
         return storage
           .getDocById(collectionName, docId)
@@ -39,7 +39,7 @@ describe('MemoryStorage', () => {
     };
     let ops = [];
     return storage
-      .saveDoc(collectionName, docId, prevVersion, version, state, ops)
+      .saveDoc(collectionName, docId, state, prevVersion, version, ops)
       .then(() => {
         return storage
           .getDocsByQuery(collectionName, {[field]: value})

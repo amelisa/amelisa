@@ -23,7 +23,7 @@ describe.skip('MongoStorage', () => {
     };
     let ops = [];
     return storage
-      .saveDoc(collectionName, docId, prevVersion, version, state, ops)
+      .saveDoc(collectionName, docId, state, prevVersion, version, ops)
       .then(() => {
         return storage
           .getDocById(collectionName, docId)
@@ -44,7 +44,7 @@ describe.skip('MongoStorage', () => {
     };
     let ops = [];
     return storage
-      .saveDoc(collectionName, docId, prevVersion, version, state, ops)
+      .saveDoc(collectionName, docId, state, prevVersion, version, ops)
       .then(() => {
         return storage
           .getDocsByQuery(collectionName, {[field]: value})

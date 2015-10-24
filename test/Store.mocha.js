@@ -57,7 +57,7 @@ describe('Store', () => {
     };
     let ops = [];
     return storage
-      .saveDoc(collectionName, docId, prevVersion, version, state, ops)
+      .saveDoc(collectionName, docId, state, prevVersion, version, ops)
       .then(() => {
         return new Promise((resolve, reject) => {
           channel.on('message', (message) => {
