@@ -175,7 +175,7 @@ describe('Model', () => {
       assert(query);
       assert(query instanceof ClientQuery);
       assert.equal(query.collectionName, collectionName);
-      assert.equal(query.expression, expression);
+      assert.equal(query.expression.name, expression.name);
     });
 
     it('should create op', () => {

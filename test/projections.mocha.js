@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { MemoryStorage, MongoStorage, ServerSocketChannel, Store } from '../lib';
-import { source, collectionName, dbCollectionName, docId, expression, countExpression, field, value } from './util';
+import { source, collectionName, dbCollectionName, docId, expression, countExpression, joinExpression, field, value } from './util';
 import ServerChannel from '../lib/ServerChannel';
 
 let storage;
@@ -84,6 +84,43 @@ describe('projections', () => {
 
           subscription.on('change', () => {
             let docs = model.query(collectionName, expression).get();
+            assert.equal(docs.length, 1);
+            assert.equal(docs[0][field], value);
+            assert.equal(docs[0].age, undefined);
+
+            resolve();
+          });
+        });
+      });
+  });
+
+  it('should subscribe to projected join query', () => {
+    let subscribes = [[collectionName, joinExpression]];
+
+    return model
+      .subscribe(subscribes)
+      .then((subscription) => {
+        let data = subscription.get();
+        let query = data[0];
+        assert(!query.length);
+
+        let doc = {
+          _id: docId,
+          [field]: value,
+          age: 14
+        }
+
+        let category = {
+          _id: '1',
+          userId: docId
+        }
+
+        return new Promise((resolve, reject) => {
+          model2.add(dbCollectionName, doc);
+          model2.add('categories', category);
+
+          subscription.on('change', () => {
+            let docs = model.query(collectionName, joinExpression).get();
             assert.equal(docs.length, 1);
             assert.equal(docs[0][field], value);
             assert.equal(docs[0].age, undefined);

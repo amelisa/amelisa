@@ -5,6 +5,7 @@ let localCollectionName = '_users';
 let docId = '1';
 let expression = {};
 let countExpression = {$count: true};
+let joinExpression = {_id: '$categories.1.userId'};
 let field = 'name';
 let value = 'Ivan';
 
@@ -16,6 +17,7 @@ export default {
   docId,
   expression,
   countExpression,
+  joinExpression,
   field,
   value
 }

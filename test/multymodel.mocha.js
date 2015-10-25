@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { MemoryStorage, MongoStorage, ServerSocketChannel, Store } from '../lib';
-import { source, collectionName, docId, expression, field, value } from './util';
+import { source, collectionName, docId, expression, joinExpression, field, value } from './util';
 
 let storage;
 let store;
@@ -76,7 +76,6 @@ describe('multymodel', () => {
 
           model2.add(collectionName, doc);
         });
-
       });
   });
 
@@ -107,14 +106,63 @@ describe('multymodel', () => {
 
               resolve();
             });
-
             model2.set([collectionName, docId, field], value2);
+          });
+          model2.add(collectionName, doc);
+        });
+      });
+  });
 
+  it('should subscribe join query and get it', () => {
+    let subscribes = [[collectionName, joinExpression]];
+
+    return model
+      .subscribe(subscribes)
+      .then((subscription) => {
+        let data = subscription.get();
+        let query = data[0];
+        assert.equal(query.length, 0);
+
+        let doc = {
+          _id: docId,
+          [field]: value
+        }
+
+        let category = {
+          _id: '1',
+          userId: docId
+        }
+
+        return new Promise((resolve, reject) => {
+          subscription.once('change', () => {
+            let data = subscription.get();
+            query = data[0];
+            assert.equal(query.length, 1);
+
+            subscription.once('change', () => {
+              let data = subscription.get();
+              query = data[0];
+              assert.equal(query.length, 0);
+
+              subscription.once('change', () => {
+                let data = subscription.get();
+                query = data[0];
+                assert.equal(query.length, 1);
+
+                resolve();
+              });
+              let user2 = {
+                _id: '2',
+                [field]: value
+              }
+              model2.add(collectionName, user2);
+            });
+            model2.set(['categories', '1', 'userId'], '2');
           });
 
           model2.add(collectionName, doc);
+          model2.add('categories', category);
         });
-
       });
   });
 });
