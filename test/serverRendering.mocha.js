@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { MemoryStorage, Store, RootComponent, createContainer, renderToStaticMarkup } from '../lib';
+import { MemoryStorage, Store, RootComponent, createContainer, renderToStaticMarkup, renderToString } from '../lib';
 import { source, collectionName, localCollectionName, docId, expression, field, value } from './util';
 import React from 'react';
 
@@ -142,8 +142,11 @@ let Container = createContainer(TestComponent, React);
 class Root extends RootComponent {
 
   render() {
+    let components = [<div key='1'>Root</div>, <Container key='2'/>];
     return (
-      <Container />
+      <div className='root'>
+        {components}
+      </div>
     )
   }
 }
@@ -157,31 +160,28 @@ describe('serverRendering', () => {
       .then(() => {
         store = new Store(storage);
         model = store.createModel();
-        return model.add(collectionName, {[field]: value});
-      })
-      .then(() => {
-        return model.add(collectionName, {[field]: 'Petr'});
-      })
-      .then(() => {
-        return model.add(collectionName, {[field]: 'Vasya'});
-      })
-      .then(() => {
-        return model.add(collectionName, {[field]: 'Kostya'});
-      })
-      .then(() => {
-        return model.add(collectionName, {[field]: 'Misha'});
+
+        return Promise
+          .all([
+            model.add(collectionName, {[field]: value}),
+            model.add(collectionName, {[field]: 'Petr'}),
+            model.add(collectionName, {[field]: 'Vasya'}),
+            model.add(collectionName, {[field]: 'Kostya'}),
+            model.add(collectionName, {[field]: 'Misha'})
+          ]);
       });
   });
 
   it('should render to string', () => {
     return renderToStaticMarkup(Root, {model})
       .then((html) => {
+        assert(html);
+        assert.equal(typeof html, 'string');
         assert(html.indexOf('ivan"><div>Ivan') > -1);
         assert(html.indexOf('petr"><div>Petr') > -1);
         assert(html.indexOf('vasya"><div>Vasya') > -1);
         assert(html.indexOf('kostya">Kostya') > -1);
         assert(html.indexOf('misha">Misha') > -1);
-        assert(html);
       });
   });
 });

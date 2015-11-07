@@ -1,22 +1,12 @@
 import assert from 'assert';
-import { MemoryStorage, Store, RootComponent, HtmlLayout } from '../lib';
+import { MemoryStorage, Store, HtmlLayout } from '../lib';
 import { source, collectionName, localCollectionName, docId, expression, field, value } from './util';
 import React from 'react';
+import { renderToString } from 'react-dom/server';
 
 let storage;
 let store;
 let model;
-
-class Root extends RootComponent {
-
-  render() {
-    return (
-      <HtmlLayout>
-        'test'
-      </HtmlLayout>
-    )
-  }
-}
 
 describe('HtmlLayout', () => {
 
@@ -31,7 +21,11 @@ describe('HtmlLayout', () => {
   });
 
   it('should render empty bundle json', () => {
-    let html = React.renderToString(React.createElement(Root, {model}));
+    let html = renderToString(
+      <HtmlLayout model={model}>
+        'test'
+      </HtmlLayout>
+    );
     assert(html.indexOf('{"collections":{') > -1)
   });
 });
