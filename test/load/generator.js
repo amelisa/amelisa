@@ -1,12 +1,10 @@
-import createClient from './createClient';
+import createClient from './createClient'
 
 createClient()
   .then((model) => {
-    let index = 0;
-    let count = 0;
-    function createDoc() {
-      let start = Date.now();
-
+    let index = 0
+    let count = 0
+    function createDoc () {
       let doc = {
         name: index++
       }
@@ -14,15 +12,15 @@ createClient()
       model
         .add('items', doc)
         .then(() => {
-          count++;
-        });
+          count++
+        })
     }
 
-    function showCount() {
-      console.log('created docs/sec', count);
-      count = 0;
+    function showCount () {
+      console.log('created docs/sec', count)
+      count = 0
     }
 
-    setInterval(createDoc, 10);
-    setInterval(showCount, 1000);
-  });
+    setInterval(createDoc, 10)
+    setInterval(showCount, 1000)
+  })

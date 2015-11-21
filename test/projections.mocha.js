@@ -1,12 +1,12 @@
-import assert from 'assert';
-import { MemoryStorage, MongoStorage, ServerSocketChannel, Store } from '../lib';
-import { source, collectionName, dbCollectionName, docId, expression, countExpression, joinExpression, field, value } from './util';
-import ServerChannel from '../lib/ServerChannel';
+import assert from 'assert'
+import { MemoryStorage, Store } from '../lib'
+import { collectionName, dbCollectionName, docId, expression, countExpression, joinExpression, field, value } from './util'
+import ServerChannel from '../lib/ServerChannel'
 
-let storage;
-let store;
-let model;
-let model2;
+let storage
+let store
+let model
+let model2
 let options = {
   projections: {
     [collectionName]: {
@@ -20,29 +20,28 @@ let options = {
 }
 
 describe('projections', () => {
-
   beforeEach(() => {
-    storage = new MemoryStorage();
+    storage = new MemoryStorage()
     return storage
       .init()
       .then(() => {
-        store = new Store(storage, null, null, options);
-        model = store.createModel();
-        model.source = 'model1';
-        model2 = store.createModel();
-        model2.source = 'model2';
-      });
-  });
+        store = new Store(storage, null, null, options)
+        model = store.createModel()
+        model.source = 'model1'
+        model2 = store.createModel()
+        model2.source = 'model2'
+      })
+  })
 
   it('should subscribe to projected doc', () => {
-    let subscribes = [[collectionName, docId]];
+    let subscribes = [[collectionName, docId]]
 
     return model
       .subscribe(subscribes)
       .then((subscription) => {
-        let data = subscription.get();
-        let doc = data[0];
-        assert(!doc);
+        let data = subscription.get()
+        let doc = data[0]
+        assert(!doc)
 
         let docData = {
           _id: docId,
@@ -51,27 +50,27 @@ describe('projections', () => {
         }
 
         return new Promise((resolve, reject) => {
-          model2.add(dbCollectionName, docData);
+          model2.add(dbCollectionName, docData)
 
           subscription.on('change', () => {
-            assert(model.get(collectionName, docId, field));
-            assert(!model.get(collectionName, docId, 'age'));
+            assert(model.get(collectionName, docId, field))
+            assert(!model.get(collectionName, docId, 'age'))
 
-            resolve();
-          });
-        });
-      });
-  });
+            resolve()
+          })
+        })
+      })
+  })
 
   it('should subscribe to projected query', () => {
-    let subscribes = [[collectionName, expression]];
+    let subscribes = [[collectionName, expression]]
 
     return model
       .subscribe(subscribes)
       .then((subscription) => {
-        let data = subscription.get();
-        let query = data[0];
-        assert(!query.length);
+        let data = subscription.get()
+        let query = data[0]
+        assert(!query.length)
 
         let doc = {
           _id: docId,
@@ -80,29 +79,29 @@ describe('projections', () => {
         }
 
         return new Promise((resolve, reject) => {
-          model2.add(dbCollectionName, doc);
+          model2.add(dbCollectionName, doc)
 
           subscription.on('change', () => {
-            let docs = model.query(collectionName, expression).get();
-            assert.equal(docs.length, 1);
-            assert.equal(docs[0][field], value);
-            assert.equal(docs[0].age, undefined);
+            let docs = model.query(collectionName, expression).get()
+            assert.equal(docs.length, 1)
+            assert.equal(docs[0][field], value)
+            assert.equal(docs[0].age, undefined)
 
-            resolve();
-          });
-        });
-      });
-  });
+            resolve()
+          })
+        })
+      })
+  })
 
   it('should subscribe to projected join query', () => {
-    let subscribes = [[collectionName, joinExpression]];
+    let subscribes = [[collectionName, joinExpression]]
 
     return model
       .subscribe(subscribes)
       .then((subscription) => {
-        let data = subscription.get();
-        let query = data[0];
-        assert(!query.length);
+        let data = subscription.get()
+        let query = data[0]
+        assert(!query.length)
 
         let doc = {
           _id: docId,
@@ -116,20 +115,20 @@ describe('projections', () => {
         }
 
         return new Promise((resolve, reject) => {
-          model2.add(dbCollectionName, doc);
-          model2.add('categories', category);
+          model2.add(dbCollectionName, doc)
+          model2.add('categories', category)
 
           subscription.on('change', () => {
-            let docs = model.query(collectionName, joinExpression).get();
-            assert.equal(docs.length, 1);
-            assert.equal(docs[0][field], value);
-            assert.equal(docs[0].age, undefined);
+            let docs = model.query(collectionName, joinExpression).get()
+            assert.equal(docs.length, 1)
+            assert.equal(docs[0][field], value)
+            assert.equal(docs[0].age, undefined)
 
-            resolve();
-          });
-        });
-      });
-  });
+            resolve()
+          })
+        })
+      })
+  })
 
   it('should add projected doc to projected collection', () => {
     let doc = {
@@ -137,8 +136,8 @@ describe('projections', () => {
       [field]: value
     }
 
-    return model.add(collectionName, doc);
-  });
+    return model.add(collectionName, doc)
+  })
 
   it('should not add not projected doc to projected collection', () => {
     let doc = {
@@ -150,9 +149,9 @@ describe('projections', () => {
     return model
       .add(collectionName, doc)
       .catch((err) => {
-        assert(err);
-      });
-  });
+        assert(err)
+      })
+  })
 
   it('should mutate on projected field in projected collection', () => {
     let doc = {
@@ -162,8 +161,8 @@ describe('projections', () => {
 
     return model
       .add(collectionName, doc)
-      .then(() => model.set([collectionName, docId, field], 'Vasya'));
-  });
+      .then(() => model.set([collectionName, docId, field], 'Vasya'))
+  })
 
   it('should not mutate on not projected field in projected collection', () => {
     let doc = {
@@ -175,12 +174,12 @@ describe('projections', () => {
       .add(collectionName, doc)
       .then(() => model.set([collectionName, docId, 'age'], 15))
       .catch((err) => {
-        assert(err);
-      });
-  });
+        assert(err)
+      })
+  })
 
   it('should send and receive ops on online when subscribed to projected doc', () => {
-    let subscribes = [[collectionName, docId]];
+    let subscribes = [[collectionName, docId]]
 
     return model
       .subscribe(subscribes)
@@ -192,39 +191,39 @@ describe('projections', () => {
               [field]: value
             }
 
-            model.channel.emit('close');
-            model.channel.pipedChannel.emit('close');
+            model.channel.emit('close')
+            model.channel.pipedChannel.emit('close')
 
-            model2.channel.emit('close');
-            model2.channel.pipedChannel.emit('close');
+            model2.channel.emit('close')
+            model2.channel.pipedChannel.emit('close')
 
-            model2.add(collectionName, doc);
+            model2.add(collectionName, doc)
 
             setTimeout(() => {
-              assert(!model.get(collectionName, docId));
+              assert(!model.get(collectionName, docId))
 
-              let channel2 = new ServerChannel();
-              model.channel.pipe(channel2).pipe(model.channel);
-              store.onChannel(channel2);
-              model.channel.emit('open');
+              let channel2 = new ServerChannel()
+              model.channel.pipe(channel2).pipe(model.channel)
+              store.onChannel(channel2)
+              model.channel.emit('open')
 
-              let channel3 = new ServerChannel();
-              model2.channel.pipe(channel3).pipe(model2.channel);
-              store.onChannel(channel3);
-              model2.channel.emit('open');
+              let channel3 = new ServerChannel()
+              model2.channel.pipe(channel3).pipe(model2.channel)
+              store.onChannel(channel3)
+              model2.channel.emit('open')
 
               setTimeout(() => {
-                assert(model.get(collectionName, docId));
-                resolve();
-              }, 10);
-            }, 10);
-          }, 10);
-        });
-      });
-  });
+                assert(model.get(collectionName, docId))
+                resolve()
+              }, 10)
+            }, 10)
+          }, 10)
+        })
+      })
+  })
 
   it('should send and receive ops on online when subscribed to projected query', () => {
-    let subscribes = [[collectionName, expression]];
+    let subscribes = [[collectionName, expression]]
 
     return model
       .subscribe(subscribes)
@@ -236,43 +235,43 @@ describe('projections', () => {
               [field]: value
             }
 
-            model.channel.emit('close');
-            model.channel.pipedChannel.emit('close');
+            model.channel.emit('close')
+            model.channel.pipedChannel.emit('close')
 
-            model2.channel.emit('close');
-            model2.channel.pipedChannel.emit('close');
+            model2.channel.emit('close')
+            model2.channel.pipedChannel.emit('close')
 
-            model2.add(collectionName, doc);
+            model2.add(collectionName, doc)
 
             setTimeout(() => {
-              assert.equal(model.getQuery(collectionName, expression).length, 0);
+              assert.equal(model.getQuery(collectionName, expression).length, 0)
 
-              let channel3 = new ServerChannel();
-              model2.channel.pipe(channel3).pipe(model2.channel);
-              store.onChannel(channel3);
-              model2.channel.emit('open');
+              let channel3 = new ServerChannel()
+              model2.channel.pipe(channel3).pipe(model2.channel)
+              store.onChannel(channel3)
+              model2.channel.emit('open')
 
               setTimeout(() => {
-                assert.equal(model.getQuery(collectionName, expression).length, 0);
+                assert.equal(model.getQuery(collectionName, expression).length, 0)
 
-                let channel2 = new ServerChannel();
-                model.channel.pipe(channel2).pipe(model.channel);
-                store.onChannel(channel2);
-                model.channel.emit('open');
+                let channel2 = new ServerChannel()
+                model.channel.pipe(channel2).pipe(model.channel)
+                store.onChannel(channel2)
+                model.channel.emit('open')
 
                 setTimeout(() => {
-                  assert.equal(model.getQuery(collectionName, expression).length, 1);
-                  resolve();
-                }, 10);
-              }, 10);
-            }, 10);
-          }, 10);
-        });
-      });
-  });
+                  assert.equal(model.getQuery(collectionName, expression).length, 1)
+                  resolve()
+                }, 10)
+              }, 10)
+            }, 10)
+          }, 10)
+        })
+      })
+  })
 
   it('should send and receive ops on online when subscribed to projected count query', () => {
-    let subscribes = [[collectionName, countExpression]];
+    let subscribes = [[collectionName, countExpression]]
 
     return model
       .subscribe(subscribes)
@@ -284,38 +283,38 @@ describe('projections', () => {
               [field]: value
             }
 
-            model.channel.emit('close');
-            model.channel.pipedChannel.emit('close');
+            model.channel.emit('close')
+            model.channel.pipedChannel.emit('close')
 
-            model2.channel.emit('close');
-            model2.channel.pipedChannel.emit('close');
+            model2.channel.emit('close')
+            model2.channel.pipedChannel.emit('close')
 
-            model2.add(collectionName, doc);
+            model2.add(collectionName, doc)
 
             setTimeout(() => {
-              assert.equal(model.getQuery(collectionName, countExpression), 0);
+              assert.equal(model.getQuery(collectionName, countExpression), 0)
 
-              let channel3 = new ServerChannel();
-              model2.channel.pipe(channel3).pipe(model2.channel);
-              store.onChannel(channel3);
-              model2.channel.emit('open');
+              let channel3 = new ServerChannel()
+              model2.channel.pipe(channel3).pipe(model2.channel)
+              store.onChannel(channel3)
+              model2.channel.emit('open')
 
               setTimeout(() => {
-                assert.equal(model.getQuery(collectionName, countExpression), 0);
+                assert.equal(model.getQuery(collectionName, countExpression), 0)
 
-                let channel2 = new ServerChannel();
-                model.channel.pipe(channel2).pipe(model.channel);
-                store.onChannel(channel2);
-                model.channel.emit('open');
+                let channel2 = new ServerChannel()
+                model.channel.pipe(channel2).pipe(model.channel)
+                store.onChannel(channel2)
+                model.channel.emit('open')
 
                 setTimeout(() => {
-                  assert.equal(model.getQuery(collectionName, countExpression), 1);
-                  resolve();
-                }, 10);
-              }, 10);
-            }, 10);
-          }, 10);
-        });
-      });
-  });
-});
+                  assert.equal(model.getQuery(collectionName, countExpression), 1)
+                  resolve()
+                }, 10)
+              }, 10)
+            }, 10)
+          }, 10)
+        })
+      })
+  })
+})

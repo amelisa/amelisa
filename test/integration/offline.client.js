@@ -1,9 +1,9 @@
-// process.env.DEBUG = '*';
-require('babelify/polyfill');
-console.log('offline');
+// process.env.DEBUG = '*'
+require('babelify/polyfill')
+console.log('offline')
 
-let { model } = require('../../lib');
+let { model } = require('../../lib')
 
 model.once('ready', () => {
-  window.callPhantom('ready');
-});
+  window.callPhantom('ready')
+})

@@ -1,15 +1,15 @@
-import assert from 'assert';
-import { MemoryStorage, Store, RootComponent, createContainer, renderToStaticMarkup, renderToString } from '../lib';
-import { source, collectionName, localCollectionName, docId, expression, field, value } from './util';
-import React from 'react';
+import assert from 'assert'
+import { MemoryStorage, Store, RootComponent, createContainer, renderToStaticMarkup } from '../lib'
+import { collectionName, field, value } from './util'
+import React from 'react'
 
-let storage;
-let store;
-let model;
+let storage
+let store
+let model
 
 class TestComponent6 extends React.Component {
 
-  render() {
+  render () {
     return (
       <div className='no-name'>
         No name
@@ -20,16 +20,16 @@ class TestComponent6 extends React.Component {
 
 class TestComponent5 extends React.Component {
 
-  getQueries() {
+  getQueries () {
     return {
       users: ['users', {name: 'Misha'}]
     }
   }
 
-  render() {
-    let { users } = this.props;
-    let user = users[0];
-    let name = user ? user.name : 'no';
+  render () {
+    let { users } = this.props // eslint-disable-line
+    let user = users[0]
+    let name = user ? user.name : 'no'
 
     return (
       <div className='misha'>
@@ -39,20 +39,20 @@ class TestComponent5 extends React.Component {
   }
 }
 
-let Container5 = createContainer(TestComponent5, React);
+let Container5 = createContainer(TestComponent5, React)
 
 class TestComponent4 extends React.Component {
 
-  getQueries() {
+  getQueries () {
     return {
       users: ['users', {name: 'Kostya'}]
     }
   }
 
-  render() {
-    let { users } = this.props;
-    let user = users[0];
-    let name = user ? user.name : 'no';
+  render () {
+    let { users } = this.props // eslint-disable-line
+    let user = users[0]
+    let name = user ? user.name : 'no'
 
     return (
       <div className='kostya'>
@@ -62,22 +62,22 @@ class TestComponent4 extends React.Component {
   }
 }
 
-let Container4 = createContainer(TestComponent4, React);
+let Container4 = createContainer(TestComponent4, React)
 
 class TestComponent3 extends React.Component {
 
-  getQueries() {
+  getQueries () {
     return {
       users: ['users', {name: 'Vasya'}]
     }
   }
 
-  render() {
-    let { users } = this.props;
-    let user = users[0];
-    let name = user ? user.name : 'no';
+  render () {
+    let { users } = this.props // eslint-disable-line
+    let user = users[0]
+    let name = user ? user.name : 'no'
 
-    let components = [<div key='1'>{name}</div>, <Container5 key='2'/>];
+    let components = [<div key='1'>{name}</div>, <Container5 key='2'/>]
 
     return (
       <div className='vasya'>
@@ -87,22 +87,22 @@ class TestComponent3 extends React.Component {
   }
 }
 
-let Container3 = createContainer(TestComponent3, React);
+let Container3 = createContainer(TestComponent3, React)
 
 class TestComponent2 extends React.Component {
 
-  getQueries() {
+  getQueries () {
     return {
       users: ['users', {name: 'Petr'}]
     }
   }
 
-  render() {
-    let { users } = this.props;
-    let user = users[0];
-    let name = user ? user.name : 'no';
+  render () {
+    let { users } = this.props // eslint-disable-line
+    let user = users[0]
+    let name = user ? user.name : 'no'
 
-    let components = [<div key='1'>{name}</div>, <TestComponent6 key='2'/>, <Container3 key='3'/>, <Container4 key='4'/>];
+    let components = [<div key='1'>{name}</div>, <TestComponent6 key='2'/>, <Container3 key='3'/>, <Container4 key='4'/>]
 
     return (
       <div className='petr'>
@@ -112,22 +112,22 @@ class TestComponent2 extends React.Component {
   }
 }
 
-let Container2 = createContainer(TestComponent2, React);
+let Container2 = createContainer(TestComponent2, React)
 
 class TestComponent extends React.Component {
 
-  getQueries() {
+  getQueries () {
     return {
       users: ['users', {name: 'Ivan'}]
     }
   }
 
-  render() {
-    let { users } = this.props;
-    let user = users[0];
-    let name = user ? user.name : 'no';
+  render () {
+    let { users } = this.props // eslint-disable-line
+    let user = users[0]
+    let name = user ? user.name : 'no'
 
-    let components = [<div key='1'>{name}</div>, <TestComponent6 key='2'/>, <Container2 key='3'/>];
+    let components = [<div key='1'>{name}</div>, <TestComponent6 key='2'/>, <Container2 key='3'/>]
 
     return (
       <div className='ivan'>
@@ -137,12 +137,12 @@ class TestComponent extends React.Component {
   }
 }
 
-let Container = createContainer(TestComponent, React);
+let Container = createContainer(TestComponent, React)
 
 class Root extends RootComponent {
 
-  render() {
-    let components = [<div key='1'>Root</div>, <Container key='2'/>];
+  render () {
+    let components = [<div key='1'>Root</div>, <Container key='2'/>]
     return (
       <div className='root'>
         {components}
@@ -152,14 +152,13 @@ class Root extends RootComponent {
 }
 
 describe('serverRendering', () => {
-
   beforeEach(() => {
-    storage = new MemoryStorage();
+    storage = new MemoryStorage()
     return storage
       .init()
       .then(() => {
-        store = new Store(storage);
-        model = store.createModel();
+        store = new Store(storage)
+        model = store.createModel()
 
         return Promise
           .all([
@@ -168,20 +167,20 @@ describe('serverRendering', () => {
             model.add(collectionName, {[field]: 'Vasya'}),
             model.add(collectionName, {[field]: 'Kostya'}),
             model.add(collectionName, {[field]: 'Misha'})
-          ]);
-      });
-  });
+          ])
+      })
+  })
 
   it('should render to string', () => {
     return renderToStaticMarkup(Root, {model})
       .then((html) => {
-        assert(html);
-        assert.equal(typeof html, 'string');
-        assert(html.indexOf('ivan"><div>Ivan') > -1);
-        assert(html.indexOf('petr"><div>Petr') > -1);
-        assert(html.indexOf('vasya"><div>Vasya') > -1);
-        assert(html.indexOf('kostya">Kostya') > -1);
-        assert(html.indexOf('misha">Misha') > -1);
-      });
-  });
-});
+        assert(html)
+        assert.equal(typeof html, 'string')
+        assert(html.indexOf('ivan"><div>Ivan') > -1)
+        assert(html.indexOf('petr"><div>Petr') > -1)
+        assert(html.indexOf('vasya"><div>Vasya') > -1)
+        assert(html.indexOf('kostya">Kostya') > -1)
+        assert(html.indexOf('misha">Misha') > -1)
+      })
+  })
+})
