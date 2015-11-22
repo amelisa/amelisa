@@ -1,15 +1,10 @@
 import assert from 'assert'
-import MongoStorage from '../lib/MongoStorage'
+import MemoryStorage from '../src/MemoryStorage'
 import { collectionName, docId, field, value } from './util'
 
-let mongoUrl = 'mongodb://localhost:27017/test'
-let storage = new MongoStorage(mongoUrl)
+let storage = new MemoryStorage()
 
-describe.skip('MongoStorage', () => {
-  before(() => {
-    return storage.init()
-  })
-
+describe('MemoryStorage', () => {
   beforeEach(() => {
     return storage.clear()
   })

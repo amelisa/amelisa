@@ -1,7 +1,7 @@
 import assert from 'assert'
-import { MemoryStorage, Store } from '../lib'
+import { MemoryStorage, Store } from '../src'
 import { collectionName, docId, expression, countExpression, field, value } from './util'
-import ServerChannel from '../lib/ServerChannel'
+import ServerChannel from '../src/ServerChannel'
 
 let storage
 let store

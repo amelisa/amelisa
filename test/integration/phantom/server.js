@@ -1,5 +1,5 @@
 let http = require('http')
-let { MemoryStorage, RedisChannel, ServerSocketChannel, Store } = require('../../../lib')
+let { MemoryStorage, RedisChannel, ServerSocketChannel, Store } = require('../../../src')
 
 const mongoUrl = 'mongodb://localhost:27017/test'
 const redisUrl = 'redis://localhost:6379/13'

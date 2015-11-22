@@ -1,4 +1,4 @@
 .DS_Store
 node_modules
-src
-test/integration/tmp/
+lib
+test/integration/tmp

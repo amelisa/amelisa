@@ -1,6 +1,6 @@
 import http from 'http'
 import { EventEmitter } from 'events'
-import { MongoStorage, RedisChannel, ServerSocketChannel, Store } from '../../lib'
+import { MongoStorage, RedisChannel, ServerSocketChannel, Store } from '../../src'
 
 EventEmitter.prototype._maxListeners = 1000
 

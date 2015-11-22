@@ -1,5 +1,5 @@
 import assert from 'assert'
-import Projection from '../lib/Projection'
+import Projection from '../src/Projection'
 import { collectionName, dbCollectionName, docId, value } from './util'
 
 let projection

@@ -1,5 +1,5 @@
 import assert from 'assert'
-import Doc from '../lib/Doc'
+import Doc from '../src/Doc'
 import { source, collectionName, docId, field, value } from './util'
 
 let source2 = 'source2'

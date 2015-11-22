@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { MemoryStorage, Store } from '../lib'
+import { MemoryStorage, Store } from '../src'
 import { collectionName, docId, expression, joinExpression, field, value } from './util'
 
 let storage

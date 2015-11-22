@@ -1,7 +1,7 @@
 import assert from 'assert'
-import ClientQuery from '../lib/ClientQuery'
-import Model from '../lib/Model'
-import ServerChannel from '../lib/ServerChannel'
+import ClientQuery from '../src/ClientQuery'
+import Model from '../src/Model'
+import ServerChannel from '../src/ServerChannel'
 import { source, collectionName, localCollectionName, docId, field, value } from './util'
 
 let channel
