@@ -78,7 +78,7 @@ class Subscription extends EventEmitter {
     let promises = []
 
     for (let subscribe of this.subscribes) {
-      // subscribe.removeListener('change', this.onChange)
+      subscribe.removeListener('change', this.onChange)
       promises.push(subscribe.unsubscribe())
     }
 
