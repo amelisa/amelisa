@@ -32,7 +32,6 @@
     "uuid": "^2.0.1"
   },
   "devDependencies": {
-    "babel": "^6.3.13",
     "babel-cli": "^6.3.17",
     "babel-core": "^6.3.21",
     "babel-eslint": "^5.0.0-beta6",
