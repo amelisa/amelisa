@@ -1,6 +1,6 @@
 import assert from 'assert'
 import { MemoryStorage, Store } from '../src'
-import { collectionName, docId, expression, countExpression, field, value } from './util'
+import { collectionName, docId, expression, countExpression, field, value, sleep } from './util'
 import ServerChannel from '../src/ServerChannel'
 
 let storage
@@ -9,384 +9,315 @@ let model
 let model2
 
 describe('offline', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     storage = new MemoryStorage()
-    return storage
-      .init()
-      .then(() => {
-        store = new Store(storage)
-        model = store.createModel()
-        model.source = 'model1'
-        model2 = store.createModel()
-        model2.source = 'model2'
-      })
+    await storage.init()
+
+    store = new Store(storage)
+    model = store.createModel()
+    model.source = 'model1'
+    model2 = store.createModel()
+    model2.source = 'model2'
   })
 
-  it('should send ops on online when subscribed to doc', () => {
+  it('should send ops on online when subscribed to doc', async () => {
     let subscribes = [[collectionName, docId]]
 
-    return model
-      .subscribe(subscribes)
-      .then((subscription) => {
-        let doc = {
-          _id: docId,
-          [field]: value
-        }
+    await model.subscribe(subscribes)
 
-        model2.channel.emit('close')
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
 
-        model2.add(collectionName, doc)
+    model2.channel.emit('close')
+    model2.add(collectionName, doc)
 
-        return new Promise((resolve, reject) => {
-          setTimeout(() => {
-            assert.equal(model.get(collectionName, docId), undefined)
+    await sleep(10)
 
-            model2.channel.emit('open')
+    assert.equal(model.get(collectionName, docId), undefined)
+    model2.channel.emit('open')
 
-            setTimeout(() => {
-              assert(model.get(collectionName, docId))
-              resolve()
-            }, 10)
-          }, 10)
-        })
-      })
+    await sleep(10)
+
+    assert(model.get(collectionName, docId))
   })
 
-  it('should send ops on online when subscribed to query', () => {
+  it('should send ops on online when subscribed to query', async () => {
     let subscribes = [[collectionName, expression]]
 
-    return model
-      .subscribe(subscribes)
-      .then((subscription) => {
-        let doc = {
-          _id: docId,
-          [field]: value
-        }
+    await model.subscribe(subscribes)
 
-        model2.channel.emit('close')
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
 
-        model2.add(collectionName, doc)
+    model2.channel.emit('close')
+    model2.add(collectionName, doc)
 
-        return new Promise((resolve, reject) => {
-          setTimeout(() => {
-            assert.equal(model.get(collectionName, docId), undefined)
+    await sleep(10)
 
-            model2.channel.emit('open')
+    assert.equal(model.get(collectionName, docId), undefined)
 
-            setTimeout(() => {
-              assert(model.get(collectionName, docId))
-              resolve()
-            }, 10)
-          }, 10)
-        })
-      })
+    model2.channel.emit('open')
+
+    await sleep(10)
+
+    assert(model.get(collectionName, docId))
   })
 
-  it('should receive ops on online when subscribed to doc', () => {
+  it('should receive ops on online when subscribed to doc', async () => {
     let subscribes = [[collectionName, docId]]
 
-    return model
-      .subscribe(subscribes)
-      .then((subscription) => {
-        return new Promise((resolve, reject) => {
-          setTimeout(() => {
-            let doc = {
-              _id: docId,
-              [field]: value
-            }
+    await model.subscribe(subscribes)
 
-            model.channel.emit('close')
-            model.channel.pipedChannel.emit('close')
+    await sleep(10)
 
-            model2.add(collectionName, doc)
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+    model.channel.emit('close')
+    model.channel.pipedChannel.emit('close')
+    model2.add(collectionName, doc)
 
-            setTimeout(() => {
-              assert(!model.get(collectionName, docId))
+    await sleep(10)
 
-              let channel2 = new ServerChannel()
-              model.channel.pipe(channel2).pipe(model.channel)
-              store.onChannel(channel2)
-              model.channel.emit('open')
+    assert(!model.get(collectionName, docId))
 
-              setTimeout(() => {
-                assert(model.get(collectionName, docId))
-                resolve()
-              }, 10)
-            }, 10)
-          }, 10)
-        })
-      })
+    let channel2 = new ServerChannel()
+    model.channel.pipe(channel2).pipe(model.channel)
+    store.onChannel(channel2)
+    model.channel.emit('open')
+
+    await sleep(10)
+
+    assert(model.get(collectionName, docId))
   })
 
-  it('should receive ops on online when subscribed to query', () => {
+  it('should receive ops on online when subscribed to query', async () => {
     let subscribes = [[collectionName, expression]]
 
-    return model
-      .subscribe(subscribes)
-      .then((subscription) => {
-        return new Promise((resolve, reject) => {
-          setTimeout(() => {
-            let doc = {
-              _id: docId,
-              [field]: value
-            }
+    await model.subscribe(subscribes)
 
-            model.channel.emit('close')
-            model.channel.pipedChannel.emit('close')
+    await sleep(10)
 
-            model2.add(collectionName, doc)
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+    model.channel.emit('close')
+    model.channel.pipedChannel.emit('close')
+    model2.add(collectionName, doc)
 
-            setTimeout(() => {
-              assert.equal(model.getQuery(collectionName, expression).length, 0)
+    await sleep(10)
 
-              let channel2 = new ServerChannel()
-              model.channel.pipe(channel2).pipe(model.channel)
-              store.onChannel(channel2)
-              model.channel.emit('open')
+    assert.equal(model.getQuery(collectionName, expression).length, 0)
 
-              setTimeout(() => {
-                assert.equal(model.getQuery(collectionName, expression).length, 1)
-                resolve()
-              }, 10)
-            }, 10)
-          }, 10)
-        })
-      })
+    let channel2 = new ServerChannel()
+    model.channel.pipe(channel2).pipe(model.channel)
+    store.onChannel(channel2)
+    model.channel.emit('open')
+
+    await sleep(10)
+
+    assert.equal(model.getQuery(collectionName, expression).length, 1)
   })
 
-  it('should receive ops on online when subscribed to count query', () => {
+  it('should receive ops on online when subscribed to count query', async () => {
     let subscribes = [[collectionName, countExpression]]
 
-    return model
-      .subscribe(subscribes)
-      .then((subscription) => {
-        return new Promise((resolve, reject) => {
-          setTimeout(() => {
-            let doc = {
-              _id: docId,
-              [field]: value
-            }
+    await model.subscribe(subscribes)
 
-            model.channel.emit('close')
-            model.channel.pipedChannel.emit('close')
+    await sleep(10)
 
-            model2.add(collectionName, doc)
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+    model.channel.emit('close')
+    model.channel.pipedChannel.emit('close')
 
-            setTimeout(() => {
-              assert.equal(model.getQuery(collectionName, countExpression), 0)
+    model2.add(collectionName, doc)
 
-              let channel2 = new ServerChannel()
-              model.channel.pipe(channel2).pipe(model.channel)
-              store.onChannel(channel2)
-              model.channel.emit('open')
+    await sleep(10)
 
-              setTimeout(() => {
-                assert.equal(model.getQuery(collectionName, countExpression), 1)
-                resolve()
-              }, 10)
-            }, 10)
-          }, 10)
-        })
-      })
+    assert.equal(model.getQuery(collectionName, countExpression), 0)
+
+    let channel2 = new ServerChannel()
+    model.channel.pipe(channel2).pipe(model.channel)
+    store.onChannel(channel2)
+    model.channel.emit('open')
+
+    await sleep(10)
+
+    assert.equal(model.getQuery(collectionName, countExpression), 1)
   })
 
-  it('should send and receive ops on online when subscribed to doc', () => {
+  it('should send and receive ops on online when subscribed to doc', async () => {
     let subscribes = [[collectionName, docId]]
 
-    return model
-      .subscribe(subscribes)
-      .then((subscription) => {
-        return new Promise((resolve, reject) => {
-          setTimeout(() => {
-            let doc = {
-              _id: docId,
-              [field]: value
-            }
+    await model.subscribe(subscribes)
 
-            model.channel.emit('close')
-            model.channel.pipedChannel.emit('close')
+    await sleep(10)
 
-            model2.channel.emit('close')
-            model2.channel.pipedChannel.emit('close')
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+    model.channel.emit('close')
+    model.channel.pipedChannel.emit('close')
 
-            model2.add(collectionName, doc)
+    model2.channel.emit('close')
+    model2.channel.pipedChannel.emit('close')
 
-            setTimeout(() => {
-              assert(!model.get(collectionName, docId))
+    model2.add(collectionName, doc)
 
-              let channel2 = new ServerChannel()
-              model.channel.pipe(channel2).pipe(model.channel)
-              store.onChannel(channel2)
-              model.channel.emit('open')
+    await sleep(10)
 
-              let channel3 = new ServerChannel()
-              model2.channel.pipe(channel3).pipe(model2.channel)
-              store.onChannel(channel3)
-              model2.channel.emit('open')
+    assert(!model.get(collectionName, docId))
 
-              setTimeout(() => {
-                assert(model.get(collectionName, docId))
-                resolve()
-              }, 10)
-            }, 10)
-          }, 10)
-        })
-      })
+    let channel2 = new ServerChannel()
+    model.channel.pipe(channel2).pipe(model.channel)
+    store.onChannel(channel2)
+    model.channel.emit('open')
+
+    let channel3 = new ServerChannel()
+    model2.channel.pipe(channel3).pipe(model2.channel)
+    store.onChannel(channel3)
+    model2.channel.emit('open')
+
+    await sleep(10)
+
+    assert(model.get(collectionName, docId))
   })
 
-  it('should send and receive ops on online when subscribed to query', () => {
+  it('should send and receive ops on online when subscribed to query', async () => {
     let subscribes = [[collectionName, expression]]
 
-    return model
-      .subscribe(subscribes)
-      .then((subscription) => {
-        return new Promise((resolve, reject) => {
-          setTimeout(() => {
-            let doc = {
-              _id: docId,
-              [field]: value
-            }
+    await model.subscribe(subscribes)
 
-            model.channel.emit('close')
-            model.channel.pipedChannel.emit('close')
+    await sleep(10)
 
-            model2.channel.emit('close')
-            model2.channel.pipedChannel.emit('close')
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+    model.channel.emit('close')
+    model.channel.pipedChannel.emit('close')
 
-            model2.add(collectionName, doc)
+    model2.channel.emit('close')
+    model2.channel.pipedChannel.emit('close')
 
-            setTimeout(() => {
-              assert.equal(model.getQuery(collectionName, expression).length, 0)
+    model2.add(collectionName, doc)
 
-              let channel3 = new ServerChannel()
-              model2.channel.pipe(channel3).pipe(model2.channel)
-              store.onChannel(channel3)
-              model2.channel.emit('open')
+    await sleep(10)
 
-              setTimeout(() => {
-                assert.equal(model.getQuery(collectionName, expression).length, 0)
+    assert.equal(model.getQuery(collectionName, expression).length, 0)
 
-                let channel2 = new ServerChannel()
-                model.channel.pipe(channel2).pipe(model.channel)
-                store.onChannel(channel2)
-                model.channel.emit('open')
+    let channel3 = new ServerChannel()
+    model2.channel.pipe(channel3).pipe(model2.channel)
+    store.onChannel(channel3)
+    model2.channel.emit('open')
 
-                setTimeout(() => {
-                  assert.equal(model.getQuery(collectionName, expression).length, 1)
-                  resolve()
-                }, 10)
-              }, 10)
-            }, 10)
-          }, 10)
-        })
-      })
+    await sleep(10)
+
+    assert.equal(model.getQuery(collectionName, expression).length, 0)
+
+    let channel2 = new ServerChannel()
+    model.channel.pipe(channel2).pipe(model.channel)
+    store.onChannel(channel2)
+    model.channel.emit('open')
+
+    await sleep(10)
+
+    assert.equal(model.getQuery(collectionName, expression).length, 1)
   })
 
-  it('should send and receive ops on online when subscribed to count query', () => {
+  it('should send and receive ops on online when subscribed to count query', async () => {
     let subscribes = [[collectionName, countExpression]]
 
-    return model
-      .subscribe(subscribes)
-      .then((subscription) => {
-        return new Promise((resolve, reject) => {
-          setTimeout(() => {
-            let doc = {
-              _id: docId,
-              [field]: value
-            }
+    await model.subscribe(subscribes)
 
-            model.channel.emit('close')
-            model.channel.pipedChannel.emit('close')
+    await sleep(10)
 
-            model2.channel.emit('close')
-            model2.channel.pipedChannel.emit('close')
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+    model.channel.emit('close')
+    model.channel.pipedChannel.emit('close')
 
-            model2.add(collectionName, doc)
+    model2.channel.emit('close')
+    model2.channel.pipedChannel.emit('close')
 
-            setTimeout(() => {
-              assert.equal(model.getQuery(collectionName, countExpression), 0)
+    model2.add(collectionName, doc)
 
-              let channel3 = new ServerChannel()
-              model2.channel.pipe(channel3).pipe(model2.channel)
-              store.onChannel(channel3)
-              model2.channel.emit('open')
+    await sleep(10)
 
-              setTimeout(() => {
-                assert.equal(model.getQuery(collectionName, countExpression), 0)
+    assert.equal(model.getQuery(collectionName, countExpression), 0)
 
-                let channel2 = new ServerChannel()
-                model.channel.pipe(channel2).pipe(model.channel)
-                store.onChannel(channel2)
-                model.channel.emit('open')
+    let channel3 = new ServerChannel()
+    model2.channel.pipe(channel3).pipe(model2.channel)
+    store.onChannel(channel3)
+    model2.channel.emit('open')
 
-                setTimeout(() => {
-                  assert.equal(model.getQuery(collectionName, countExpression), 1)
-                  resolve()
-                }, 10)
-              }, 10)
-            }, 10)
-          }, 10)
-        })
-      })
+    await sleep(10)
+
+    assert.equal(model.getQuery(collectionName, countExpression), 0)
+
+    let channel2 = new ServerChannel()
+    model.channel.pipe(channel2).pipe(model.channel)
+    store.onChannel(channel2)
+    model.channel.emit('open')
+
+    await sleep(10)
+
+    assert.equal(model.getQuery(collectionName, countExpression), 1)
   })
 
-  it('should apply ops offline when subscribed to query', () => {
+  it('should apply ops offline when subscribed to query', async () => {
     let subscribes = [[collectionName, expression]]
 
-    return model
-      .subscribe(subscribes)
-      .then((subscription) => {
-        return new Promise((resolve, reject) => {
-          setTimeout(() => {
-            let doc = {
-              _id: docId,
-              [field]: value
-            }
+    await model.subscribe(subscribes)
 
-            model.channel.emit('close')
-            model.channel.pipedChannel.emit('close')
+    await sleep(10)
 
-            model.add(collectionName, doc)
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+    model.channel.emit('close')
+    model.channel.pipedChannel.emit('close')
+    model.add(collectionName, doc)
 
-            setTimeout(() => {
-              let query = model.query(collectionName, expression)
-              assert(model.get(collectionName, docId))
-              assert.equal(query.get().length, 1)
+    await sleep(10)
 
-              resolve()
-            }, 10)
-          }, 10)
-        })
-      })
+    let query = model.query(collectionName, expression)
+    assert(model.get(collectionName, docId))
+    assert.equal(query.get().length, 1)
   })
 
-  it('should apply ops offline when subscribed to count query', () => {
+  it('should apply ops offline when subscribed to count query', async () => {
     let subscribes = [[collectionName, countExpression]]
 
-    return model
-      .subscribe(subscribes)
-      .then((subscription) => {
-        return new Promise((resolve, reject) => {
-          setTimeout(() => {
-            let doc = {
-              _id: docId,
-              [field]: value
-            }
+    await model.subscribe(subscribes)
 
-            model.channel.emit('close')
-            model.channel.pipedChannel.emit('close')
+    await sleep(10)
 
-            model.add(collectionName, doc)
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+    model.channel.emit('close')
+    model.channel.pipedChannel.emit('close')
+    model.add(collectionName, doc)
 
-            setTimeout(() => {
-              let query = model.query(collectionName, countExpression)
-              assert(model.get(collectionName, docId))
-              assert.equal(query.get(), 1)
+    await sleep(10)
 
-              resolve()
-            }, 10)
-          }, 10)
-        })
-      })
+    let query = model.query(collectionName, countExpression)
+    assert(model.get(collectionName, docId))
+    assert.equal(query.get(), 1)
   })
 })

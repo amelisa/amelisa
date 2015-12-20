@@ -72,29 +72,25 @@ class Root extends RootComponent {
 }
 
 describe.skip('serverRendering2', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     storage = new MemoryStorage()
-    return storage
-      .init()
-      .then(() => {
-        store = new Store(storage)
-        model = store.createModel()
+    await storage.init()
 
-        return Promise
-          .all([
-            model.add(collectionName, {[field]: value}),
-            model.add(collectionName, {[field]: 'Petr'})
-          ])
-      })
+    store = new Store(storage)
+    model = store.createModel()
+
+    await* [
+      model.add(collectionName, {[field]: value}),
+      model.add(collectionName, {[field]: 'Petr'})
+    ]
   })
 
-  it('should render to string', () => {
-    return renderToStaticMarkup(Root, {model})
-      .then((html) => {
-        assert(html)
-        assert.equal(typeof html, 'string')
-        assert(html.indexOf('ivan"><div>Ivan') > -1)
-        assert(html.indexOf('petr"><div>Petr') > -1)
-      })
+  it('should render to string', async () => {
+    let html = await renderToStaticMarkup(Root, {model})
+
+    assert(html)
+    assert.equal(typeof html, 'string')
+    assert(html.indexOf('ivan"><div>Ivan') > -1)
+    assert(html.indexOf('petr"><div>Petr') > -1)
   })
 })

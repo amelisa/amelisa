@@ -8,17 +8,15 @@ let store
 let channel
 
 describe('Store', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     storage = new MemoryStorage()
-    return storage
-      .init()
-      .then(() => {
-        store = new Store(storage)
-        channel = new ServerChannel()
-        let channel2 = new ServerChannel()
-        channel.pipe(channel2).pipe(channel)
-        store.onChannel(channel2)
-      })
+    await storage.init()
+
+    store = new Store(storage)
+    channel = new ServerChannel()
+    let channel2 = new ServerChannel()
+    channel.pipe(channel2).pipe(channel)
+    store.onChannel(channel2)
   })
 
   it('should sub to empty doc', () => {
@@ -40,7 +38,7 @@ describe('Store', () => {
     })
   })
 
-  it('should sub to doc', () => {
+  it('should sub to doc', async () => {
     let op = {
       type: 'sub',
       collectionName: collectionName,
@@ -54,18 +52,17 @@ describe('Store', () => {
       name: 'name'
     }
     let ops = []
-    return storage
-      .saveDoc(collectionName, docId, state, prevVersion, version, ops)
-      .then(() => {
-        return new Promise((resolve, reject) => {
-          channel.on('message', (message) => {
-            if (message.type !== 'sub') return
-            assert.equal(message.type, op.type)
-            resolve()
-          })
 
-          channel.send(op)
-        })
+    await storage.saveDoc(collectionName, docId, state, prevVersion, version, ops)
+
+    return new Promise((resolve, reject) => {
+      channel.on('message', (message) => {
+        if (message.type !== 'sub') return
+        assert.equal(message.type, op.type)
+        resolve()
       })
+
+      channel.send(op)
+    })
   })
 })

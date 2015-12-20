@@ -9,6 +9,10 @@ let joinExpression = {_id: '$categories.1.userId'}
 let field = 'name'
 let value = 'Ivan'
 
+function sleep (ms = 0) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 export default {
   source,
   collectionName,
@@ -19,5 +23,6 @@ export default {
   countExpression,
   joinExpression,
   field,
-  value
+  value,
+  sleep
 }

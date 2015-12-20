@@ -152,35 +152,31 @@ class Root extends RootComponent {
 }
 
 describe('serverRendering', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     storage = new MemoryStorage()
-    return storage
-      .init()
-      .then(() => {
-        store = new Store(storage)
-        model = store.createModel()
 
-        return Promise
-          .all([
-            model.add(collectionName, {[field]: value}),
-            model.add(collectionName, {[field]: 'Petr'}),
-            model.add(collectionName, {[field]: 'Vasya'}),
-            model.add(collectionName, {[field]: 'Kostya'}),
-            model.add(collectionName, {[field]: 'Misha'})
-          ])
-      })
+    await storage.init()
+    store = new Store(storage)
+    model = store.createModel()
+
+    await* [
+      model.add(collectionName, {[field]: value}),
+      model.add(collectionName, {[field]: 'Petr'}),
+      model.add(collectionName, {[field]: 'Vasya'}),
+      model.add(collectionName, {[field]: 'Kostya'}),
+      model.add(collectionName, {[field]: 'Misha'})
+    ]
   })
 
-  it('should render to string', () => {
-    return renderToStaticMarkup(Root, {model})
-      .then((html) => {
-        assert(html)
-        assert.equal(typeof html, 'string')
-        assert(html.indexOf('ivan"><div>Ivan') > -1)
-        assert(html.indexOf('petr"><div>Petr') > -1)
-        assert(html.indexOf('vasya"><div>Vasya') > -1)
-        assert(html.indexOf('kostya">Kostya') > -1)
-        assert(html.indexOf('misha">Misha') > -1)
-      })
+  it('should render to string', async () => {
+    let html = await renderToStaticMarkup(Root, {model})
+
+    assert(html)
+    assert.equal(typeof html, 'string')
+    assert(html.indexOf('ivan"><div>Ivan') > -1)
+    assert(html.indexOf('petr"><div>Petr') > -1)
+    assert(html.indexOf('vasya"><div>Vasya') > -1)
+    assert(html.indexOf('kostya">Kostya') > -1)
+    assert(html.indexOf('misha">Misha') > -1)
   })
 })

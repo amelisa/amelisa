@@ -8,112 +8,104 @@ let model
 let model2
 
 describe('multymodel', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     storage = new MemoryStorage()
-    return storage
-      .init()
-      .then(() => {
-        store = new Store(storage)
-        model = store.createModel()
-        model.source = 'model1'
-        model2 = store.createModel()
-        model2.source = 'model2'
-      })
+    await storage.init()
+
+    store = new Store(storage)
+    model = store.createModel()
+    model.source = 'model1'
+    model2 = store.createModel()
+    model2.source = 'model2'
   })
 
-  it('should subscribe doc and get it', () => {
+  it('should subscribe doc and get it', async () => {
     let subscribes = [[collectionName, docId]]
 
-    return model
-      .subscribe(subscribes)
-      .then((subscription) => {
+    let subscription = await model.subscribe(subscribes)
+
+    let data = subscription.get()
+    let doc = data[0]
+    assert(!doc)
+
+    let docData = {
+      _id: docId,
+      [field]: value
+    }
+
+    return new Promise((resolve, reject) => {
+      subscription.on('change', () => {
         let data = subscription.get()
         let doc = data[0]
-        assert(!doc)
-
-        let docData = {
-          _id: docId,
-          [field]: value
-        }
-
-        return new Promise((resolve, reject) => {
-          subscription.on('change', () => {
-            let data = subscription.get()
-            let doc = data[0]
-            assert(doc)
-            resolve()
-          })
-
-          model2.add(collectionName, docData)
-        })
+        assert(doc)
+        resolve()
       })
+
+      model2.add(collectionName, docData)
+    })
   })
 
-  it('should subscribe query and get it', () => {
+  it('should subscribe query and get it', async () => {
     let subscribes = [[collectionName, expression]]
 
-    return model
-      .subscribe(subscribes)
-      .then((subscription) => {
+    let subscription = await model.subscribe(subscribes)
+
+    let data = subscription.get()
+    let query = data[0]
+    assert.equal(query.length, 0)
+
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+
+    return new Promise((resolve, reject) => {
+      subscription.on('change', () => {
         let data = subscription.get()
-        let query = data[0]
-        assert.equal(query.length, 0)
+        query = data[0]
+        assert.equal(query.length, 1)
 
-        let doc = {
-          _id: docId,
-          [field]: value
-        }
-
-        return new Promise((resolve, reject) => {
-          subscription.on('change', () => {
-            let data = subscription.get()
-            query = data[0]
-            assert.equal(query.length, 1)
-
-            resolve()
-          })
-
-          model2.add(collectionName, doc)
-        })
+        resolve()
       })
+
+      model2.add(collectionName, doc)
+    })
   })
 
   // FIXME: fails sometimes
-  it.skip('should subscribe query, and get doc changes', () => {
+  it.skip('should subscribe query, and get doc changes', async () => {
     let subscribes = [[collectionName, expression]]
     let value2 = 'value2'
 
-    return model
-      .subscribe(subscribes)
-      .then((subscription) => {
+    let subscription = await model.subscribe(subscribes)
+
+    let data = subscription.get()
+    let query = data[0]
+    assert.equal(query.length, 0)
+
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+
+    return new Promise((resolve, reject) => {
+      subscription.once('change', () => {
         let data = subscription.get()
-        let query = data[0]
-        assert.equal(query.length, 0)
+        query = data[0]
+        assert.equal(query.length, 1)
 
-        let doc = {
-          _id: docId,
-          [field]: value
-        }
+        subscription.on('change', () => {
+          assert.equal(model.get(collectionName, docId, field), value2)
 
-        return new Promise((resolve, reject) => {
-          subscription.once('change', () => {
-            let data = subscription.get()
-            query = data[0]
-            assert.equal(query.length, 1)
-
-            subscription.on('change', () => {
-              assert.equal(model.get(collectionName, docId, field), value2)
-
-              resolve()
-            })
-            model2.set([collectionName, docId, field], value2)
-          })
-          model2.add(collectionName, doc)
+          resolve()
         })
+        model2.set([collectionName, docId, field], value2)
       })
+      model2.add(collectionName, doc)
+    })
   })
 
-  it('should subscribe query two times', () => {
+  it('should subscribe query two times', async () => {
     let value2 = 'value2'
 
     let doc = {
@@ -124,79 +116,68 @@ describe('multymodel', () => {
       name: value2
     }
 
-    return Promise
-      .all([
-        model2.add(collectionName, doc),
-        model2.add(collectionName, doc2)
-      ])
-      .then(() => {
-        let query1 = model.query(collectionName, {[field]: value})
-        return model
-          .subscribe(query1)
-          .then(() => {
-            assert.equal(query1.get().length, 1)
-          })
-      })
-      .then(() => {
-        let query2 = model.query(collectionName, {[field]: value2})
-        return model
-          .subscribe(query2)
-          .then(() => {
-            assert.equal(query2.get().length, 1)
-          })
-      })
+    await* [
+      model2.add(collectionName, doc),
+      model2.add(collectionName, doc2)
+    ]
+
+    let query1 = model.query(collectionName, {[field]: value})
+    await model.subscribe(query1)
+    assert.equal(query1.get().length, 1)
+
+    let query2 = model.query(collectionName, {[field]: value2})
+    await model.subscribe(query2)
+
+    assert.equal(query2.get().length, 1)
   })
 
-  it('should subscribe join query and get it', () => {
+  it('should subscribe join query and get it', async () => {
     let subscribes = [[collectionName, joinExpression]]
 
-    return model
-      .subscribe(subscribes)
-      .then((subscription) => {
+    let subscription = await model.subscribe(subscribes)
+    let data = subscription.get()
+    let query = data[0]
+    assert.equal(query.length, 0)
+
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+
+    let category = {
+      _id: '1',
+      userId: docId
+    }
+
+    return new Promise((resolve, reject) => {
+      subscription.once('change', () => {
         let data = subscription.get()
-        let query = data[0]
-        assert.equal(query.length, 0)
+        query = data[0]
+        assert.equal(query.length, 1)
 
-        let doc = {
-          _id: docId,
-          [field]: value
-        }
+        subscription.once('change', () => {
+          let data = subscription.get()
+          query = data[0]
+          assert.equal(query.length, 0)
 
-        let category = {
-          _id: '1',
-          userId: docId
-        }
-
-        return new Promise((resolve, reject) => {
           subscription.once('change', () => {
             let data = subscription.get()
             query = data[0]
             assert.equal(query.length, 1)
 
-            subscription.once('change', () => {
-              let data = subscription.get()
-              query = data[0]
-              assert.equal(query.length, 0)
-
-              subscription.once('change', () => {
-                let data = subscription.get()
-                query = data[0]
-                assert.equal(query.length, 1)
-
-                resolve()
-              })
-              let user2 = {
-                _id: '2',
-                [field]: value
-              }
-              model2.add(collectionName, user2)
-            })
-            model2.set(['categories', '1', 'userId'], '2')
+            resolve()
           })
-
-          model2.add(collectionName, doc)
-          model2.add('categories', category)
+          let user2 = {
+            _id: '2',
+            [field]: value
+          }
+          model2.add(collectionName, user2)
         })
+        model2.set(['categories', '1', 'userId'], '2')
       })
+
+      model2.add(collectionName, doc)
+      model2.add('categories', category)
+    })
   })
 })

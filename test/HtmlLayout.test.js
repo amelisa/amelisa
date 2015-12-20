@@ -8,14 +8,11 @@ let store
 let model
 
 describe('HtmlLayout', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     storage = new MemoryStorage()
-    return storage
-      .init()
-      .then(() => {
-        store = new Store(storage)
-        model = store.createModel()
-      })
+    await storage.init()
+    store = new Store(storage)
+    model = store.createModel()
   })
 
   it('should render empty bundle json', () => {
