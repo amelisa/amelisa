@@ -59,19 +59,19 @@ class Collection extends EventEmitter {
   }
 
   bundle () {
-    let bundle = {}
+    let data = {}
 
     for (let docId in this.data) {
       let doc = this.data[docId]
-      bundle[docId] = doc.bundle()
+      data[docId] = doc.bundle()
     }
 
-    return bundle
+    return data
   }
 
-  unbundle (bundle) {
-    for (let docId in bundle) {
-      let {ops} = bundle[docId]
+  unbundle (data) {
+    for (let docId in data) {
+      let {ops} = data[docId]
       let serverVersion = Doc.prototype.getVersionFromOps(ops)
       let doc = this.getDoc(docId)
       if (doc) {

@@ -115,20 +115,20 @@ class CollectionSet {
   }
 
   bundle () {
-    let bundle = {}
+    let data = {}
 
     for (let collectionName in this.data) {
       let collection = this.data[collectionName]
-      bundle[collectionName] = collection.bundle()
+      data[collectionName] = collection.bundle()
     }
 
-    return bundle
+    return data
   }
 
-  unbundle (bundle) {
-    for (let collectionName in bundle) {
+  unbundle (data) {
+    for (let collectionName in data) {
       let collection = this.getOrCreateCollection(collectionName)
-      let collectionBundle = bundle[collectionName]
+      let collectionBundle = data[collectionName]
       collection.unbundle(collectionBundle)
     }
   }

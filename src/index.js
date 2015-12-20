@@ -1,3 +1,4 @@
+import 'babel-polyfill'
 import debug from 'debug'
 debug.enable(process.env.DEBUG)
 import React from 'react'
