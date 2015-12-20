@@ -83,9 +83,11 @@ function createContainer (Component, React) {
           .then((subscription) => {
             this.subscription = subscription
 
-            subscription.on('change', () => {
-              this.refresh()
-            })
+            if (!util.isServer) {
+              subscription.on('change', () => {
+                this.refresh()
+              })
+            }
 
             this.refresh()
           })

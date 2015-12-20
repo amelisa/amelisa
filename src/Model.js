@@ -96,8 +96,11 @@ class Model extends EventEmitter {
     let doc
     let query
     let collection
-    let callbacks = this.callbacks[id]
-    if (callbacks) delete this.callbacks[id]
+    let callbacks
+    if (type === 'ackdate' || type === 'ack') {
+      callbacks = this.callbacks[id]
+      if (callbacks) delete this.callbacks[id]
+    }
 
     debug(type, id, collectionName, docId, expression, !!callbacks, value)
 
