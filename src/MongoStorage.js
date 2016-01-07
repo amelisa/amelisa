@@ -37,7 +37,9 @@ class MongoStorage extends MongoQueries {
     return new Promise((resolve, reject) => {
       this.db
         .collection(collectionName)
-        .findOne(query, (err, doc) => {
+        .find(query)
+        .limit(1)
+        .next((err, doc) => {
           if (err) return reject(err)
 
           resolve(doc)
@@ -88,7 +90,14 @@ class MongoStorage extends MongoQueries {
         })
         return
       }
-      collection.find(query, projection, query.$findOptions).toArray((err, docs) => {
+
+      let cursor = collection.find(query.$query).project(projection)
+
+      if (query.$orderby) cursor = cursor.sort(query.$orderby)
+      if (query.$skip) cursor = cursor.skip(query.$skip)
+      if (query.$limit) cursor = cursor.limit(query.$limit)
+
+      cursor.toArray((err, docs) => {
         if (err) return reject(err)
 
         resolve(docs)

@@ -159,13 +159,13 @@ describe('serverRendering', () => {
     store = new Store(storage)
     model = store.createModel()
 
-    await* [
+    await Promise.all([
       model.add(collectionName, {[field]: value}),
       model.add(collectionName, {[field]: 'Petr'}),
       model.add(collectionName, {[field]: 'Vasya'}),
       model.add(collectionName, {[field]: 'Kostya'}),
       model.add(collectionName, {[field]: 'Misha'})
-    ]
+    ])
   })
 
   it('should render to string', async () => {

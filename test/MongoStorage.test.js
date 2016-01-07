@@ -5,7 +5,7 @@ import { collectionName, docId, field, value } from './util'
 let mongoUrl = 'mongodb://localhost:27017/test'
 let storage = new MongoStorage(mongoUrl)
 
-describe.skip('MongoStorage', () => {
+describe.only('MongoStorage', () => {
   before(async () => {
     await storage.init()
   })
@@ -24,7 +24,7 @@ describe.skip('MongoStorage', () => {
 
     await storage.saveDoc(collectionName, docId, state, prevVersion, version, ops)
 
-    let doc = storage.getDocById(collectionName, docId)
+    let doc = await storage.getDocById(collectionName, docId)
 
     assert(doc)
     assert.equal(doc._id, docId)
@@ -42,7 +42,7 @@ describe.skip('MongoStorage', () => {
 
     await storage.saveDoc(collectionName, docId, state, prevVersion, version, ops)
 
-    let docs = storage.getDocsByQuery(collectionName, {[field]: value})
+    let docs = await storage.getDocsByQuery(collectionName, {[field]: value})
 
     assert(docs)
     assert.equal(docs.length, 1)

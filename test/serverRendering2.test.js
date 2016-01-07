@@ -79,10 +79,10 @@ describe.skip('serverRendering2', () => {
     store = new Store(storage)
     model = store.createModel()
 
-    await* [
+    await Promise.all([
       model.add(collectionName, {[field]: value}),
       model.add(collectionName, {[field]: 'Petr'})
-    ]
+    ])
   })
 
   it('should render to string', async () => {

@@ -116,10 +116,10 @@ describe('multymodel', () => {
       name: value2
     }
 
-    await* [
+    await Promise.all([
       model2.add(collectionName, doc),
       model2.add(collectionName, doc2)
-    ]
+    ])
 
     let query1 = model.query(collectionName, {[field]: value})
     await model.subscribe(query1)
