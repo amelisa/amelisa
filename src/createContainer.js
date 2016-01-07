@@ -6,11 +6,11 @@ function createContainer (Component, React) {
 
     static contextTypes = {
       model: React.PropTypes.object
-    }
+    };
 
-    static isContainer = true
+    static isContainer = true;
 
-    static displayName = Component.name + ' Container'
+    static displayName = Component.name + ' Container';
 
     constructor (props) {
       super()

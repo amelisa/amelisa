@@ -6,7 +6,7 @@ class HtmlLayout extends React.Component {
     head: PropTypes.any,
     children: PropTypes.any,
     model: PropTypes.object
-  }
+  };
 
   render () {
     let { head, children, model } = this.props
