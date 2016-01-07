@@ -5,7 +5,7 @@ import { collectionName, docId, field, value } from './util'
 let mongoUrl = 'mongodb://localhost:27017/test'
 let storage = new MongoStorage(mongoUrl)
 
-describe.only('MongoStorage', () => {
+describe.skip('MongoStorage', () => {
   before(async () => {
     await storage.init()
   })
