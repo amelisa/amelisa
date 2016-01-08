@@ -9,12 +9,14 @@ let metaOperators = {
   $comment: true,
   $explain: true,
   $hint: true,
+  $limit: true,
   $maxScan: true,
   $max: true,
   $min: true,
   $orderby: true,
   $returnKey: true,
   $showDiskLoc: true,
+  $skip: true,
   $snapshot: true,
   $count: true,
   $aggregate: true
@@ -24,11 +26,6 @@ let metaOperators = {
 let notDocsOperators = {
   $count: true,
   $aggregate: true
-}
-
-let cursorOperators = {
-  $limit: 'limit',
-  $skip: 'skip'
 }
 
 class MongoQueries {
@@ -72,9 +69,6 @@ class MongoQueries {
       for (let key in expression) {
         if (metaOperators[key]) {
           query[key] = expression[key]
-        } else if (cursorOperators[key]) {
-          let findOptions = query.$findOptions || (query.$findOptions = {})
-          findOptions[cursorOperators[key]] = expression[key]
         } else {
           query.$query[key] = expression[key]
         }

@@ -38,9 +38,9 @@ function createContainer (Component, React) {
     }
 
     getQueries (props) {
-      // TODO: probably it could be better
-      let component = new Component(props, this.context)
-      return component.getQueries()
+      let { context } = this
+      let component = new Component(props, context)
+      return component.getQueries.call({props, context})
     }
 
     setQueries (nextQueries) {
