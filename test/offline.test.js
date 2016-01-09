@@ -514,7 +514,7 @@ describe('offline', () => {
     assert.equal(model.query(collectionName, expression).get().length, 3)
     assert.equal(model2.query(collectionName, expression).get().length, 3)
 
-    model.add(collectionName, doc4)
+    model2.add(collectionName, doc4)
     model.del([collectionName, docId])
     model.set([collectionName, '2', field], 'Vasya')
 

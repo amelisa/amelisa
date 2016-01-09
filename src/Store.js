@@ -186,7 +186,7 @@ class Store extends EventEmitter {
           }
         }
 
-        let queryPromises = []
+        let getQueryPromises = []
 
         for (let hash in syncData.queries) {
           let querySyncData = syncData.queries[hash]
@@ -199,14 +199,14 @@ class Store extends EventEmitter {
               })
             return queryPromise
           }
-          queryPromises.push(getQueryPromise)
+          getQueryPromises.push(getQueryPromise)
         }
 
         Promise
           .all(docPromises)
           .then((docs) => {
             return Promise
-              .all(queryPromises.map((getQueryPromise) => getQueryPromise()))
+              .all(getQueryPromises.map((getQueryPromise) => getQueryPromise()))
               .then((queries) => {
                 let op = {
                   type: 'sync',

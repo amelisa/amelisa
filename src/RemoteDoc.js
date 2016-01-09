@@ -91,11 +91,8 @@ class RemoteDoc extends MutableDoc {
 
   getSyncData () {
     let data = {
-      ops: this.getOpsToSend(this.serverVersion)
-    }
-
-    if (this.listeners('change').length > 0) {
-      data.version = this.version()
+      ops: this.getOpsToSend(this.serverVersion),
+      version: this.version()
     }
 
     return data
