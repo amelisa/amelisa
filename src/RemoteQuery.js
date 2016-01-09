@@ -11,6 +11,12 @@ class RemoteQuery extends ClientQuery {
     this.versionDiffs = {}
   }
 
+  get () {
+    if (!this.isDocs) return this.data
+
+    return this.data.map((docId) => this.collection.get(docId))
+  }
+
   fetch () {
     return this.model.sendOp({
       type: 'qfetch',
@@ -19,24 +25,36 @@ class RemoteQuery extends ClientQuery {
     })
   }
 
-  init (docs, version) {
-    debug('init', this.data, docs, version)
+  onSnapshotNotDocs (data, version) {
     let [timestamp, versionNumber] = version.split('|')
     if (+timestamp < this.timestamp) {
-      return console.error(`init timestamps does not match for ${this.collectionName} ${timestamp} ${this.timestamp}`)
+      return console.error(`onSnapshotNotDocs timestamps does not match for ${this.collectionName} ${timestamp} ${this.timestamp}`)
     } else if (+timestamp > this.timestamp) {
       this.timestamp = +timestamp
       this.versionDiffs = {}
     }
 
-    this.versionDiffs[+versionNumber] = {init: true, docs}
-    this.attachDocsToCollection(docs)
-    // super.init(docs)
+    this.versionDiffs[+versionNumber] = {snapshot: true, data}
     this.refreshFromVersionDiffs()
-    this.server = true
   }
 
-  onDiff (diffs, version) {
+  onSnapshotDocs (ids, docs, version) {
+    debug('onSnapshotDocs', this.data, ids, docs, version)
+    let [timestamp, versionNumber] = version.split('|')
+    if (+timestamp < this.timestamp) {
+      return console.error(`onSnapshotDocs timestamps does not match for ${this.collectionName} ${timestamp} ${this.timestamp}`)
+    } else if (+timestamp > this.timestamp) {
+      this.timestamp = +timestamp
+      this.versionDiffs = {}
+    }
+
+    this.versionDiffs[+versionNumber] = {snapshot: true, ids}
+    this.attachDocsToCollection(docs)
+
+    this.refreshFromVersionDiffs()
+  }
+
+  onDiff (diffs, docs, version) {
     debug('onDiff', this.data, diffs, version, this.server)
 
     let [timestamp, versionNumber] = version.split('|')
@@ -48,50 +66,48 @@ class RemoteQuery extends ClientQuery {
     }
 
     this.versionDiffs[+versionNumber] = {diff: true, diffs}
+    this.attachDocsToCollection(docs)
 
     this.refreshFromVersionDiffs()
-    this.server = true
-    this.emit('change')
   }
 
   refreshFromVersionDiffs () {
-    let docs = this.data
+    let ids = this.data
 
     for (let versionNumber in this.versionDiffs) {
       let versionDiff = this.versionDiffs[versionNumber]
 
-      if (versionDiff.init) {
+      if (versionDiff.snapshot) {
         if (this.isDocs) {
-          docs = versionDiff.docs.slice(0)
+          ids = versionDiff.ids.slice(0)
         } else {
-          docs = versionDiff.docs
+          ids = versionDiff.data
         }
       } else {
         for (let diff of versionDiff.diffs) {
           switch (diff.type) {
             case 'insert':
-              let before = docs.slice(0, diff.index)
-              let after = docs.slice(diff.index)
-              docs = before.concat(diff.values, after)
-
-              this.attachDocsToCollection(diff.values)
+              let before = ids.slice(0, diff.index)
+              let after = ids.slice(diff.index)
+              ids = before.concat(diff.values, after)
               break
 
             case 'move':
-              let move = docs.splice(diff.from, diff.howMany)
-              docs.splice.apply(docs, [diff.to, 0].concat(move))
+              let move = ids.splice(diff.from, diff.howMany)
+              ids.splice.apply(ids, [diff.to, 0].concat(move))
               break
 
             case 'remove':
-              docs.splice(diff.index, diff.howMany)
+              ids.splice(diff.index, diff.howMany)
               break
           }
         }
       }
     }
 
-    this.data = docs
+    this.data = ids
 
+    this.server = true
     this.emit('change')
   }
 
@@ -101,19 +117,7 @@ class RemoteQuery extends ClientQuery {
     // Refresh queries from local data when offline
     if (this.server && !this.model.online) this.server = false
 
-    if (this.server) {
-      if (op && (op.type === 'add' || (op.type === 'del' && !op.field))) return
-
-      let docs = []
-      debug('docs', this.data)
-      if (this.isDocs) {
-        for (let docData of this.data) {
-          let doc = this.collection.getDoc(docData._id)
-          docs.push(doc.get())
-        }
-        this.data = docs
-      }
-    } else {
+    if (!this.server) {
       super.refresh()
     }
     // TODO: emit only if there were changes

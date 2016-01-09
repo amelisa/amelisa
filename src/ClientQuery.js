@@ -37,10 +37,8 @@ class ClientQuery extends Query {
   }
 
   attachDocsToCollection (docs) {
-    // TODO: do not attach aggregate results and others
-    if (!this.isDocs) return
-
-    for (let docData of docs) {
+    for (let docId in docs) {
+      let docData = docs[docId]
       let serverVersion = RemoteDoc.prototype.getVersionFromOps(docData._ops)
       let doc = this.collection.getDoc(docData._id)
       if (doc) {

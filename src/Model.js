@@ -92,7 +92,7 @@ class Model extends EventEmitter {
   }
 
   onMessage (message) {
-    let { type, id, collectionName, docId, expression, value, version, error } = message
+    let { type, id, collectionName, docId, expression, value, version, ids, diffs, docs, error } = message
     let doc
     let query
     let collection
@@ -136,12 +136,16 @@ class Model extends EventEmitter {
 
       case 'q':
         query = this.querySet.getOrCreateQuery(collectionName, expression)
-        query.init(value, version)
+        if (query.isDocs) {
+          query.onSnapshotDocs(ids, docs, version)
+        } else {
+          query.onSnapshotNotDocs(value, version)
+        }
         break
 
       case 'qdiff':
         query = this.querySet.getOrCreateQuery(collectionName, expression)
-        query.onDiff(value, version)
+        query.onDiff(diffs, docs, version)
         break
 
       case 'sync':
@@ -158,9 +162,13 @@ class Model extends EventEmitter {
             }
 
             for (let querySyncData of value.queries) {
-              let { collectionName, expression, data, version } = querySyncData
+              let { collectionName, expression, version, value, ids, docs } = querySyncData
               let query = this.querySet.getOrCreateQuery(collectionName, expression)
-              query.init(data, version)
+              if (query.isDocs) {
+                query.onSnapshotDocs(ids, docs, version)
+              } else {
+                query.onSnapshotNotDocs(value, version)
+              }
             }
 
             if (value.version !== this.get('_app.version')) {

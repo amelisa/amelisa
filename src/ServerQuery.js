@@ -43,7 +43,7 @@ class ServerQuery extends Query {
         this.emit('loaded')
       })
       .catch((err) => {
-        console.error('ServerQuery.load', err)
+        console.error('ServerQuery.load', err, err.stack)
       })
   }
 
@@ -54,7 +54,7 @@ class ServerQuery extends Query {
       if (util.fastEqual(this.prev, this.data)) return
 
       for (let channel of this.channels) {
-        this.sendFullQueryToChannel(channel)
+        this.sendNotDocsQuerySnapshotToChannel(channel)
       }
       return
     }
@@ -66,27 +66,70 @@ class ServerQuery extends Query {
     }
   }
 
-  sendFullQueryToChannel (channel) {
+  sendNotDocsQuerySnapshotToChannel (channel) {
     let op = {
       type: 'q',
       collectionName: this.collectionName,
       expression: this.originalExpression,
       version: this.version(),
-      value: this.get()
+      value: this.data
     }
 
     this.sendOp(op, channel)
   }
 
+  sendDocsQuerySnapshotToChannel (channel) {
+    let op = {
+      type: 'q',
+      collectionName: this.collectionName,
+      expression: this.originalExpression,
+      version: this.version(),
+      ids: this.getIds(),
+      docs: this.getDocs()
+    }
+
+    this.sendOp(op, channel)
+  }
+
+  getDocs () {
+    let docs = {}
+
+    for (let doc of this.data) {
+      docs[doc._id] = doc
+    }
+
+    return docs
+  }
+
+  getIds () {
+    return this.data.map((doc) => doc._id)
+  }
+
   sendDiffQueryToChannel (channel, diffs) {
-    // if (!diffs.length) return
+    if (!diffs.length) return
+
+    let docMap = {}
+    for (let doc of this.data) {
+      docMap[doc._id] = doc
+    }
+
+    let docs = {}
+
+    for (let diff of diffs) {
+      if (diff.type === 'insert') {
+        for (let docId of diff.values) {
+          docs[docId] = docMap[docId]
+        }
+      }
+    }
 
     let op = {
       type: 'qdiff',
       collectionName: this.collectionName,
       expression: this.originalExpression,
       version: this.version(),
-      value: diffs
+      diffs: diffs,
+      docs: docs
     }
 
     this.sendOp(op, channel)
@@ -96,29 +139,15 @@ class ServerQuery extends Query {
     let prevIds = prev.map((doc) => doc._id)
     let docIds = data.map((doc) => doc._id)
 
-    let docMap = {}
-    for (let doc of this.data) {
-      docMap[doc._id] = doc
-    }
-
-    let diffs = arraydiff(prevIds, docIds)
-
-    for (let diff of diffs) {
-      if (diff.type === 'insert') {
-        let docValues = []
-        for (let docId of diff.values) {
-          let doc = docMap[docId]
-          docValues.push(doc)
-        }
-        diff.values = docValues
-      }
-    }
-
-    return diffs
+    return arraydiff(prevIds, docIds)
   }
 
   fetch (channel, opId) {
-    this.sendFullQueryToChannel(channel)
+    if (this.isDocs) {
+      this.sendDocsQuerySnapshotToChannel(channel)
+    } else {
+      this.sendNotDocsQuerySnapshotToChannel(channel)
+    }
 
     let op = {
       id: opId,
@@ -134,7 +163,11 @@ class ServerQuery extends Query {
 
     if (!opId) return
 
-    this.sendFullQueryToChannel(channel)
+    if (this.isDocs) {
+      this.sendDocsQuerySnapshotToChannel(channel)
+    } else {
+      this.sendNotDocsQuerySnapshotToChannel(channel)
+    }
 
     let op = {
       id: opId,
@@ -151,19 +184,22 @@ class ServerQuery extends Query {
   }
 
   maybeUnattach () {
-    debug('maybeUnattach', this.channels.length)
     setTimeout(() => {
       if (this.channels.length === 0) {
-        this.querySet.unattach(this.collectionName, this.expression)
+        this.destroy()
       }
     }, unattachTimeout)
+  }
+
+  destroy () {
+    this.querySet.unattach(this.collectionName, this.expression)
   }
 
   sync (channel) {
     this.channels.push(channel)
 
     if (this.loaded) {
-      this.sendFullQueryToChannel(channel)
+      this.sendDocsQuerySnapshotToChannel(channel)
     }
   }
 

@@ -13,32 +13,19 @@ class ProjectedQuery extends ServerQuery {
 
     if (op.collectionName) op.collectionName = this.projectionCollectionName
 
-    if (op.type === 'q' && this.isDocs) {
+    if ((op.type === 'q' || op.type === 'qdiff') && this.isDocs) {
       let projectedDocs = []
-      for (let doc of op.value) {
-        projectedDocs.push(this.projection.projectDoc(doc))
+      for (let docId in op.docs) {
+        projectedDocs.push(this.projection.projectDoc(op.docs[docId]))
       }
-      op.value = projectedDocs
-    } else if (op.type === 'qdiff') {
-      for (let diff of op.value) {
-        if (diff.type === 'insert') {
-          let projectedDocs = []
-          for (let doc of diff.values) {
-            projectedDocs.push(this.projection.projectDoc(doc))
-          }
-          diff.values = projectedDocs
-        }
-      }
+      op.docs = projectedDocs
     }
 
     super.sendOp(op, channel)
   }
 
-  maybeUnattach () {
-    // TODO: add timeout
-    if (this.channels.length === 0) {
-      this.querySet.unattach(this.projectionCollectionName, this.originalExpression)
-    }
+  destroy () {
+    this.querySet.unattach(this.projectionCollectionName, this.originalExpression)
   }
 }
 

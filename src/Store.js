@@ -209,8 +209,14 @@ class Store extends EventEmitter {
               let data = {
                 collectionName,
                 expression,
-                data: query.data,
                 version: query.version()
+              }
+
+              if (query.isDocs) {
+                data.ids = query.getIds()
+                data.docs = query.getDocs()
+              } else {
+                data.value = query.data
               }
 
               return data
@@ -280,27 +286,14 @@ class Store extends EventEmitter {
   sendOp (op, channel) {
     debug('sendOp', op.type)
 
-    if (op.type === 'q' && Array.isArray(op.value)) {
-      for (let docData of op.value) {
+    if ((op.type === 'q' || op.type === 'qdiff') && op.docs) {
+      for (let docId in op.docs) {
+        let docData = op.docs[docId]
         this.docSet
           .getOrCreateDoc(op.collectionName, docData._id)
           .then((doc) => {
             doc.subscribe(channel, docData._v)
           })
-      }
-    }
-
-    if (op.type === 'qdiff') {
-      for (let diff of op.value) {
-        if (diff.type === 'insert') {
-          for (let docData of diff.values) {
-            this.docSet
-              .getOrCreateDoc(op.collectionName, docData._id)
-              .then((doc) => {
-                doc.subscribe(channel, docData._v)
-              })
-          }
-        }
       }
     }
 
