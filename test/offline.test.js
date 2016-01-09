@@ -321,7 +321,7 @@ describe('offline', () => {
     assert.equal(query.get(), 1)
   })
 
-  it('should sync on online when subscribed to query', async () => {
+  it('should sync on online when subscribed to query and add', async () => {
     let subscribes = [[collectionName, expression]]
 
     await model.subscribe(subscribes)
@@ -367,5 +367,105 @@ describe('offline', () => {
 
     assert.equal(model.query(collectionName, expression).get().length, 2)
     assert.equal(model2.query(collectionName, expression).get().length, 2)
+  })
+
+  it('should sync on online when subscribed to query and set', async () => {
+    let subscribes = [[collectionName, expression]]
+
+    await model.subscribe(subscribes)
+    await model2.subscribe(subscribes)
+
+    await sleep(10)
+
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+
+    let doc2 = {
+      _id: '2',
+      [field]: value
+    }
+
+    model.channel.emit('close')
+    model.channel.pipedChannel.emit('close')
+
+    model2.channel.emit('close')
+    model2.channel.pipedChannel.emit('close')
+
+    model.add(collectionName, doc)
+    model2.add(collectionName, doc2)
+    model2.set([collectionName, docId, field], 'Vasya')
+
+    await sleep(10)
+
+    assert.equal(model.query(collectionName, expression).get().length, 1)
+    assert.equal(model2.query(collectionName, expression).get().length, 2)
+
+    let channel3 = new ServerChannel()
+    model2.channel.pipe(channel3).pipe(model2.channel)
+    store.onChannel(channel3)
+    model2.channel.emit('open')
+
+    let channel2 = new ServerChannel()
+    model.channel.pipe(channel2).pipe(model.channel)
+    store.onChannel(channel2)
+    model.channel.emit('open')
+
+    await sleep(10)
+
+    assert.equal(model.query(collectionName, expression).get().length, 2)
+    assert.equal(model2.query(collectionName, expression).get().length, 2)
+    assert.equal(model2.get(collectionName, docId, field), 'Vasya')
+  })
+
+  it('should sync on online when subscribed to query and del', async () => {
+    let subscribes = [[collectionName, expression]]
+
+    await model.subscribe(subscribes)
+    await model2.subscribe(subscribes)
+
+    await sleep(10)
+
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+
+    let doc2 = {
+      _id: '2',
+      [field]: value
+    }
+
+    model.channel.emit('close')
+    model.channel.pipedChannel.emit('close')
+
+    model2.channel.emit('close')
+    model2.channel.pipedChannel.emit('close')
+
+    model.add(collectionName, doc)
+    model2.add(collectionName, doc2)
+    model.del([collectionName, '2'])
+    model2.del([collectionName, docId])
+
+    await sleep(10)
+
+    assert.equal(model.query(collectionName, expression).get().length, 1)
+    assert.equal(model2.query(collectionName, expression).get().length, 1)
+
+    let channel3 = new ServerChannel()
+    model2.channel.pipe(channel3).pipe(model2.channel)
+    store.onChannel(channel3)
+    model2.channel.emit('open')
+
+    let channel2 = new ServerChannel()
+    model.channel.pipe(channel2).pipe(model.channel)
+    store.onChannel(channel2)
+    model.channel.emit('open')
+
+    await sleep(10)
+
+    assert.equal(model.query(collectionName, expression).get().length, 0)
+    assert.equal(model2.query(collectionName, expression).get().length, 0)
   })
 })

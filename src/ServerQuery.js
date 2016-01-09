@@ -3,6 +3,8 @@ import arraydiff from 'arraydiff'
 import Query from './Query'
 import util from './util'
 
+const unattachTimeout = 5000
+
 class ServerQuery extends Query {
   constructor (collectionName, expression, store, storage, querySet) {
     super(collectionName, expression)
@@ -150,11 +152,11 @@ class ServerQuery extends Query {
 
   maybeUnattach () {
     debug('maybeUnattach', this.channels.length)
-    return
-    // TODO: add timeout
-    if (this.channels.length === 0) {
-      this.querySet.unattach(this.collectionName, this.expression)
-    }
+    setTimeout(() => {
+      if (this.channels.length === 0) {
+        this.querySet.unattach(this.collectionName, this.expression)
+      }
+    }, unattachTimeout)
   }
 
   sync (channel) {
@@ -166,7 +168,6 @@ class ServerQuery extends Query {
   }
 
   sendOp (op, channel) {
-    // debug('sendOp')
     this.store.sendOp(op, channel)
   }
 

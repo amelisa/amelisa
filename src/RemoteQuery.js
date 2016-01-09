@@ -36,8 +36,14 @@ class RemoteQuery extends ClientQuery {
     if (!this.server) this.data = []
 
     let [timestamp, versionNumber] = version.split('|')
-    if (this.timestamp !== +timestamp) throw new Error(`RemoteQuery timestamps does not match ${this.timestamp} ${timestamp}`)
-    if (this.versionNumber !== versionNumber - 1) throw new Error(`RemoteQuery versionNumbers does not match ${this.versionNumber} ${versionNumber}`)
+    if (+timestamp > this.timestamp) {
+      this.timestamp = +timestamp
+      this.versionNumber = 1
+      this.data = []
+    } else if (+timestamp < this.timestamp) {
+      return
+    }
+    if (this.versionNumber !== versionNumber - 1) return
     this.versionNumber = +versionNumber
 
     let docs = this.data
