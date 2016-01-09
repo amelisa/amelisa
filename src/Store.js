@@ -180,17 +180,7 @@ class Store extends EventEmitter {
                   this.onOp(op)
                 }
 
-                if (version !== undefined) {
-                  doc.subscribeWithoutSending(channel, version)
-                }
-
-                let data = {
-                  collectionName,
-                  docId,
-                  ops: doc.getOpsToSend(version),
-                  version: doc.version()
-                }
-                return data
+                doc.subscribe(channel, version, 'id')
               })
             docPromises.push(docPromise)
           }
@@ -201,45 +191,34 @@ class Store extends EventEmitter {
         for (let hash in syncData.queries) {
           let querySyncData = syncData.queries[hash]
           let { collectionName, expression } = querySyncData
-          let queryPromise = this.querySet
-            .getOrCreateQuery(collectionName, expression)
-            .then((query) => {
-              query.subscribe(channel)
-
-              let data = {
-                collectionName,
-                expression,
-                version: query.version()
-              }
-
-              if (query.isDocs) {
-                data.ids = query.getIds()
-                data.docs = query.getDocs()
-              } else {
-                data.value = query.data
-              }
-
-              return data
-            })
-          queryPromises.push(queryPromise)
+          let getQueryPromise = () => {
+            let queryPromise = this.querySet
+              .getOrCreateQuery(collectionName, expression)
+              .then((query) => {
+                query.subscribe(channel, 'id')
+              })
+            return queryPromise
+          }
+          queryPromises.push(getQueryPromise)
         }
 
         Promise
-          .all([
-            Promise.all(docPromises),
-            Promise.all(queryPromises)
-          ])
-          .then((data) => {
-            let op = {
-              type: 'sync',
-              value: {
-                version: this.options.version,
-                projectionHashes: this.options.projectionHashes,
-                docs: data[0],
-                queries: data[1]
-              }
-            }
-            this.sendOp(op, channel)
+          .all(docPromises)
+          .then((docs) => {
+            return Promise
+              .all(queryPromises.map((getQueryPromise) => getQueryPromise()))
+              .then((queries) => {
+                let op = {
+                  type: 'sync',
+                  value: {
+                    version: this.options.version,
+                    projectionHashes: this.options.projectionHashes,
+                    docs,
+                    queries
+                  }
+                }
+                this.sendOp(op, channel)
+              })
           })
         break
 

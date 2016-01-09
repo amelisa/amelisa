@@ -515,7 +515,7 @@ describe('offline', () => {
     assert.equal(model2.query(collectionName, expression).get().length, 3)
 
     model.add(collectionName, doc4)
-    model2.del([collectionName, docId])
+    model.del([collectionName, docId])
     model.set([collectionName, '2', field], 'Vasya')
 
     let channel3 = new ServerChannel()
@@ -533,5 +533,24 @@ describe('offline', () => {
     assert.equal(model.query(collectionName, expression).get().length, 3)
     assert.equal(model2.query(collectionName, expression).get().length, 3)
     assert.equal(model2.get(collectionName, '2', field), 'Vasya')
+
+    await sleep(10)
+
+    model.channel.emit('close')
+    model.channel.pipedChannel.emit('close')
+
+    model2.channel.emit('close')
+    model2.channel.pipedChannel.emit('close')
+
+    await sleep(10)
+
+    model2.set([collectionName, '3', field], 'Vasya')
+
+    await sleep(10)
+
+    assert.equal(model.query(collectionName, expression).get().length, 3)
+    assert.equal(model2.query(collectionName, expression).get().length, 3)
+    assert.equal(model2.get(collectionName, '2', field), 'Vasya')
+    assert.equal(model2.get(collectionName, '3', field), 'Vasya')
   })
 })

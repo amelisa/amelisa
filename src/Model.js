@@ -152,25 +152,6 @@ class Model extends EventEmitter {
         this
           .onProjections(value.projectionHashes)
           .then(() => {
-            for (let docSyncData of value.docs) {
-              let { collectionName, docId, ops, version } = docSyncData
-              let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
-              doc.applyOps(ops)
-              doc.serverVersion = version
-              doc.save()
-              doc.emit('change')
-            }
-
-            for (let querySyncData of value.queries) {
-              let { collectionName, expression, version, value, ids, docs } = querySyncData
-              let query = this.querySet.getOrCreateQuery(collectionName, expression)
-              if (query.isDocs) {
-                query.onSnapshotDocs(ids, docs, version)
-              } else {
-                query.onSnapshotNotDocs(value, version)
-              }
-            }
-
             if (value.version !== this.get('_app.version')) {
               // TODO: reload app
             }
