@@ -1,4 +1,5 @@
 import assert from 'assert'
+import eventToPromise from 'event-to-promise'
 import { MemoryStorage, Store } from '../src'
 import { collectionName, docId, expression, field, value } from './util'
 import ServerChannel from '../src/ServerChannel'
@@ -39,17 +40,13 @@ describe('multystore', () => {
       [field]: value
     }
 
-    return new Promise((resolve, reject) => {
-      subscription.on('change', () => {
-        let data = subscription.get()
-        doc = data[0]
-        assert(doc)
+    model2.add(collectionName, docData)
 
-        resolve()
-      })
+    await eventToPromise(subscription, 'change')
 
-      model2.add(collectionName, docData)
-    })
+    data = subscription.get()
+    doc = data[0]
+    assert(doc)
   })
 
   it('should subscribe query and get it', async () => {
@@ -66,16 +63,12 @@ describe('multystore', () => {
       [field]: value
     }
 
-    return new Promise((resolve, reject) => {
-      subscription.on('change', () => {
-        let data = subscription.get()
-        let query = data[0]
-        assert.equal(query.length, 1)
+    model2.add(collectionName, doc)
 
-        resolve()
-      })
+    await eventToPromise(subscription, 'change')
 
-      model2.add(collectionName, doc)
-    })
+    data = subscription.get()
+    query = data[0]
+    assert.equal(query.length, 1)
   })
 })

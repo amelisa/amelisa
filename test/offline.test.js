@@ -113,7 +113,7 @@ describe('offline', () => {
 
     await sleep(10)
 
-    assert.equal(model.getQuery(collectionName, expression).length, 0)
+    assert.equal(model.query(collectionName, expression).get().length, 0)
 
     let channel2 = new ServerChannel()
     model.channel.pipe(channel2).pipe(model.channel)
@@ -122,7 +122,7 @@ describe('offline', () => {
 
     await sleep(10)
 
-    assert.equal(model.getQuery(collectionName, expression).length, 1)
+    assert.equal(model.query(collectionName, expression).get().length, 1)
   })
 
   it('should receive ops on online when subscribed to count query', async () => {
@@ -143,7 +143,7 @@ describe('offline', () => {
 
     await sleep(10)
 
-    assert.equal(model.getQuery(collectionName, countExpression), 0)
+    assert.equal(model.query(collectionName, countExpression).get(), 0)
 
     let channel2 = new ServerChannel()
     model.channel.pipe(channel2).pipe(model.channel)
@@ -152,7 +152,7 @@ describe('offline', () => {
 
     await sleep(10)
 
-    assert.equal(model.getQuery(collectionName, countExpression), 1)
+    assert.equal(model.query(collectionName, countExpression).get(), 1)
   })
 
   it('should send and receive ops on online when subscribed to doc', async () => {
@@ -214,7 +214,7 @@ describe('offline', () => {
 
     await sleep(10)
 
-    assert.equal(model.getQuery(collectionName, expression).length, 0)
+    assert.equal(model.query(collectionName, expression).get().length, 0)
 
     let channel3 = new ServerChannel()
     model2.channel.pipe(channel3).pipe(model2.channel)
@@ -223,7 +223,7 @@ describe('offline', () => {
 
     await sleep(10)
 
-    assert.equal(model.getQuery(collectionName, expression).length, 0)
+    assert.equal(model.query(collectionName, expression).get().length, 0)
 
     let channel2 = new ServerChannel()
     model.channel.pipe(channel2).pipe(model.channel)
@@ -232,7 +232,7 @@ describe('offline', () => {
 
     await sleep(10)
 
-    assert.equal(model.getQuery(collectionName, expression).length, 1)
+    assert.equal(model.query(collectionName, expression).get().length, 1)
   })
 
   it('should send and receive ops on online when subscribed to count query', async () => {
@@ -256,7 +256,7 @@ describe('offline', () => {
 
     await sleep(10)
 
-    assert.equal(model.getQuery(collectionName, countExpression), 0)
+    assert.equal(model.query(collectionName, countExpression).get(), 0)
 
     let channel3 = new ServerChannel()
     model2.channel.pipe(channel3).pipe(model2.channel)
@@ -265,7 +265,7 @@ describe('offline', () => {
 
     await sleep(10)
 
-    assert.equal(model.getQuery(collectionName, countExpression), 0)
+    assert.equal(model.query(collectionName, countExpression).get(), 0)
 
     let channel2 = new ServerChannel()
     model.channel.pipe(channel2).pipe(model.channel)
@@ -274,7 +274,7 @@ describe('offline', () => {
 
     await sleep(10)
 
-    assert.equal(model.getQuery(collectionName, countExpression), 1)
+    assert.equal(model.query(collectionName, countExpression).get(), 1)
   })
 
   it('should apply ops offline when subscribed to query', async () => {

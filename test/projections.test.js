@@ -1,4 +1,5 @@
 import assert from 'assert'
+import eventToPromise from 'event-to-promise'
 import { MemoryStorage, Store } from '../src'
 import { collectionName, dbCollectionName, docId, expression, countExpression, joinExpression, field, value, sleep } from './util'
 import ServerChannel from '../src/ServerChannel'
@@ -13,7 +14,8 @@ let options = {
       collectionName: dbCollectionName,
       fields: {
         _id: true,
-        [field]: true
+        [field]: true,
+        complex: true
       }
     }
   }
@@ -46,16 +48,12 @@ describe('projections', () => {
       age: 14
     }
 
-    return new Promise((resolve, reject) => {
-      model2.add(dbCollectionName, docData)
+    model2.add(dbCollectionName, docData)
 
-      subscription.on('change', () => {
-        assert(model.get(collectionName, docId, field))
-        assert(!model.get(collectionName, docId, 'age'))
+    await eventToPromise(subscription, 'change')
 
-        resolve()
-      })
-    })
+    assert(model.get(collectionName, docId, field))
+    assert(!model.get(collectionName, docId, 'age'))
   })
 
   it('should subscribe to projected query', async () => {
@@ -73,18 +71,14 @@ describe('projections', () => {
       age: 14
     }
 
-    return new Promise((resolve, reject) => {
-      model2.add(dbCollectionName, doc)
+    model2.add(dbCollectionName, doc)
 
-      subscription.on('change', () => {
-        let docs = model.query(collectionName, expression).get()
-        assert.equal(docs.length, 1)
-        assert.equal(docs[0][field], value)
-        assert.equal(docs[0].age, undefined)
+    await eventToPromise(subscription, 'change')
 
-        resolve()
-      })
-    })
+    let docs = model.query(collectionName, expression).get()
+    assert.equal(docs.length, 1)
+    assert.equal(docs[0][field], value)
+    assert.equal(docs[0].age, undefined)
   })
 
   it('should subscribe to projected join query', async () => {
@@ -107,25 +101,32 @@ describe('projections', () => {
       userId: docId
     }
 
-    return new Promise((resolve, reject) => {
-      model2.add(dbCollectionName, doc)
-      model2.add('categories', category)
+    model2.add(dbCollectionName, doc)
+    model2.add('categories', category)
 
-      subscription.on('change', () => {
-        let docs = model.query(collectionName, joinExpression).get()
-        assert.equal(docs.length, 1)
-        assert.equal(docs[0][field], value)
-        assert.equal(docs[0].age, undefined)
+    await eventToPromise(subscription, 'change')
 
-        resolve()
-      })
-    })
+    let docs = model.query(collectionName, joinExpression).get()
+    assert.equal(docs.length, 1)
+    assert.equal(docs[0][field], value)
+    assert.equal(docs[0].age, undefined)
   })
 
   it('should add projected doc to projected collection', async () => {
     let doc = {
       _id: docId,
       [field]: value
+    }
+
+    await model.add(collectionName, doc)
+  })
+
+  it('should add projected doc with complex field to projected collection', async () => {
+    let doc = {
+      _id: docId,
+      complex: {
+        name: 1
+      }
     }
 
     await model.add(collectionName, doc)
@@ -145,7 +146,7 @@ describe('projections', () => {
       })
   })
 
-  it('should mutate on projected field in projected collection', async () => {
+  it('should set on projected field in projected collection', async () => {
     let doc = {
       _id: docId,
       [field]: value
@@ -153,9 +154,36 @@ describe('projections', () => {
 
     await model.add(collectionName, doc)
     await model.set([collectionName, docId, field], 'Vasya')
+    assert.equal(model.get(collectionName, docId, field), 'Vasya')
   })
 
-  it('should not mutate on not projected field in projected collection', async () => {
+  it('should set on projected complex field in projected collection', async () => {
+    let doc = {
+      _id: docId,
+      complex: {
+        name: 1
+      }
+    }
+
+    await model.add(collectionName, doc)
+    await model.set([collectionName, docId, 'complex'], {name: 2})
+    assert.equal(model.get(collectionName, docId, 'complex.name'), 2)
+  })
+
+  it('should set on projected complex child field in projected collection', async () => {
+    let doc = {
+      _id: docId,
+      complex: {
+        name: 1
+      }
+    }
+
+    await model.add(collectionName, doc)
+    await model.set([collectionName, docId, 'complex.name'], 2)
+    assert.equal(model.get(collectionName, docId, 'complex.name'), 2)
+  })
+
+  it('should not set on not projected field in projected collection', async () => {
     let doc = {
       _id: docId,
       [field]: value
@@ -166,6 +194,53 @@ describe('projections', () => {
       .catch((err) => {
         assert(err)
       })
+  })
+
+  it('should del doc in projected collection', async () => {
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+
+    await model.add(collectionName, doc)
+    await model.del([collectionName, docId])
+  })
+
+  it('should del on projected field in projected collection', async () => {
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+
+    await model.add(collectionName, doc)
+    await model.del([collectionName, docId, field])
+    assert.equal(model.get(collectionName, docId, field), undefined)
+  })
+
+  it('should del on projected complext field in projected collection', async () => {
+    let doc = {
+      _id: docId,
+      complex: {
+        name: 1
+      }
+    }
+
+    await model.add(collectionName, doc)
+    await model.del([collectionName, docId, 'complex'])
+    assert.equal(model.get(collectionName, docId, 'complex'), undefined)
+  })
+
+  it('should del on projected complext child field in projected collection', async () => {
+    let doc = {
+      _id: docId,
+      complex: {
+        name: 2
+      }
+    }
+
+    await model.add(collectionName, doc)
+    await model.del([collectionName, docId, 'complex.name'])
+    assert.equal(model.get(collectionName, docId, 'complex.name'), undefined)
   })
 
   it('should send and receive ops on online when subscribed to projected doc', async () => {
@@ -229,7 +304,7 @@ describe('projections', () => {
 
     await sleep(10)
 
-    assert.equal(model.getQuery(collectionName, expression).length, 0)
+    assert.equal(model.query(collectionName, expression).get().length, 0)
 
     let channel3 = new ServerChannel()
     model2.channel.pipe(channel3).pipe(model2.channel)
@@ -238,7 +313,7 @@ describe('projections', () => {
 
     await sleep(10)
 
-    assert.equal(model.getQuery(collectionName, expression).length, 0)
+    assert.equal(model.query(collectionName, expression).get().length, 0)
 
     let channel2 = new ServerChannel()
     model.channel.pipe(channel2).pipe(model.channel)
@@ -247,7 +322,7 @@ describe('projections', () => {
 
     await sleep(10)
 
-    assert.equal(model.getQuery(collectionName, expression).length, 1)
+    assert.equal(model.query(collectionName, expression).get().length, 1)
   })
 
   it('should send and receive ops on online when subscribed to projected count query', async () => {
@@ -272,7 +347,7 @@ describe('projections', () => {
 
     await sleep(10)
 
-    assert.equal(model.getQuery(collectionName, countExpression), 0)
+    assert.equal(model.query(collectionName, countExpression).get(), 0)
 
     let channel3 = new ServerChannel()
     model2.channel.pipe(channel3).pipe(model2.channel)
@@ -281,7 +356,7 @@ describe('projections', () => {
 
     await sleep(10)
 
-    assert.equal(model.getQuery(collectionName, countExpression), 0)
+    assert.equal(model.query(collectionName, countExpression).get(), 0)
 
     let channel2 = new ServerChannel()
     model.channel.pipe(channel2).pipe(model.channel)
@@ -290,6 +365,6 @@ describe('projections', () => {
 
     await sleep(10)
 
-    assert.equal(model.getQuery(collectionName, countExpression), 1)
+    assert.equal(model.query(collectionName, countExpression).get(), 1)
   })
 })

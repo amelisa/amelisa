@@ -195,10 +195,6 @@ class Model extends EventEmitter {
     }
   }
 
-  getQuery (collectionName, expression) {
-    return this.query(collectionName, expression).get()
-  }
-
   get () {
     let [collectionName, docId, field] = util.parseArguments(arguments)
     return this.collectionSet.get(collectionName, docId, field)

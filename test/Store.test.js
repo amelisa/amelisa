@@ -1,4 +1,5 @@
 import assert from 'assert'
+import eventToPromise from 'event-to-promise'
 import { MemoryStorage, Store } from '../src'
 import ServerChannel from '../src/ServerChannel'
 import { collectionName, docId } from './util'
@@ -19,7 +20,7 @@ describe('Store', () => {
     store.onChannel(channel2)
   })
 
-  it('should sub to empty doc', () => {
+  it('should sub to empty doc', async () => {
     let op = {
       type: 'sub',
       collectionName: collectionName,
@@ -27,15 +28,11 @@ describe('Store', () => {
       version: '1'
     }
 
-    return new Promise((resolve, reject) => {
-      channel.on('message', (message) => {
-        if (message.type !== 'sub') return
-        assert.equal(message.type, op.type)
-        resolve()
-      })
+    channel.send(op)
 
-      channel.send(op)
-    })
+    let message = await eventToPromise(channel, 'message')
+
+    assert.equal(message.type, op.type)
   })
 
   it('should sub to doc', async () => {
@@ -55,14 +52,10 @@ describe('Store', () => {
 
     await storage.saveDoc(collectionName, docId, state, prevVersion, version, ops)
 
-    return new Promise((resolve, reject) => {
-      channel.on('message', (message) => {
-        if (message.type !== 'sub') return
-        assert.equal(message.type, op.type)
-        resolve()
-      })
+    channel.send(op)
 
-      channel.send(op)
-    })
+    let message = await eventToPromise(channel, 'message')
+
+    assert.equal(message.type, op.type)
   })
 })

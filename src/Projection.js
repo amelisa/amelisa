@@ -83,19 +83,21 @@ class Projection {
       }
     }
 
+    let parentField = op.field ? op.field.split('.')[0] : null
+
     if (op.type === 'set') {
       if (this.inclusive) {
-        if (!this.fields[op.field]) return
+        if (!this.fields[parentField]) return
       } else {
-        if (this.fields[op.field] === false) return
+        if (this.fields[parentField] === false) return
       }
     }
 
-    if (op.type === 'del' && op.field) {
+    if (op.type === 'del' && parentField) {
       if (this.inclusive) {
-        if (!this.fields[op.field]) return
+        if (!this.fields[parentField]) return
       } else {
-        if (this.fields[op.field] === false) return
+        if (this.fields[parentField] === false) return
       }
     }
 
@@ -118,19 +120,21 @@ class Projection {
       }
     }
 
+    let parentField = op.field ? op.field.split('.')[0] : null
+
     if (op.type === 'set') {
       if (this.inclusive) {
-        if (!this.fields[op.field]) return error(op.field)
+        if (!this.fields[parentField]) return error(op.field)
       } else {
-        if (this.fields[op.field] === false) return error(op.field)
+        if (this.fields[parentField] === false) return error(op.field)
       }
     }
 
-    if (op.type === 'del' && op.field) {
+    if (op.type === 'del' && parentField) {
       if (this.inclusive) {
-        if (!this.fields[op.field]) return error(op.field)
+        if (!this.fields[parentField]) return error(op.field)
       } else {
-        if (this.fields[op.field] === false) return error(op.field)
+        if (this.fields[parentField] === false) return error(op.field)
       }
     }
   }

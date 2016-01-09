@@ -3,8 +3,9 @@ import MutableDoc from './MutableDoc'
 import ClientQuery from './ClientQuery'
 import UrlQuery from './UrlQuery'
 import util from './util'
-
 import { EventEmitter } from 'events'
+
+const debounceTimeout = 0
 
 class Subscription extends EventEmitter {
   constructor (rawSubscribes, collectionSet, querySet, fetchOnly = false) {
@@ -86,7 +87,11 @@ class Subscription extends EventEmitter {
   }
 
   onChange () {
-    this.emit('change')
+    if (this.timeout) clearTimeout(this.timeout)
+    this.timeout = setTimeout(() => {
+      this.emit('change')
+      delete this.timeout
+    }, debounceTimeout)
   }
 
   changeSubscribes (nextSubscribes) {

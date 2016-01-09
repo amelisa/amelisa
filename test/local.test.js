@@ -48,12 +48,12 @@ describe('local', () => {
     }
 
     model2.add(localCollectionName, doc)
-    let docs = model2.getQuery(localCollectionName, expression)
+    let docs = model2.query(localCollectionName, expression).get()
     assert.equal(docs.length, 1)
     assert.equal(docs[0]._id, docId)
 
     await sleep(10)
 
-    assert.equal(model.getQuery(localCollectionName, expression).length, 0)
+    assert.equal(model.query(localCollectionName, expression).get().length, 0)
   })
 })

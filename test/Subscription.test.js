@@ -1,4 +1,5 @@
 import assert from 'assert'
+import eventToPromise from 'event-to-promise'
 import { MemoryStorage, Store } from '../src'
 import { collectionName, docId, expression, field, value } from './util'
 
@@ -55,21 +56,21 @@ describe('Subscription', () => {
       [field]: value
     }
 
-    await new Promise((resolve, reject) => {
-      subscription.once('change', () => {
-        subscription.once('change', () => {
-          subscription.once('change', () => {
-            subscription.once('change', () => {
-              resolve()
-            })
-            model.del([collectionName, docId])
-          })
-          model.del([collectionName, docId, field])
-        })
-        model.set([collectionName, docId, field], value)
-      })
-      model.add(collectionName, doc)
-    })
+    model.add(collectionName, doc)
+
+    await eventToPromise(subscription, 'change')
+
+    model.set([collectionName, docId, field], value)
+
+    await eventToPromise(subscription, 'change')
+
+    model.del([collectionName, docId, field])
+
+    await eventToPromise(subscription, 'change')
+
+    model.del([collectionName, docId])
+
+    await eventToPromise(subscription, 'change')
   })
 
   it('should subscribe empty query', async () => {
@@ -119,13 +120,9 @@ describe('Subscription', () => {
       [field]: value
     }
 
-    await new Promise((resolve, reject) => {
-      subscription.once('change', () => {
-        resolve()
-      })
+    model.add(collectionName, doc)
 
-      model.add(collectionName, doc)
-    })
+    await eventToPromise(subscription, 'change')
   })
 
   it('should subscribe doc and query', async () => {
@@ -165,14 +162,9 @@ describe('Subscription', () => {
       [field]: value
     }
 
-    await new Promise((resolve, reject) => {
-      // TODO: could we emit change once?
-      subscription.once('change', () => {
-        resolve()
-      })
+    model.add(collectionName, doc)
 
-      model.add(collectionName, doc)
-    })
+    await eventToPromise(subscription, 'change')
   })
 
   it('should fetch doc when no array', async () => {

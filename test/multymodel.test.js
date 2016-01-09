@@ -1,4 +1,5 @@
 import assert from 'assert'
+import eventToPromise from 'event-to-promise'
 import { MemoryStorage, Store } from '../src'
 import { collectionName, docId, expression, joinExpression, field, value } from './util'
 
@@ -33,16 +34,13 @@ describe('multymodel', () => {
       [field]: value
     }
 
-    return new Promise((resolve, reject) => {
-      subscription.on('change', () => {
-        let data = subscription.get()
-        let doc = data[0]
-        assert(doc)
-        resolve()
-      })
+    model2.add(collectionName, docData)
 
-      model2.add(collectionName, docData)
-    })
+    await eventToPromise(subscription, 'change')
+
+    data = subscription.get()
+    doc = data[0]
+    assert(doc)
   })
 
   it('should subscribe query and get it', async () => {
@@ -59,21 +57,17 @@ describe('multymodel', () => {
       [field]: value
     }
 
-    return new Promise((resolve, reject) => {
-      subscription.on('change', () => {
-        let data = subscription.get()
-        query = data[0]
-        assert.equal(query.length, 1)
+    model2.add(collectionName, doc)
 
-        resolve()
-      })
+    await eventToPromise(subscription, 'change')
 
-      model2.add(collectionName, doc)
-    })
+    data = subscription.get()
+    query = data[0]
+    assert.equal(query.length, 1)
   })
 
   // FIXME: fails sometimes
-  it.skip('should subscribe query, and get doc changes', async () => {
+  it('should subscribe query, and get doc changes', async () => {
     let subscribes = [[collectionName, expression]]
     let value2 = 'value2'
 
@@ -88,21 +82,19 @@ describe('multymodel', () => {
       [field]: value
     }
 
-    return new Promise((resolve, reject) => {
-      subscription.once('change', () => {
-        let data = subscription.get()
-        query = data[0]
-        assert.equal(query.length, 1)
+    model2.add(collectionName, doc)
 
-        subscription.on('change', () => {
-          assert.equal(model.get(collectionName, docId, field), value2)
+    await eventToPromise(subscription, 'change')
 
-          resolve()
-        })
-        model2.set([collectionName, docId, field], value2)
-      })
-      model2.add(collectionName, doc)
-    })
+    data = subscription.get()
+    query = data[0]
+    assert.equal(query.length, 1)
+
+    model2.set([collectionName, docId, field], value2)
+
+    await eventToPromise(subscription, 'change')
+
+    assert.equal(model.get(collectionName, docId, field), value2)
   })
 
   it('should subscribe query two times', async () => {
@@ -149,35 +141,33 @@ describe('multymodel', () => {
       userId: docId
     }
 
-    return new Promise((resolve, reject) => {
-      subscription.once('change', () => {
-        let data = subscription.get()
-        query = data[0]
-        assert.equal(query.length, 1)
+    model2.add(collectionName, doc)
+    model2.add('categories', category)
 
-        subscription.once('change', () => {
-          let data = subscription.get()
-          query = data[0]
-          assert.equal(query.length, 0)
+    await eventToPromise(subscription, 'change')
 
-          subscription.once('change', () => {
-            let data = subscription.get()
-            query = data[0]
-            assert.equal(query.length, 1)
+    data = subscription.get()
+    query = data[0]
+    assert.equal(query.length, 1)
 
-            resolve()
-          })
-          let user2 = {
-            _id: '2',
-            [field]: value
-          }
-          model2.add(collectionName, user2)
-        })
-        model2.set(['categories', '1', 'userId'], '2')
-      })
+    model2.set(['categories', '1', 'userId'], '2')
 
-      model2.add(collectionName, doc)
-      model2.add('categories', category)
-    })
+    await eventToPromise(subscription, 'change')
+
+    data = subscription.get()
+    query = data[0]
+    assert.equal(query.length, 0)
+
+    let user2 = {
+      _id: '2',
+      [field]: value
+    }
+    model2.add(collectionName, user2)
+
+    await eventToPromise(subscription, 'change')
+
+    data = subscription.get()
+    query = data[0]
+    assert.equal(query.length, 1)
   })
 })
