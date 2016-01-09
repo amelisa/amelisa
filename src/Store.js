@@ -15,7 +15,6 @@ class Store extends EventEmitter {
     this.redis = redis
     this.pubsub = pubsub
     options.collections = options.collections || {}
-    options.preloads = options.preloads || []
     options.projectionHashes = options.projectionHashes || {}
     this.options = options
     this.source = options.source || 'server'
@@ -219,31 +218,10 @@ class Store extends EventEmitter {
           queryPromises.push(queryPromise)
         }
 
-        let preloadPromises = []
-
-        for (let preload of this.options.preloads) {
-          let [collectionName, expression] = preload
-          if (typeof expression !== 'object') continue
-          let preloadPromise = this.querySet
-            .getOrCreateQuery(collectionName, expression)
-            .then((query) => {
-              let data = {
-                collectionName,
-                expression,
-                data: query.data,
-                version: query.version()
-              }
-
-              return data
-            })
-          preloadPromises.push(preloadPromise)
-        }
-
         Promise
           .all([
             Promise.all(docPromises),
-            Promise.all(queryPromises),
-            Promise.all(preloadPromises)
+            Promise.all(queryPromises)
           ])
           .then((data) => {
             let op = {
@@ -252,8 +230,7 @@ class Store extends EventEmitter {
                 version: this.options.version,
                 projectionHashes: this.options.projectionHashes,
                 docs: data[0],
-                queries: data[1],
-                preloads: data[2]
+                queries: data[1]
               }
             }
             this.sendOp(op, channel)

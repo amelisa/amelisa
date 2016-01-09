@@ -33,7 +33,7 @@ class ClientQuery extends Query {
     this.data = this.getStatesFromDocs(docs)
     this.emit('change')
 
-    this.attachDocsToCollection(docs)
+    // this.attachDocsToCollection(docs)
   }
 
   attachDocsToCollection (docs) {

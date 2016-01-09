@@ -163,12 +163,6 @@ class Model extends EventEmitter {
               query.init(data, version)
             }
 
-            for (let querySyncData of value.preloads) {
-              let { collectionName, expression, data, version } = querySyncData
-              let query = this.querySet.getOrCreateQuery(collectionName, expression)
-              query.init(data, version)
-            }
-
             if (value.version !== this.get('_app.version')) {
               // TODO: reload app
             }
@@ -392,13 +386,6 @@ class Model extends EventEmitter {
       }
     }
 
-    let promises = []
-
-    for (let preload of options.preloads) {
-      let promise = this.fetch([preload[0], preload[1]])
-      promises.push(promise)
-    }
-
     let collectionNames = []
 
     for (let collectionName in this.options.collections) {
@@ -412,7 +399,7 @@ class Model extends EventEmitter {
     this.set('_app.clientStorage', options.clientStorage)
     this.set('_app.collectionNames', collectionNames)
 
-    return Promise.all(promises)
+    return Promise.resolve()
   }
 }
 

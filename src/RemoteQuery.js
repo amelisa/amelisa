@@ -8,7 +8,7 @@ class RemoteQuery extends ClientQuery {
     this.server = false
     this.subscribed = 0
     this.timestamp = null
-    this.versionNumber = null
+    this.versionDiffs = {}
   }
 
   fetch () {
@@ -22,55 +22,76 @@ class RemoteQuery extends ClientQuery {
   init (docs, version) {
     debug('init', this.data, docs, version)
     let [timestamp, versionNumber] = version.split('|')
-    if (+timestamp < this.timestamp) return
-    if (+timestamp === this.timestamp && +versionNumber < this.versionNumber) return
-    this.timestamp = +timestamp
-    this.versionNumber = +versionNumber
-    super.init(docs)
+    if (+timestamp < this.timestamp) {
+      return console.error(`init timestamps does not match for ${this.collectionName} ${timestamp} ${this.timestamp}`)
+    } else if (+timestamp > this.timestamp) {
+      this.timestamp = +timestamp
+      this.versionDiffs = {}
+    }
+
+    this.versionDiffs[+versionNumber] = {init: true, docs}
+    this.attachDocsToCollection(docs)
+    // super.init(docs)
+    this.refreshFromVersionDiffs()
     this.server = true
   }
 
   onDiff (diffs, version) {
     debug('onDiff', this.data, diffs, version, this.server)
 
-    if (!this.server) this.data = []
-
     let [timestamp, versionNumber] = version.split('|')
-    if (+timestamp > this.timestamp) {
+    if (+timestamp < this.timestamp) {
+      return console.error(`onDiff timestamps does not match for ${this.collectionName} ${timestamp} ${this.timestamp}`)
+    } else if (+timestamp > this.timestamp) {
       this.timestamp = +timestamp
-      this.versionNumber = 1
-      this.data = []
-    } else if (+timestamp < this.timestamp) {
-      return
+      this.versionDiffs = {}
     }
-    if (this.versionNumber !== versionNumber - 1) return
-    this.versionNumber = +versionNumber
 
+    this.versionDiffs[+versionNumber] = {diff: true, diffs}
+
+    this.refreshFromVersionDiffs()
+    this.server = true
+    this.emit('change')
+  }
+
+  refreshFromVersionDiffs () {
     let docs = this.data
 
-    for (let diff of diffs) {
-      switch (diff.type) {
-        case 'insert':
-          let before = docs.slice(0, diff.index)
-          let after = docs.slice(diff.index)
-          docs = before.concat(diff.values, after)
+    for (let versionNumber in this.versionDiffs) {
+      let versionDiff = this.versionDiffs[versionNumber]
 
-          this.attachDocsToCollection(diff.values)
-          break
+      if (versionDiff.init) {
+        if (this.isDocs) {
+          docs = versionDiff.docs.slice(0)
+        } else {
+          docs = versionDiff.docs
+        }
+      } else {
+        for (let diff of versionDiff.diffs) {
+          switch (diff.type) {
+            case 'insert':
+              let before = docs.slice(0, diff.index)
+              let after = docs.slice(diff.index)
+              docs = before.concat(diff.values, after)
 
-        case 'move':
-          let move = docs.splice(diff.from, diff.howMany)
-          docs.splice.apply(docs, [diff.to, 0].concat(move))
-          break
+              this.attachDocsToCollection(diff.values)
+              break
 
-        case 'remove':
-          docs.splice(diff.index, diff.howMany)
-          break
+            case 'move':
+              let move = docs.splice(diff.from, diff.howMany)
+              docs.splice.apply(docs, [diff.to, 0].concat(move))
+              break
+
+            case 'remove':
+              docs.splice(diff.index, diff.howMany)
+              break
+          }
+        }
       }
     }
 
     this.data = docs
-    this.server = true
+
     this.emit('change')
   }
 

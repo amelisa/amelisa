@@ -77,6 +77,8 @@ class ServerDoc extends Doc {
         if (err === 'version changed') {
           this.once('loaded', this.save().bind(this))
           return this.load()
+        } else if (err.code === 11000) {
+          // E11000 duplicate key error collection
         } else {
           console.error('ServerDoc.save', err)
         }
