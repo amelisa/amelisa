@@ -136,12 +136,12 @@ class Model extends EventEmitter {
 
       case 'q':
         query = this.querySet.getOrCreateQuery(collectionName, expression)
-        query.init(value)
+        query.init(value, version)
         break
 
       case 'qdiff':
         query = this.querySet.getOrCreateQuery(collectionName, expression)
-        query.onDiff(value)
+        query.onDiff(value, version)
         break
 
       case 'sync':
@@ -158,15 +158,15 @@ class Model extends EventEmitter {
             }
 
             for (let querySyncData of value.queries) {
-              let { collectionName, expression, data } = querySyncData
+              let { collectionName, expression, data, version } = querySyncData
               let query = this.querySet.getOrCreateQuery(collectionName, expression)
-              query.init(data)
+              query.init(data, version)
             }
 
             for (let querySyncData of value.preloads) {
-              let { collectionName, expression, data } = querySyncData
+              let { collectionName, expression, data, version } = querySyncData
               let query = this.querySet.getOrCreateQuery(collectionName, expression)
-              query.init(data)
+              query.init(data, version)
             }
 
             if (value.version !== this.get('_app.version')) {

@@ -320,4 +320,52 @@ describe('offline', () => {
     assert(model.get(collectionName, docId))
     assert.equal(query.get(), 1)
   })
+
+  it('should sync on online when subscribed to query', async () => {
+    let subscribes = [[collectionName, expression]]
+
+    await model.subscribe(subscribes)
+    await model2.subscribe(subscribes)
+
+    await sleep(10)
+
+    let doc = {
+      _id: '1',
+      [field]: value
+    }
+
+    let doc2 = {
+      _id: '2',
+      [field]: value
+    }
+
+    model.channel.emit('close')
+    model.channel.pipedChannel.emit('close')
+
+    model2.channel.emit('close')
+    model2.channel.pipedChannel.emit('close')
+
+    model.add(collectionName, doc)
+    model2.add(collectionName, doc2)
+
+    await sleep(10)
+
+    assert.equal(model.query(collectionName, expression).get().length, 1)
+    assert.equal(model2.query(collectionName, expression).get().length, 1)
+
+    let channel3 = new ServerChannel()
+    model2.channel.pipe(channel3).pipe(model2.channel)
+    store.onChannel(channel3)
+    model2.channel.emit('open')
+
+    let channel2 = new ServerChannel()
+    model.channel.pipe(channel2).pipe(model.channel)
+    store.onChannel(channel2)
+    model.channel.emit('open')
+
+    await sleep(10)
+
+    assert.equal(model.query(collectionName, expression).get().length, 2)
+    assert.equal(model2.query(collectionName, expression).get().length, 2)
+  })
 })

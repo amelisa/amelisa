@@ -13,6 +13,8 @@ class ServerQuery extends Query {
     this.loaded = false
     this.loading = false
     this.channels = []
+    this.timestamp = Date.now()
+    this.versionNumber = 0
 
     this.load()
     this.on('loaded', () => {
@@ -25,16 +27,17 @@ class ServerQuery extends Query {
     if (this.loading) return
     this.loading = true
 
-    // debug('load', this.collectionName, this.expression)
+    debug('load', this.collectionName, this.expression)
 
     this.storage
       .getDocsByQuery(this.collectionName, this.expression)
       .then((docs) => {
-        // debug('loaded', this.collectionName, this.expression, docs)
+        debug('loaded', this.collectionName, this.expression, docs)
         this.prev = this.data
         this.data = docs
         this.loading = false
         this.loaded = true
+        this.versionNumber++
         this.emit('loaded')
       })
       .catch((err) => {
@@ -66,6 +69,7 @@ class ServerQuery extends Query {
       type: 'q',
       collectionName: this.collectionName,
       expression: this.originalExpression,
+      version: this.version(),
       value: this.get()
     }
 
@@ -73,12 +77,13 @@ class ServerQuery extends Query {
   }
 
   sendDiffQueryToChannel (channel, diffs) {
-    if (!diffs.length) return
+    // if (!diffs.length) return
 
     let op = {
       type: 'qdiff',
       collectionName: this.collectionName,
       expression: this.originalExpression,
+      version: this.version(),
       value: diffs
     }
 
@@ -125,6 +130,8 @@ class ServerQuery extends Query {
   subscribe (channel, opId) {
     this.channels.push(channel)
 
+    if (!opId) return
+
     this.sendFullQueryToChannel(channel)
 
     let op = {
@@ -142,6 +149,8 @@ class ServerQuery extends Query {
   }
 
   maybeUnattach () {
+    debug('maybeUnattach', this.channels.length)
+    return
     // TODO: add timeout
     if (this.channels.length === 0) {
       this.querySet.unattach(this.collectionName, this.expression)
@@ -159,6 +168,10 @@ class ServerQuery extends Query {
   sendOp (op, channel) {
     // debug('sendOp')
     this.store.sendOp(op, channel)
+  }
+
+  version () {
+    return this.timestamp + '|' + this.versionNumber
   }
 }
 

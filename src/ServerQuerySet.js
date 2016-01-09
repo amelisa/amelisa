@@ -1,4 +1,4 @@
-// let debug = require('debug')('ServerQuerySet')
+let debug = require('debug')('ServerQuerySet')
 import MongoQueries from './MongoQueries'
 import ProjectedQuery from './ProjectedQuery'
 import ProjectedJoinQuery from './ProjectedJoinQuery'
@@ -15,7 +15,7 @@ class ServerQuerySet {
   getOrCreateQuery (collectionName, expression) {
     let hash = queryHash(collectionName, expression)
     let query = this.data[hash]
-    // debug('getOrCreateQuery', collectionName, expression)
+    debug('getOrCreateQuery', collectionName, expression, !!query)
 
     if (!query) {
       let joinQuery = MongoQueries.prototype.isJoinQuery(expression)
@@ -62,6 +62,7 @@ class ServerQuerySet {
   }
 
   onOp (op) {
+    debug('onOp', op)
     for (let hash in this.data) {
       let query = this.data[hash]
       if (query.collectionName === op.collectionName ||

@@ -62,7 +62,7 @@ class Store extends EventEmitter {
     })
 
     channel.on('close', () => {
-      debug('close')
+      debug('close', this.clients.length)
       util.arrayRemove(this.clients, channel)
       this.docSet.channelClose(channel)
       this.querySet.channelClose(channel)
@@ -102,6 +102,7 @@ class Store extends EventEmitter {
   }
 
   onMessage (message, channel) {
+    debug('onMessage', message.type)
     let { type, id, collectionName, docId, expression, value, version } = message
     let op
 
@@ -204,10 +205,13 @@ class Store extends EventEmitter {
           let queryPromise = this.querySet
             .getOrCreateQuery(collectionName, expression)
             .then((query) => {
+              query.subscribe(channel)
+
               let data = {
                 collectionName,
                 expression,
-                data: query.data
+                data: query.data,
+                version: query.version()
               }
 
               return data
@@ -226,7 +230,8 @@ class Store extends EventEmitter {
               let data = {
                 collectionName,
                 expression,
-                data: query.data
+                data: query.data,
+                version: query.version()
               }
 
               return data
@@ -296,7 +301,7 @@ class Store extends EventEmitter {
   }
 
   sendOp (op, channel) {
-    // debug('sendOp', op.type)
+    debug('sendOp', op.type)
 
     if (op.type === 'q' && Array.isArray(op.value)) {
       for (let docData of op.value) {

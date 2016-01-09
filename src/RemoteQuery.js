@@ -7,6 +7,8 @@ class RemoteQuery extends ClientQuery {
     this.storage = storage
     this.server = false
     this.subscribed = 0
+    this.timestamp = null
+    this.versionNumber = null
   }
 
   fetch () {
@@ -17,13 +19,26 @@ class RemoteQuery extends ClientQuery {
     })
   }
 
-  init (docs) {
+  init (docs, version) {
+    debug('init', this.data, docs, version)
+    let [timestamp, versionNumber] = version.split('|')
+    if (+timestamp < this.timestamp) return
+    if (+timestamp === this.timestamp && +versionNumber < this.versionNumber) return
+    this.timestamp = +timestamp
+    this.versionNumber = +versionNumber
     super.init(docs)
     this.server = true
   }
 
-  onDiff (diffs) {
-    debug('onDiff', diffs)
+  onDiff (diffs, version) {
+    debug('onDiff', this.data, diffs, version, this.server)
+
+    if (!this.server) this.data = []
+
+    let [timestamp, versionNumber] = version.split('|')
+    if (this.timestamp !== +timestamp) throw new Error(`RemoteQuery timestamps does not match ${this.timestamp} ${timestamp}`)
+    if (this.versionNumber !== versionNumber - 1) throw new Error(`RemoteQuery versionNumbers does not match ${this.versionNumber} ${versionNumber}`)
+    this.versionNumber = +versionNumber
 
     let docs = this.data
 
@@ -49,11 +64,12 @@ class RemoteQuery extends ClientQuery {
     }
 
     this.data = docs
+    this.server = true
     this.emit('change')
   }
 
   refresh (op) {
-    debug('refresh', op ? op.type : null, this.server)
+    debug('refresh', op ? op.type : null, this.server, this.model.online)
 
     // Refresh queries from local data when offline
     if (this.server && !this.model.online) this.server = false

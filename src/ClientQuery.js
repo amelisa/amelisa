@@ -30,7 +30,6 @@ class ClientQuery extends Query {
   }
 
   init (docs) {
-    debug('init')
     this.data = this.getStatesFromDocs(docs)
     this.emit('change')
 
