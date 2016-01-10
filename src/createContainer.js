@@ -1,7 +1,7 @@
-// import React from 'react'
+import React from 'react'
 import util from './util'
 
-function createContainer (Component, React) {
+function createContainer (Component) {
   class Container extends React.Component {
 
     static contextTypes = {

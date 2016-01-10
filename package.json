@@ -49,6 +49,8 @@
     "mocha": "^2.3.0",
     "node-phantom-simple": "^2.0.6",
     "phantomjs2": "^2.0.0",
+    "react": "^0.14.6",
+    "react-dom": "^0.14.6",
     "snazzy": "^2.0.1",
     "standard": "^5.4.1",
     "webpack": "^1.12.9",
