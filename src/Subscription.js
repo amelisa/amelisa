@@ -14,12 +14,12 @@ class Subscription extends EventEmitter {
     this.querySet = querySet
     this.fetchOnly = fetchOnly
 
-    this.subscribes = this.parseSubscribes(rawSubscribes)
+    this.subscribes = this.parseRawSubscribes(rawSubscribes)
 
     this.onChange = this.onChange.bind(this)
   }
 
-  parseSubscribes (rawSubscribes) {
+  parseRawSubscribes (rawSubscribes) {
     let subscribes = []
 
     let first = rawSubscribes[0]
@@ -55,35 +55,25 @@ class Subscription extends EventEmitter {
   }
 
   fetch () {
-    let promises = []
-
-    for (let subscribe of this.subscribes) {
-      promises.push(subscribe.fetch())
-    }
-
-    return Promise.all(promises)
+    return Promise.all(this.subscribes.map((subscribe) => subscribe.fetch()))
   }
 
   subscribe () {
-    let promises = []
-
-    for (let subscribe of this.subscribes) {
-      subscribe.on('change', this.onChange)
-      promises.push(subscribe.subscribe())
-    }
-
-    return Promise.all(promises)
+    return Promise.all(
+      this.subscribes.map((subscribe) => {
+        subscribe.on('change', this.onChange)
+        return subscribe.subscribe()
+      })
+    )
   }
 
   unsubscribe () {
-    let promises = []
-
-    for (let subscribe of this.subscribes) {
-      subscribe.removeListener('change', this.onChange)
-      promises.push(subscribe.unsubscribe())
-    }
-
-    return Promise.all(promises)
+    return Promise.all(
+      this.subscribes.map((subscribe) => {
+        subscribe.removeListener('change', this.onChange)
+        return subscribe.unsubscribe()
+      })
+    )
   }
 
   onChange () {
@@ -94,20 +84,14 @@ class Subscription extends EventEmitter {
     }, debounceTimeout)
   }
 
-  changeSubscribes (nextSubscribes) {
+  changeSubscribes (nextRawSubscribes) {
     this.unsubscribe()
-    this.subscribes = this.parseSubscribes(nextSubscribes)
+    this.subscribes = this.parseRawSubscribes(nextRawSubscribes)
     return this.subscribe()
   }
 
   get () {
-    let data = []
-
-    for (let subscribe of this.subscribes) {
-      data.push(subscribe.get())
-    }
-
-    return data
+    return this.subscribes.map((subscribe) => subscribe.get())
   }
 }
 

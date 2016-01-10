@@ -8,12 +8,6 @@ class LocalQuery extends ClientQuery {
     this.refresh()
   }
 
-  get () {
-    if (!this.isDocs) return this.data
-
-    return this.data.map((docId) => this.collection.get(docId))
-  }
-
   refresh (op) {
     super.refresh(op)
 

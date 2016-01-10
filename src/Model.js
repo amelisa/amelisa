@@ -58,15 +58,15 @@ class Model extends EventEmitter {
     })
   }
 
-  fetch (...subscribes) {
-    let subscription = new Subscription(subscribes, this.collectionSet, this.querySet)
+  fetch (...rawSubscribes) {
+    let subscription = new Subscription(rawSubscribes, this.collectionSet, this.querySet)
     return subscription
       .fetch()
       .then(() => subscription)
   }
 
-  subscribe (...subscribes) {
-    let subscription = new Subscription(subscribes, this.collectionSet, this.querySet)
+  subscribe (...rawSubscribes) {
+    let subscription = new Subscription(rawSubscribes, this.collectionSet, this.querySet)
     return subscription
       .subscribe()
       .then(() => subscription)

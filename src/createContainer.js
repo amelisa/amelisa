@@ -10,20 +10,21 @@ function createContainer (Component, React) {
 
     static isContainer = true;
 
-    static displayName = Component.name + ' Container';
+    static displayName = `${Component.name} Container`;
 
     constructor (props) {
       super()
+      let { hasResults } = props
       this.state = {
-        hasResults: props.hasResults // eslint-disable-line
+        hasResults
       }
       this.props = props
     }
 
     componentWillMount () {
-      let queries = this.getQueries(this.props)
-      this.setSubscription(queries)
-      this.prevQueries = queries
+      let subscribeQueries = this.getQueries(this.props)
+      this.setSubscription(subscribeQueries)
+      this.subscribeQueries = subscribeQueries
     }
 
     componentWillUnmount () {
@@ -31,9 +32,9 @@ function createContainer (Component, React) {
     }
 
     componentWillReceiveProps (nextProps) {
-      let queries = this.getQueries(nextProps)
-      if (!util.fastEqual(queries, this.prevQueries)) {
-        this.setQueries(queries)
+      let subscribeQueries = this.getQueries(nextProps)
+      if (!util.fastEqual(subscribeQueries, this.subscribeQueries)) {
+        this.setQueries(subscribeQueries)
       }
     }
 
@@ -43,31 +44,31 @@ function createContainer (Component, React) {
       return component.getQueries.call({props, context})
     }
 
-    setQueries (nextQueries) {
-      let subscribes = this.getSubscribes(nextQueries)
-      this.subscription.changeSubscribes(subscribes)
-      this.prevQueries = nextQueries
+    setQueries (nextSubscribeQueries) {
+      let rawSubscribes = this.getRawSubscribes(nextSubscribeQueries)
+      this.subscription.changeSubscribes(rawSubscribes)
+      this.subscribeQueries = nextSubscribeQueries
     }
 
-    getSubscribes (queries) {
-      this.dataNames = []
-      let subscribes = []
+    getRawSubscribes (subscribeQueries) {
+      this.dataKeys = []
+      let rawSubscribes = []
 
-      for (let dataName in queries) {
-        this.dataNames.push(dataName)
-        subscribes.push(queries[dataName])
+      for (let dataKey in subscribeQueries) {
+        this.dataKeys.push(dataKey)
+        rawSubscribes.push(subscribeQueries[dataKey])
       }
 
-      return subscribes
+      return rawSubscribes
     }
 
-    setSubscription (queries) {
-      let subscribes = this.getSubscribes(queries)
+    setSubscription (subscribeQueries) {
+      let rawSubscribes = this.getRawSubscribes(subscribeQueries)
 
       if (util.isServer && this.props.onFetch && !this.state.hasResults) { // eslint-disable-line
         let promise = new Promise((resolve, reject) => {
           this.context.model
-            .subscribe(subscribes)
+            .subscribe(rawSubscribes)
             .then((subscription) => {
               this.subscription = subscription
 
@@ -79,7 +80,7 @@ function createContainer (Component, React) {
         this.props.onFetch(promise) // eslint-disable-line
       } else {
         this.context.model
-          .subscribe(subscribes)
+          .subscribe(rawSubscribes)
           .then((subscription) => {
             this.subscription = subscription
 
@@ -105,12 +106,12 @@ function createContainer (Component, React) {
     }
 
     getSubscriptionPromise () {
-      let queries = this.getQueries(this.props)
-      let subscribes = this.getSubscribes(queries)
+      let subscribeQueries = this.getQueries(this.props)
+      let rawSubscribes = this.getRawSubscribes(subscribeQueries)
 
       return new Promise((resolve, reject) => {
         this.context.model
-          .subscribe(subscribes)
+          .subscribe(rawSubscribes)
           .then((subscription) => {
             let props = this.getPropsFromSubscription(subscription)
             resolve(props)
@@ -120,13 +121,18 @@ function createContainer (Component, React) {
     }
 
     getPropsFromSubscription (subscription) {
-      let data = subscription.get()
+      let subscribes = subscription.subscribes
 
       let dataProps = {}
-      for (let i = 0; i < data.length; i++) {
-        let dataName = this.dataNames[i]
-        dataProps[dataName] = data[i]
+      for (let i = 0; i < subscribes.length; i++) {
+        let subscribe = subscribes[i]
+        let dataKey = this.dataKeys[i]
+        let options = this.subscribeQueries[dataKey][2]
+        let data = subscribe.get(options)
+
+        dataProps[dataKey] = data
       }
+
       let utilProps = {
         setQueries: this.setQueries.bind(this)
       }

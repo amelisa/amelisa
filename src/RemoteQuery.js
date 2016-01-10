@@ -11,12 +11,6 @@ class RemoteQuery extends ClientQuery {
     this.versionDiffs = {}
   }
 
-  get () {
-    if (!this.isDocs) return this.data
-
-    return this.data.map((docId) => this.collection.get(docId))
-  }
-
   fetch () {
     return this.model.sendOp({
       type: 'qfetch',
