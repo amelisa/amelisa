@@ -23,7 +23,10 @@ class Query extends EventEmitter {
       return map
     }
 
-    return this.data.map((docId) => this.collection.get(docId))
+    return this.data
+      .map((docId) => this.collection.get(docId))
+      // FIXME: we need this to avoid race condition with del
+      .filter((docData) => docData)
   }
 
   isDocsQuery (expression) {
