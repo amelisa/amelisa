@@ -75,12 +75,9 @@ class Store extends EventEmitter {
   }
 
   validateMessage (message, channel) {
-    if (this.hook) {
-      let { req, server } = channel
-      let session = req ? req.session : undefined
-      let params = {
-        server: server
-      }
+    let { type } = message
+    if (this.hook && (type === 'add' || type === 'set' || type === 'del')) {
+      let { session, params } = this.getHookParams(channel)
       this.hook(message, session, params, (err) => {
         if (err) {
           let op = {
@@ -230,6 +227,9 @@ class Store extends EventEmitter {
           .then((doc) => {
             doc.onOp(message, channel)
 
+            let { session, params } = this.getHookParams(channel)
+            if (this.afterHook) this.afterHook(message, session, params)
+
             // FIXME: remove listener if reject
             doc.once('saved', () => {
               op = {
@@ -243,6 +243,19 @@ class Store extends EventEmitter {
         break
 
       default:
+    }
+  }
+
+  getHookParams (channel) {
+    let { req, server } = channel
+    let session = req ? req.session : undefined
+    let params = {
+      server
+    }
+
+    return {
+      session,
+      params
     }
   }
 
