@@ -19,6 +19,7 @@ function createContainer (Component) {
         hasResults
       }
       this.props = props
+      this.mounted = false
     }
 
     componentWillMount () {
@@ -27,8 +28,13 @@ function createContainer (Component) {
       this.subscribeQueries = subscribeQueries
     }
 
+    componentDidMount () {
+      this.mounted = true
+    }
+
     componentWillUnmount () {
-      this.subscription.unsubscribe()
+      this.mounted = false
+      if (this.subscription) this.subscription.unsubscribe()
     }
 
     componentWillReceiveProps (nextProps) {
@@ -96,6 +102,8 @@ function createContainer (Component) {
     }
 
     refresh () {
+      if (!this.mounted) return
+
       if (this.state.hasResults) {
         this.forceUpdate()
       } else {
