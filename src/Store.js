@@ -18,8 +18,8 @@ class Store extends EventEmitter {
     options.projectionHashes = options.projectionHashes || {}
     this.options = options
     this.source = options.source || 'server'
-    this.docSet = new ServerDocSet(this, storage)
-    this.querySet = new ServerQuerySet(this, storage)
+    this.docSet = new ServerDocSet(this)
+    this.querySet = new ServerQuerySet(this)
     this.clients = []
     this.projections = {}
     this.sentOps = {}

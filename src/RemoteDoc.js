@@ -3,8 +3,8 @@ import MutableDoc from './MutableDoc'
 import util from './util'
 
 class RemoteDoc extends MutableDoc {
-  constructor (docId, ops, collection, model, storage, serverVersion) {
-    super(docId, ops, collection, model, storage)
+  constructor (docId, ops, collection, model, serverVersion) {
+    super(docId, ops, collection, model)
     this.serverVersion = serverVersion
     this.subscribed = 0
   }

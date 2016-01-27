@@ -6,9 +6,8 @@ import ServerJoinQuery from './ServerJoinQuery'
 import ServerQuery from './ServerQuery'
 
 class ServerQuerySet {
-  constructor (store, storage) {
+  constructor (store) {
     this.store = store
-    this.storage = storage
     this.data = {}
   }
 
@@ -21,19 +20,15 @@ class ServerQuerySet {
       let joinQuery = MongoQueries.prototype.isJoinQuery(expression)
       let projection = this.store.projections[collectionName]
       if (projection && !joinQuery) {
-        query = new ProjectedQuery(collectionName, projection, expression,
-          this.store, this.storage, this)
+        query = new ProjectedQuery(collectionName, projection, expression, this.store, this)
       } else if (projection && joinQuery) {
         let joinFields = MongoQueries.prototype.getJoinFields(expression)
-        query = new ProjectedJoinQuery(collectionName, projection, expression,
-          this.store, this.storage, this, joinFields)
+        query = new ProjectedJoinQuery(collectionName, projection, expression, this.store, this, joinFields)
       } else if (joinQuery) {
         let joinFields = MongoQueries.prototype.getJoinFields(expression)
-        query = new ServerJoinQuery(collectionName, expression,
-          this.store, this.storage, this, joinFields)
+        query = new ServerJoinQuery(collectionName, expression, this.store, this, joinFields)
       } else {
-        query = new ServerQuery(collectionName, expression,
-          this.store, this.storage, this)
+        query = new ServerQuery(collectionName, expression, this.store, this)
       }
 
       this.data[hash] = query

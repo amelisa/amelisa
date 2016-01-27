@@ -3,8 +3,8 @@ import Collection from './Collection'
 import LocalDoc from './LocalDoc'
 
 class LocalCollection extends Collection {
-  constructor (name, data, model, storage) {
-    super(name, data, model, storage)
+  constructor (name, data, model) {
+    super(name, data, model)
     this.local = true
   }
 
@@ -14,29 +14,10 @@ class LocalCollection extends Collection {
   }
 
   attach (docId, ops) {
-    let doc = new LocalDoc(docId, ops, this, this.model, this.storage)
+    let doc = new LocalDoc(docId, ops, this, this.model)
 
     this.data[docId] = doc
     return doc
-  }
-
-  fillFromClientStorage () {
-    return new Promise((resolve, reject) => {
-      this.storage
-        .getAllDocs(this.name)
-        .then((docs) => {
-          for (let doc of docs) {
-            this.attach(doc._id, doc._ops, doc._sv)
-          }
-          resolve()
-        })
-        .catch((err) => {
-          console.error('LocalCollection.fillFromClientStorage', err)
-
-          // Resolve anyway
-          resolve()
-        })
-    })
   }
 }
 

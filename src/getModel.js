@@ -8,29 +8,25 @@ let model
 async function initModel () {
   await util.onDomReady()
 
+  // unbundle _app.clientStorage, _app.collectionNames and _app.newProjectionHashes
   model.unbundleLocalData()
-
   let { clientStorage, collectionNames } = model.get('_app')
 
   if (clientStorage) {
-    // Delete data of local collections to create them later with storage
-    delete model.collectionSet.data['_app']
-    delete model.collectionSet.data['_session']
     let storage = new IndexedDbStorage(Array.from(collectionNames).concat(['_app', '_session']))
     model.storage = storage
-    model.collectionSet.storage = storage
-    model.querySet.storage = storage
 
     await storage.init()
+
+    // fill _app.projectionHashes
     await model.collectionSet.fillLocalCollectionsFromClientStorage()
 
-    model.unbundleLocalData()
-
+    // clear collections in storage, where projections have changed
     let newProjectionHashes = model.get('_app.newProjectionHashes')
     await model.onProjections(newProjectionHashes)
-  }
 
-  await model.init()
+    await model.collectionSet.fillFromClientStorage()
+  }
 
   let source = model.get('_app.source')
   if (!source) {
@@ -47,26 +43,32 @@ async function initModel () {
   model.unbundleData()
 }
 
-function getModel () {
+function getModel (channel) {
   if (model) return model
 
-  let wsUrl = 'ws://' + window.location.host
-  let ReconnectingWebSocket = require('reconnectingwebsocket')
+  let ws
 
-  // TODO: reconnection interval should be random
-  let wsOptions = {
-    automaticOpen: false,
-    reconnectInterval: 3000
+  if (!channel) {
+    let wsUrl = 'ws://' + window.location.host
+    let ReconnectingWebSocket = require('reconnectingwebsocket')
+
+    // TODO: reconnection interval should be random
+    let wsOptions = {
+      automaticOpen: false,
+      reconnectInterval: 3000
+    }
+    ws = new ReconnectingWebSocket(wsUrl, null, wsOptions)
+    channel = new WebSocketChannel(ws)
   }
-  let ws = new ReconnectingWebSocket(wsUrl, null, wsOptions)
-  let channel = new WebSocketChannel(ws)
 
   model = new Model(channel)
 
   window.model = model
 
   initModel()
-    .then(() => ws.open())
+    .then(() => {
+      if (ws) ws.open()
+    })
     .catch((err) => {
       console.error(err, err.stack)
     })

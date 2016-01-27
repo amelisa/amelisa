@@ -6,11 +6,10 @@ import util from './util'
 const unattachTimeout = 5000
 
 class ServerQuery extends Query {
-  constructor (collectionName, expression, store, storage, querySet) {
+  constructor (collectionName, expression, store, querySet) {
     super(collectionName, expression)
     this.originalExpression = util.clone(expression)
     this.store = store
-    this.storage = storage
     this.querySet = querySet
     this.loaded = false
     this.loading = false
@@ -31,7 +30,7 @@ class ServerQuery extends Query {
 
     debug('load', this.collectionName, this.expression)
 
-    this.storage
+    this.store.storage
       .getDocsByQuery(this.collectionName, this.expression)
       .then((docs) => {
         debug('loaded', this.collectionName, this.expression, docs)

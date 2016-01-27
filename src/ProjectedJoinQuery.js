@@ -3,8 +3,8 @@ import ProjectedQuery from './ProjectedQuery'
 import ServerJoinQuery from './ServerJoinQuery'
 
 class ProjectedJoinQuery extends ServerJoinQuery {
-  constructor (collectionName, projection, expression, store, storage, querySet, joinFields) {
-    super(projection.dbCollectionName, expression, store, storage, querySet, joinFields)
+  constructor (collectionName, projection, expression, store, querySet, joinFields) {
+    super(projection.dbCollectionName, expression, store, querySet, joinFields)
     this.projectionCollectionName = collectionName
     this.projection = projection
   }

@@ -2,8 +2,8 @@
 import ServerQuery from './ServerQuery'
 
 class ProjectedQuery extends ServerQuery {
-  constructor (collectionName, projection, expression, store, storage, querySet) {
-    super(projection.dbCollectionName, expression, store, storage, querySet)
+  constructor (collectionName, projection, expression, store, querySet) {
+    super(projection.dbCollectionName, expression, store, querySet)
     this.projectionCollectionName = collectionName
     this.projection = projection
   }

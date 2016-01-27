@@ -3,8 +3,8 @@ import Collection from './Collection'
 import RemoteDoc from './RemoteDoc'
 
 class RemoteCollection extends Collection {
-  constructor (name, data, model, storage) {
-    super(name, data, model, storage)
+  constructor (name, data, model) {
+    super(name, data, model)
   }
 
   add (docId, docData) {
@@ -15,29 +15,10 @@ class RemoteCollection extends Collection {
   }
 
   attach (docId, ops, serverVersion) {
-    let doc = new RemoteDoc(docId, ops, this, this.model, this.storage, serverVersion)
+    let doc = new RemoteDoc(docId, ops, this, this.model, serverVersion)
 
     this.data[docId] = doc
     return doc
-  }
-
-  fillFromClientStorage () {
-    return new Promise((resolve, reject) => {
-      this.storage
-        .getAllDocs(this.name)
-        .then((docs) => {
-          for (let doc of docs) {
-            this.attach(doc._id, doc._ops, doc._sv)
-          }
-          resolve()
-        })
-        .catch((err) => {
-          console.error('RemoteCollection.fillFromClientStorage', err)
-
-          // Resolve anyway
-          resolve()
-        })
-    })
   }
 
   getSyncData () {

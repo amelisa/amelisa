@@ -3,11 +3,10 @@ import Doc from './Doc'
 import util from './util'
 
 class ServerDoc extends Doc {
-  constructor (collectionName, docId, ops, store, storage, docSet) {
+  constructor (collectionName, docId, ops, store, docSet) {
     super(docId, ops)
     this.collectionName = collectionName
     this.store = store
-    this.storage = storage
     this.docSet = docSet
     this.prevVersion = null
     this.loaded = false
@@ -27,7 +26,7 @@ class ServerDoc extends Doc {
 
     // debug('load', this.collectionName, this.docId)
 
-    this.storage
+    this.store.storage
       .getDocById(this.collectionName, this.docId)
       .then((doc) => {
         // debug('loaded', this.collectionName, this.docId)
@@ -66,7 +65,7 @@ class ServerDoc extends Doc {
 
     let version = this.version()
 
-    this.storage
+    this.store.storage
       .saveDoc(this.collectionName, this.docId, this.state, this.prevVersion, version, this.ops)
       .then(() => {
         this.emit('saved')

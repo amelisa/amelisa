@@ -2,8 +2,8 @@
 import ServerQuery from './ServerQuery'
 
 class ServerJoinQuery extends ServerQuery {
-  constructor (collectionName, expression, store, storage, querySet, joinFields) {
-    super(collectionName, expression, store, storage, querySet)
+  constructor (collectionName, expression, store, querySet, joinFields) {
+    super(collectionName, expression, store, querySet)
 
     this.joinFieldValues = {}
     for (let field in joinFields) {

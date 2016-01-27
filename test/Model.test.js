@@ -266,4 +266,32 @@ describe('Model', () => {
       })
     })
   })
+
+  describe('other', () => {
+    beforeEach(() => {
+      channel = new ServerChannel()
+      model = new Model(channel, 'test')
+      model.online = true
+    })
+
+    it('get collectionNames to clear', () => {
+      let prevProjectionHashes = {
+        users: 'some hash',
+        orders: 'hash',
+        products: 'hash'
+      }
+
+      let newProjectionHashes = {
+        users: 'some hash',
+        orders: 'other hash',
+        categories: 'hash'
+      }
+
+      let collectionNames = model.getCollectionNamesToClear(prevProjectionHashes, newProjectionHashes)
+
+      assert.equal(collectionNames.length, 2)
+      assert.equal(collectionNames[0], 'orders')
+      assert.equal(collectionNames[1], 'products')
+    })
+  })
 })

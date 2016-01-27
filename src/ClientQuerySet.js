@@ -4,10 +4,9 @@ import RemoteQuery from './RemoteQuery'
 import util from './util'
 
 class ClientQuerySet {
-  constructor (model, storage) {
+  constructor (model) {
     this.model = model
     this.data = {}
-    this.storage = storage
   }
 
   getOrCreateQuery (collectionName, expression) {
@@ -20,7 +19,7 @@ class ClientQuerySet {
       if (util.isLocalCollection(collectionName)) {
         query = new LocalQuery(collectionName, expression, this.model, collection, this)
       } else {
-        query = new RemoteQuery(collectionName, expression, this.model, collection, this, this.storage)
+        query = new RemoteQuery(collectionName, expression, this.model, collection, this)
       }
       this.data[hash] = query
     }

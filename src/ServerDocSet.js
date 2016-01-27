@@ -3,9 +3,8 @@ import ProjectedDoc from './ProjectedDoc'
 import ServerDoc from './ServerDoc'
 
 class ServerDocSet {
-  constructor (store, storage) {
+  constructor (store) {
     this.store = store
-    this.storage = storage
     this.data = {}
   }
 
@@ -20,11 +19,9 @@ class ServerDocSet {
     if (!doc) {
       let projection = this.store.projections[collectionName]
       if (projection) {
-        doc = new ProjectedDoc(collectionName, projection,
-          docId, [], this.store, this.storage, this)
+        doc = new ProjectedDoc(collectionName, projection, docId, [], this.store, this)
       } else {
-        doc = new ServerDoc(collectionName,
-          docId, [], this.store, this.storage, this)
+        doc = new ServerDoc(collectionName, docId, [], this.store, this)
       }
       this.data[docPath] = doc
     }

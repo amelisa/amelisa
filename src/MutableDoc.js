@@ -2,11 +2,10 @@ let debug = require('debug')('MutableDoc')
 import Doc from './Doc'
 
 class MutableDoc extends Doc {
-  constructor (docId, ops, collection, model, storage) {
+  constructor (docId, ops, collection, model) {
     super(docId, ops)
     this.collection = collection
     this.model = model
-    this.storage = storage
   }
 
   set (field, value) {
@@ -47,9 +46,9 @@ class MutableDoc extends Doc {
   }
 
   save () {
-    if (!this.storage || !this.ops.length) return
+    if (!this.model.storage || !this.ops.length) return
     debug('save', this.state, this.ops)
-    return this.storage
+    return this.model.storage
       .saveDoc(this.collection.name, this.docId, this.state, this.serverVersion, this.version(), this.ops)
       .catch((err) => {
         console.error('MutableDoc.save', err)

@@ -3,9 +3,8 @@ import RemoteCollection from './RemoteCollection'
 import util from './util'
 
 class CollectionSet {
-  constructor (model, storage, data = {}) {
+  constructor (model, data = {}) {
     this.model = model
-    this.storage = storage
     this.data = data
   }
 
@@ -33,9 +32,9 @@ class CollectionSet {
 
     if (!collection) {
       if (util.isLocalCollection(collectionName)) {
-        collection = new LocalCollection(collectionName, undefined, this.model, this.storage)
+        collection = new LocalCollection(collectionName, undefined, this.model)
       } else {
-        collection = new RemoteCollection(collectionName, undefined, this.model, this.storage)
+        collection = new RemoteCollection(collectionName, undefined, this.model)
       }
       this.data[collectionName] = collection
     }
@@ -64,11 +63,11 @@ class CollectionSet {
   }
 
   fillLocalCollectionsFromClientStorage () {
-    if (!this.storage) return Promise.resolve()
+    if (!this.model.storage) return Promise.resolve()
 
     let promises = []
-    for (let collectionName of this.storage.collectionNames) {
-      if (util.isLocalCollection(collectionName)) continue
+    for (let collectionName of this.model.storage.collectionNames) {
+      if (!util.isLocalCollection(collectionName)) continue
       let collection = this.getOrCreateCollection(collectionName)
       promises.push(collection.fillFromClientStorage())
     }
@@ -77,10 +76,10 @@ class CollectionSet {
   }
 
   fillFromClientStorage () {
-    if (!this.storage) return Promise.resolve()
+    if (!this.model.storage) return Promise.resolve()
 
     let promises = []
-    for (let collectionName of this.storage.collectionNames) {
+    for (let collectionName of this.model.storage.collectionNames) {
       let collection = this.getOrCreateCollection(collectionName)
       promises.push(collection.fillFromClientStorage())
     }

@@ -2,8 +2,8 @@
 import ServerDoc from './ServerDoc'
 
 class ProjectedDoc extends ServerDoc {
-  constructor (collectionName, projection, docId, ops, store, storage, docSet) {
-    super(projection.dbCollectionName, docId, ops, store, storage, docSet)
+  constructor (collectionName, projection, docId, ops, store, docSet) {
+    super(projection.dbCollectionName, docId, ops, store, docSet)
     this.projectionCollectionName = collectionName
     this.projection = projection
   }

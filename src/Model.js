@@ -7,14 +7,14 @@ import Subscription from './Subscription'
 import util from './util'
 
 class Model extends EventEmitter {
-  constructor (channel, source, storage, options) {
+  constructor (channel, source, options) {
     super()
     this.channel = channel
     this.online = false
     this.source = source
     this.options = options
-    this.collectionSet = new CollectionSet(this, storage)
-    this.querySet = new ClientQuerySet(this, storage)
+    this.collectionSet = new CollectionSet(this)
+    this.querySet = new ClientQuerySet(this)
     this.callbacks = {}
     this.dateDiff = 0
 
@@ -39,13 +39,6 @@ class Model extends EventEmitter {
       this.ready = true
       this.emit('ready')
     })
-  }
-
-  init () {
-    debug('init')
-    if (!this.storage) return Promise.resolve()
-
-    return this.collectionSet.fillFromClientStorage()
   }
 
   ready () {
@@ -235,22 +228,29 @@ class Model extends EventEmitter {
   }
 
   onProjections (newProjectionHashes) {
-    let projectionHashes = this.get('_app.projectionHashes')
+    let prevProjectionHashes = this.get('_app.projectionHashes')
 
-    let promises = []
+    let collectionNames = this.getCollectionNamesToClear(prevProjectionHashes, newProjectionHashes)
 
-    for (let collectionName in projectionHashes) {
+    if (!this.storage) return Promise.resolve()
+    return Promise.all(collectionNames.map((collectionName) => this.storage.clearCollection(collectionName)))
+  }
+
+  getCollectionNamesToClear (prevProjectionHashes, newProjectionHashes) {
+    let collectionNames = []
+
+    for (let collectionName in prevProjectionHashes) {
       if (collectionName === '_id') continue
 
-      let hash = projectionHashes[collectionName]
+      let hash = prevProjectionHashes[collectionName]
       let newHash = newProjectionHashes[collectionName]
 
       if (!newHash || hash !== newHash) {
-        promises.push(this.storage.clearCollection(collectionName))
+        collectionNames.push(collectionName)
       }
     }
 
-    return Promise.all(promises)
+    return collectionNames
   }
 
   send (message) {

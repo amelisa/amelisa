@@ -2,9 +2,8 @@ let debug = require('debug')('RemoteQuery')
 import ClientQuery from './ClientQuery'
 
 class RemoteQuery extends ClientQuery {
-  constructor (collectionName, expression, model, collection, querySet, storage) {
+  constructor (collectionName, expression, model, collection, querySet) {
     super(collectionName, expression, model, collection, querySet)
-    this.storage = storage
     this.server = false
     this.subscribed = 0
     this.timestamp = null
