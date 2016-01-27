@@ -4,13 +4,11 @@ import React from 'react'
 import util from './util'
 import getModel from './getModel'
 import createContainer from './createContainer'
-import HtmlLayout from './HtmlLayout'
 import RootComponent from './RootComponent'
 
 let api = {
   createContainer,
   getModel,
-  HtmlLayout,
   RootComponent
 }
 
