@@ -2,7 +2,7 @@ let debug = require('debug')('IndexedDbStorage')
 import MongoQueries from './MongoQueries'
 
 const dbName = 'amelisa'
-const dbVersion = 6
+const dbVersion = 1
 
 class IndexedDbStorage extends MongoQueries {
   constructor (collectionNames = []) {
@@ -48,7 +48,7 @@ class IndexedDbStorage extends MongoQueries {
   }
 
   getObjectStore (collectionName, transactionType) {
-    if (!this.db.objectStoreNames.contains(collectionName)) {
+    if (Array.from(this.db.objectStoreNames).indexOf(collectionName) === -1) {
       debug('No colleciton ' + collectionName + ' in IndexedDB')
     }
     let transaction = this.db.transaction(collectionName, transactionType)
