@@ -351,10 +351,12 @@ class Model extends EventEmitter {
 
   unbundleLocalData () {
     let bundle = this.unbundle()
+    let collections = bundle.collections || {}
+
     let local = {
       collections: {
-        _app: bundle.collections._app,
-        _session: bundle.collections._session
+        _app: collections._app,
+        _session: collections._session
       }
     }
     this.collectionSet.unbundle(local.collections)

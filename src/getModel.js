@@ -65,13 +65,19 @@ function getModel (channel) {
 
   window.model = model
 
-  initModel()
-    .then(() => {
-      if (ws) ws.open()
-    })
-    .catch((err) => {
-      console.error(err, err.stack)
-    })
+  let initPromise = new Promise((resolve, reject) => {
+    initModel()
+      .then(() => {
+        if (ws) ws.open()
+        resolve()
+      })
+      .catch((err) => {
+        console.error(err, err.stack)
+        reject(err)
+      })
+  })
+
+  model.init = () => initPromise
 
   return model
 }

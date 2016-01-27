@@ -48,6 +48,7 @@
     "express": "^4.13.3",
     "fake-indexeddb": "^1.0.3",
     "mocha": "^2.3.0",
+    "node-jsdom": "^3.1.5",
     "node-phantom-simple": "^2.0.6",
     "phantomjs2": "^2.0.0",
     "react": "^0.14.6",
