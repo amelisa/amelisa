@@ -59,6 +59,8 @@ class Model extends EventEmitter {
   }
 
   subscribe (...rawSubscribes) {
+    if (this.options.fetchOnly) return this.fetch(...rawSubscribes)
+
     let subscription = new Subscription(rawSubscribes, this.collectionSet, this.querySet)
     return subscription
       .subscribe()
