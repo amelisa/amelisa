@@ -11,11 +11,19 @@ class RemoteQuery extends ClientQuery {
   }
 
   fetch () {
-    return this.model.sendOp({
+    let op = {
       type: 'qfetch',
       collectionName: this.collection.name,
       expression: this.expression
-    })
+    }
+
+    if (this.isDocs) {
+      let ids = this.getDataFromVersionDiffs()
+      op.ids = ids
+      op.docVersions = ids.map((docId) => this.collection.getDoc(docId).version())
+    }
+
+    return this.model.sendOp(op)
   }
 
   onSnapshotNotDocs (data, version) {
@@ -64,7 +72,7 @@ class RemoteQuery extends ClientQuery {
     this.refreshFromVersionDiffs()
   }
 
-  refreshFromVersionDiffs () {
+  getDataFromVersionDiffs () {
     let ids = this.data
 
     for (let versionNumber in this.versionDiffs) {
@@ -98,6 +106,12 @@ class RemoteQuery extends ClientQuery {
       }
     }
 
+    return ids
+  }
+
+  refreshFromVersionDiffs () {
+    let ids = this.getDataFromVersionDiffs()
+
     this.data = ids
 
     this.server = true
@@ -122,17 +136,29 @@ class RemoteQuery extends ClientQuery {
     debug('subscribe', this.subscribed)
     if (this.subscribed !== 1) return Promise.resolve()
 
-    return this.model.sendOp({
+    this.collection.on('change', this.onCollectionChange)
+
+    let op = {
       type: 'qsub',
       collectionName: this.collectionName,
       expression: this.expression
-    })
+    }
+
+    if (this.isDocs) {
+      let ids = this.getDataFromVersionDiffs()
+      op.ids = ids
+      op.docVersions = ids.map((docId) => this.collection.getDoc(docId).version())
+    }
+
+    return this.model.sendOp(op)
   }
 
   unsubscribe () {
     this.subscribed--
     debug('unsubscribe', this.subscribed)
     if (this.subscribed !== 0) return Promise.resolve()
+
+    this.collection.removeListener('change', this.onCollectionChange)
 
     return this.model.sendOp({
       type: 'qunsub',
@@ -142,22 +168,19 @@ class RemoteQuery extends ClientQuery {
   }
 
   getSyncData () {
-    // TODO: query version
     let data = {
       collectionName: this.collectionName,
       expression: this.expression,
       subscribed: !!this.subscribed
     }
 
-    return data
-  }
+    if (this.isDocs) {
+      let ids = this.getDataFromVersionDiffs()
+      data.ids = ids
+      data.docVersions = ids.map((docId) => this.collection.getDoc(docId).version())
+    }
 
-  sync () {
-    return this.model.sendOp({
-      type: 'qsync',
-      collectionName: this.collectionName,
-      expression: this.expression
-    })
+    return data
   }
 }
 

@@ -9,11 +9,6 @@ class ClientQuery extends Query {
     this.model = model
     this.collection = collection
     this.querySet = querySet
-
-    this.listener = (op) => {
-      this.refresh(op)
-    }
-    collection.on('change', this.listener)
   }
 
   getStateFromDocData (doc) {
@@ -61,6 +56,10 @@ class ClientQuery extends Query {
       this.data = docDatas
     }
   }
+
+  onCollectionChange = (op) => {
+    this.refresh(op)
+  };
 }
 
 export default ClientQuery

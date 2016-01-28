@@ -98,7 +98,7 @@ class Store extends EventEmitter {
 
   async onMessage (message, channel) {
     debug('onMessage', message.type)
-    let { type, id, collectionName, docId, expression, value, version } = message
+    let { type, id, collectionName, docId, expression, value, version, ids, docVersions } = message
     let doc
     let query
 
@@ -115,12 +115,12 @@ class Store extends EventEmitter {
 
       case 'fetch':
         doc = await this.docSet.getOrCreateDoc(collectionName, docId)
-        doc.fetch(channel, id)
+        doc.fetch(channel, version, id)
         break
 
       case 'qfetch':
         query = await this.querySet.getOrCreateQuery(collectionName, expression)
-        query.fetch(channel, id)
+        query.fetch(channel, ids, docVersions, id)
         break
 
       case 'sub':
@@ -135,7 +135,7 @@ class Store extends EventEmitter {
 
       case 'qsub':
         query = await this.querySet.getOrCreateQuery(collectionName, expression)
-        query.subscribe(channel, id)
+        query.subscribe(channel, ids, docVersions, id)
         break
 
       case 'qunsub':
@@ -158,7 +158,6 @@ class Store extends EventEmitter {
                   doc.onOp(op)
                   this.onOp(op)
                 }
-
                 doc.subscribe(channel, version, 'id')
               })
             docPromises.push(docPromise)
@@ -170,12 +169,11 @@ class Store extends EventEmitter {
         let queryPromises = []
 
         for (let hash in syncData.queries) {
-          let querySyncData = syncData.queries[hash]
-          let { collectionName, expression } = querySyncData
+          let { collectionName, expression, ids, docVersions } = syncData.queries[hash]
           let queryPromise = this.querySet
             .getOrCreateQuery(collectionName, expression)
             .then((query) => {
-              query.subscribe(channel, 'id')
+              query.subscribe(channel, ids, docVersions, 'id')
             })
           queryPromises.push(queryPromise)
         }
@@ -252,7 +250,7 @@ class Store extends EventEmitter {
   }
 
   sendOp (op, channel) {
-    debug('sendOp', op.type)
+    debug('sendOp', op.type, op)
 
     try {
       channel.send(op)

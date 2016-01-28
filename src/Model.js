@@ -51,20 +51,20 @@ class Model extends EventEmitter {
     })
   }
 
-  fetch (...rawSubscribes) {
+  async fetch (...rawSubscribes) {
     let subscription = new Subscription(rawSubscribes, this.collectionSet, this.querySet)
+    await subscription.fetch()
+
     return subscription
-      .fetch()
-      .then(() => subscription)
   }
 
-  subscribe (...rawSubscribes) {
+  async subscribe (...rawSubscribes) {
     if (this.options.fetchOnly) return this.fetch(...rawSubscribes)
 
     let subscription = new Subscription(rawSubscribes, this.collectionSet, this.querySet)
+    await subscription.subscribe()
+
     return subscription
-      .subscribe()
-      .then(() => subscription)
   }
 
   setOnline () {
@@ -97,7 +97,7 @@ class Model extends EventEmitter {
       if (callbacks) delete this.callbacks[id]
     }
 
-    debug(type, id, collectionName, docId, expression, !!callbacks, value)
+    debug('onMessage', this.source, type, id, collectionName, docId, expression, !!callbacks, value, diffs, docs)
 
     switch (type) {
       case 'ackdate':

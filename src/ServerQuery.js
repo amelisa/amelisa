@@ -161,12 +161,8 @@ class ServerQuery extends Query {
     await Promise.all(docPromises)
   }
 
-  async fetch (channel, opId) {
-    if (this.isDocs) {
-      await this.sendDocsQuerySnapshotToChannel(channel)
-    } else {
-      await this.sendNotDocsQuerySnapshotToChannel(channel)
-    }
+  async fetch (channel, ids, docVersions, opId) {
+    await this.sendQuery(channel, ids, docVersions)
 
     let op = {
       id: opId,
@@ -177,16 +173,12 @@ class ServerQuery extends Query {
     this.maybeUnattach()
   }
 
-  async subscribe (channel, opId) {
+  async subscribe (channel, ids, docVersions, opId) {
     this.channels.push(channel)
 
     if (!opId) return
 
-    if (this.isDocs) {
-      await this.sendDocsQuerySnapshotToChannel(channel)
-    } else {
-      await this.sendNotDocsQuerySnapshotToChannel(channel)
-    }
+    await this.sendQuery(channel, ids, docVersions)
 
     let op = {
       id: opId,
@@ -194,6 +186,25 @@ class ServerQuery extends Query {
     }
 
     this.sendOp(op, channel)
+  }
+
+  async sendQuery (channel, ids, docVersions) {
+    if (this.isDocs) {
+      if (ids.length) {
+        // TODO: handle docVersions
+
+        let prev = []
+        for (let i = 0; i < ids.length; i++) {
+          prev.push({_id: ids[i], _v: docVersions[i]})
+        }
+        let diffs = this.getDiffs(prev, this.data)
+        await this.sendDiffQueryToChannel(channel, diffs)
+      } else {
+        await this.sendDocsQuerySnapshotToChannel(channel)
+      }
+    } else {
+      await this.sendNotDocsQuerySnapshotToChannel(channel)
+    }
   }
 
   unsubscribe (channel) {

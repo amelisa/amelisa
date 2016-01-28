@@ -45,13 +45,6 @@ class ClientQuerySet {
 
     return data
   }
-
-  sync () {
-    for (let hash in this.data) {
-      let query = this.data[hash]
-      if (!query.local) query.sync()
-    }
-  }
 }
 
 function queryHash (collectionName, expression) {

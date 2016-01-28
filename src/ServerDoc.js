@@ -91,8 +91,8 @@ class ServerDoc extends Doc {
     }
   }
 
-  sendOpsToChannel (channel) {
-    let version = channel._session.getDocVersion(this.collectionName, this.docId)
+  sendOpsToChannel (channel, version) {
+    if (!version) version = channel._session.getDocVersion(this.collectionName, this.docId)
     let opsToSend = this.getOpsToSend(version)
 
     for (let op of opsToSend) {
@@ -100,8 +100,8 @@ class ServerDoc extends Doc {
     }
   }
 
-  fetch (channel, opId) {
-    this.sendOpsToChannel(channel)
+  fetch (channel, version, opId) {
+    this.sendOpsToChannel(channel, version)
 
     let op = {
       id: opId,
@@ -121,7 +121,7 @@ class ServerDoc extends Doc {
     channel._session.subscribeDoc(this.collectionName, this.docId, version)
     this.channels.push(channel)
 
-    this.sendOpsToChannel(channel)
+    this.sendOpsToChannel(channel, version)
 
     let op = {
       type: 'sub',

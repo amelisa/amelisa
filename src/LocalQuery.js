@@ -16,10 +16,12 @@ class LocalQuery extends ClientQuery {
   }
 
   subscribe () {
+    this.collection.on('change', this.onCollectionChange)
     return Promise.resolve()
   }
 
   unsubscribe () {
+    this.collection.removeListener('change', this.onCollectionChange)
     return Promise.resolve()
   }
 }
