@@ -36,9 +36,6 @@ describe('getModel', () => {
 
     await model.init()
 
-    assert(model)
-    assert.equal(Object.keys(model.get()).length, 2)
     assert.equal(model.get('_session.userId'), value)
-    assert.equal(model.get('_app.projectionHashes'), undefined)
   })
 })

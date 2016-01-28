@@ -2,18 +2,18 @@ let debug = require('debug')('IndexedDbStorage')
 import MongoQueries from './MongoQueries'
 
 const dbName = 'amelisa'
-const dbVersion = 1
 
 class IndexedDbStorage extends MongoQueries {
-  constructor (collectionNames = []) {
+  constructor (collectionNames = [], version) {
     super()
+
     this.collectionNames = collectionNames
+    this.version = version
   }
 
   init () {
     return new Promise((resolve, reject) => {
-      debug(dbVersion)
-      let request = window.indexedDB.open(dbName, dbVersion)
+      let request = window.indexedDB.open(dbName, this.version)
       request.onsuccess = (event) => {
         debug('onsuccess')
         this.db = event.target.result

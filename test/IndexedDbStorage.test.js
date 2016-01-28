@@ -10,7 +10,7 @@ let storage
 
 describe('IndexedDbStorage', () => {
   beforeEach(async () => {
-    storage = new IndexedDbStorage(['users'])
+    storage = new IndexedDbStorage(['users'], 1)
     await storage.init()
   })
 

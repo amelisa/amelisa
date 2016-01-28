@@ -8,12 +8,12 @@ let model
 async function initModel () {
   await util.onDomReady()
 
-  // unbundle _app.clientStorage, _app.collectionNames and _app.newProjectionHashes
+  // unbundle _app.clientStorage, _app.collectionNames, _app.version and _app.newProjectionHashes
   model.unbundleLocalData()
-  let { clientStorage, collectionNames } = model.get('_app')
+  let { clientStorage, collectionNames, version } = model.get('_app')
 
   if (clientStorage) {
-    let storage = new IndexedDbStorage(Array.from(collectionNames).concat(['_app', '_session']))
+    let storage = new IndexedDbStorage(Array.from(collectionNames).concat(['_app', '_session']), version)
     model.storage = storage
 
     await storage.init()
