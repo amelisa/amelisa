@@ -77,17 +77,21 @@ class ServerQuery extends Query {
     this.sendOp(op, channel)
   }
 
-  sendDocsQuerySnapshotToChannel (channel) {
+  async sendDocsQuerySnapshotToChannel (channel) {
+    let docs = this.getDocs()
+
     let op = {
       type: 'q',
       collectionName: this.collectionName,
       expression: this.originalExpression,
       version: this.version(),
       ids: this.getIds(),
-      docs: this.getDocs()
+      docs
     }
 
     this.sendOp(op, channel)
+
+    await this.subscribeDocs(docs, channel)
   }
 
   getDocs () {
@@ -104,7 +108,7 @@ class ServerQuery extends Query {
     return this.data.map((doc) => doc._id)
   }
 
-  sendDiffQueryToChannel (channel, diffs) {
+  async sendDiffQueryToChannel (channel, diffs) {
     if (!diffs.length) return
 
     let docMap = {}
@@ -132,6 +136,8 @@ class ServerQuery extends Query {
     }
 
     this.sendOp(op, channel)
+
+    await this.subscribeDocs(docs, channel)
   }
 
   getDiffs (prev, data) {
@@ -141,11 +147,25 @@ class ServerQuery extends Query {
     return arraydiff(prevIds, docIds)
   }
 
-  fetch (channel, opId) {
+  async subscribeDocs (docs, channel) {
+    let docPromises = []
+    for (let docId in docs) {
+      let docData = docs[docId]
+      let docPromise = this.store.docSet
+        .getOrCreateDoc(this.collectionName, docData._id)
+        .then((doc) => {
+          doc.subscribe(channel, docData._v)
+        })
+      docPromises.push(docPromise)
+    }
+    await Promise.all(docPromises)
+  }
+
+  async fetch (channel, opId) {
     if (this.isDocs) {
-      this.sendDocsQuerySnapshotToChannel(channel)
+      await this.sendDocsQuerySnapshotToChannel(channel)
     } else {
-      this.sendNotDocsQuerySnapshotToChannel(channel)
+      await this.sendNotDocsQuerySnapshotToChannel(channel)
     }
 
     let op = {
@@ -157,15 +177,15 @@ class ServerQuery extends Query {
     this.maybeUnattach()
   }
 
-  subscribe (channel, opId) {
+  async subscribe (channel, opId) {
     this.channels.push(channel)
 
     if (!opId) return
 
     if (this.isDocs) {
-      this.sendDocsQuerySnapshotToChannel(channel)
+      await this.sendDocsQuerySnapshotToChannel(channel)
     } else {
-      this.sendNotDocsQuerySnapshotToChannel(channel)
+      await this.sendNotDocsQuerySnapshotToChannel(channel)
     }
 
     let op = {

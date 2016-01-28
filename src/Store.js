@@ -197,9 +197,6 @@ class Store extends EventEmitter {
         doc = await this.docSet.getOrCreateDoc(collectionName, docId)
         doc.onOp(message, channel)
 
-        let { session, params } = this.getHookParams(channel)
-        if (this.afterHook) this.afterHook(message, session, params)
-
         // FIXME: remove listener if reject
         doc.once('saved', () => {
           op = {
@@ -209,6 +206,16 @@ class Store extends EventEmitter {
           this.sendOp(op, channel)
           this.onOp(message)
         })
+
+        let { session, params } = this.getHookParams(channel)
+        if (this.afterHook) {
+          try {
+            await this.afterHook(message, session, params)
+          } catch (err) {
+            console.error('afterHook', err, err.stack)
+            return
+          }
+        }
         break
 
       default:
@@ -248,28 +255,10 @@ class Store extends EventEmitter {
     debug('sendOp', op.type)
 
     try {
-      this.send(op, channel)
+      channel.send(op)
     } catch (err) {
-      console.error('sendOp', err)
+      console.error('sendOp error', err)
     }
-  }
-
-  async send (op, channel) {
-    if ((op.type === 'q' || op.type === 'qdiff') && op.docs) {
-      let docPromises = []
-      for (let docId in op.docs) {
-        let docData = op.docs[docId]
-        let docPromise = this.docSet
-          .getOrCreateDoc(op.collectionName, docData._id)
-          .then((doc) => {
-            doc.subscribe(channel, docData._v)
-          })
-        docPromises.push(docPromise)
-      }
-      await Promise.all(docPromises)
-    }
-
-    channel.send(op)
   }
 
   modelMiddleware () {

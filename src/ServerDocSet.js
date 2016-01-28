@@ -1,4 +1,5 @@
 let debug = require('debug')('ServerDocSet')
+import eventToPromise from 'event-to-promise'
 import ProjectedDoc from './ProjectedDoc'
 import ServerDoc from './ServerDoc'
 
@@ -12,7 +13,7 @@ class ServerDocSet {
     return collectionName + '_' + docId
   }
 
-  getOrCreateDoc (collectionName, docId) {
+  async getOrCreateDoc (collectionName, docId) {
     let docPath = this.getDocPath(collectionName, docId)
     let doc = this.data[docPath]
 
@@ -26,13 +27,11 @@ class ServerDocSet {
       this.data[docPath] = doc
     }
 
-    return new Promise((resolve, reject) => {
-      if (doc.loaded) return resolve(doc)
+    if (doc.loaded) return doc
 
-      doc.once('loaded', () => {
-        resolve(doc)
-      })
-    })
+    await eventToPromise(doc, 'loaded')
+
+    return doc
   }
 
   unattach (collectionName, docId) {

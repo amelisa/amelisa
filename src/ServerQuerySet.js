@@ -1,4 +1,5 @@
 let debug = require('debug')('ServerQuerySet')
+import eventToPromise from 'event-to-promise'
 import MongoQueries from './MongoQueries'
 import ProjectedQuery from './ProjectedQuery'
 import ProjectedJoinQuery from './ProjectedJoinQuery'
@@ -11,7 +12,7 @@ class ServerQuerySet {
     this.data = {}
   }
 
-  getOrCreateQuery (collectionName, expression) {
+  async getOrCreateQuery (collectionName, expression) {
     let hash = queryHash(collectionName, expression)
     let query = this.data[hash]
     debug('getOrCreateQuery', collectionName, expression, !!query)
@@ -34,13 +35,11 @@ class ServerQuerySet {
       this.data[hash] = query
     }
 
-    if (query.loaded) return Promise.resolve(query)
+    if (query.loaded) return query
 
-    return new Promise((resolve, reject) => {
-      query.once('loaded', () => {
-        resolve(query)
-      })
-    })
+    await eventToPromise(query, 'loaded')
+
+    return query
   }
 
   unattach (collectionName, expression) {

@@ -101,8 +101,8 @@ describe('projections', () => {
       userId: docId
     }
 
-    await model2.add(dbCollectionName, doc)
-    await model2.add('categories', category)
+    model2.add(dbCollectionName, doc)
+    model2.add('categories', category)
 
     await eventToPromise(subscription, 'change')
 

@@ -141,8 +141,8 @@ describe('multymodel', () => {
       userId: docId
     }
 
-    await model2.add(collectionName, doc)
-    await model2.add('categories', category)
+    model2.add(collectionName, doc)
+    model2.add('categories', category)
 
     await eventToPromise(subscription, 'change')
 

@@ -7,7 +7,7 @@ import Subscription from './Subscription'
 import util from './util'
 
 class Model extends EventEmitter {
-  constructor (channel, source, options) {
+  constructor (channel, source, options = {}) {
     super()
     this.channel = channel
     this.online = false
