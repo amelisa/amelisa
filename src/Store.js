@@ -58,6 +58,7 @@ class Store extends EventEmitter {
     channel.on('message', (message) => {
       // debug('message', message)
       this.validateMessage(message, channel)
+        .catch((err) => console.error('validateMessage error', err, err.stack))
     })
 
     channel.on('close', () => {
@@ -74,33 +75,32 @@ class Store extends EventEmitter {
     this.emit('channel', channel)
   }
 
-  validateMessage (message, channel) {
-    let { type } = message
-    if (this.hook && (type === 'add' || type === 'set' || type === 'del')) {
+  async validateMessage (message, channel) {
+    if (this.hook) {
       let { session, params } = this.getHookParams(channel)
-      this.hook(message, session, params, (err) => {
-        if (err) {
-          let op = {
-            id: message.id,
-            type: 'ack',
-            collectionName: message.collectionName,
-            docId: message.docId,
-            error: err
-          }
-          this.sendOp(op, channel)
-        } else {
-          this.onMessage(message, channel)
+
+      try {
+        await this.hook(message, session, params)
+      } catch (err) {
+        let op = {
+          id: message.id,
+          type: 'ack',
+          collectionName: message.collectionName,
+          docId: message.docId,
+          error: err
         }
-      })
-    } else {
-      this.onMessage(message, channel)
+        return this.sendOp(op, channel)
+      }
     }
+
+    await this.onMessage(message, channel)
   }
 
-  onMessage (message, channel) {
+  async onMessage (message, channel) {
     debug('onMessage', message.type)
     let { type, id, collectionName, docId, expression, value, version } = message
-    let op
+    let doc
+    let query
 
     debug(type, id, collectionName, docId, expression)
 
@@ -114,51 +114,33 @@ class Store extends EventEmitter {
         break
 
       case 'fetch':
-        this.docSet
-          .getOrCreateDoc(collectionName, docId)
-          .then((doc) => {
-            doc.fetch(channel, id)
-          })
+        doc = await this.docSet.getOrCreateDoc(collectionName, docId)
+        doc.fetch(channel, id)
         break
 
       case 'qfetch':
-        this.querySet
-          .getOrCreateQuery(collectionName, expression)
-          .then((query) => {
-            query.fetch(channel, id)
-          })
+        query = await this.querySet.getOrCreateQuery(collectionName, expression)
+        query.fetch(channel, id)
         break
 
       case 'sub':
-        this.docSet
-          .getOrCreateDoc(collectionName, docId)
-          .then((doc) => {
-            doc.subscribe(channel, version, id)
-          })
+        doc = await this.docSet.getOrCreateDoc(collectionName, docId)
+        doc.subscribe(channel, version, id)
         break
 
       case 'unsub':
-        this.docSet
-          .getOrCreateDoc(collectionName, docId)
-          .then((doc) => {
-            doc.unsubscribe(channel)
-          })
+        doc = await this.docSet.getOrCreateDoc(collectionName, docId)
+        doc.unsubscribe(channel)
         break
 
       case 'qsub':
-        this.querySet
-          .getOrCreateQuery(collectionName, expression)
-          .then((query) => {
-            query.subscribe(channel, id)
-          })
+        query = await this.querySet.getOrCreateQuery(collectionName, expression)
+        query.subscribe(channel, id)
         break
 
       case 'qunsub':
-        this.querySet
-          .getOrCreateQuery(collectionName, expression)
-          .then((query) => {
-            query.unsubscribe(channel)
-          })
+        query = await this.querySet.getOrCreateQuery(collectionName, expression)
+        query.unsubscribe(channel)
         break
 
       case 'sync':
@@ -183,56 +165,50 @@ class Store extends EventEmitter {
           }
         }
 
-        Promise
-          .all(docPromises)
-          .then(() => {
-            let queryPromises = []
+        await Promise.all(docPromises)
 
-            for (let hash in syncData.queries) {
-              let querySyncData = syncData.queries[hash]
-              let { collectionName, expression } = querySyncData
-              let queryPromise = this.querySet
-                .getOrCreateQuery(collectionName, expression)
-                .then((query) => {
-                  query.subscribe(channel, 'id')
-                })
-              queryPromises.push(queryPromise)
-            }
-            return Promise.all(queryPromises)
-          })
-          .then(() => {
-            let op = {
-              type: 'sync',
-              value: {
-                version: this.options.version,
-                projectionHashes: this.options.projectionHashes
-              }
-            }
-            this.sendOp(op, channel)
-          })
+        let queryPromises = []
+
+        for (let hash in syncData.queries) {
+          let querySyncData = syncData.queries[hash]
+          let { collectionName, expression } = querySyncData
+          let queryPromise = this.querySet
+            .getOrCreateQuery(collectionName, expression)
+            .then((query) => {
+              query.subscribe(channel, 'id')
+            })
+          queryPromises.push(queryPromise)
+        }
+        await Promise.all(queryPromises)
+
+        let op = {
+          type: 'sync',
+          value: {
+            version: this.options.version,
+            projectionHashes: this.options.projectionHashes
+          }
+        }
+        this.sendOp(op, channel)
         break
 
       case 'add':
       case 'set':
       case 'del':
-        this.docSet
-          .getOrCreateDoc(collectionName, docId)
-          .then((doc) => {
-            doc.onOp(message, channel)
+        doc = await this.docSet.getOrCreateDoc(collectionName, docId)
+        doc.onOp(message, channel)
 
-            let { session, params } = this.getHookParams(channel)
-            if (this.afterHook) this.afterHook(message, session, params)
+        let { session, params } = this.getHookParams(channel)
+        if (this.afterHook) this.afterHook(message, session, params)
 
-            // FIXME: remove listener if reject
-            doc.once('saved', () => {
-              op = {
-                id: id,
-                type: 'ack'
-              }
-              this.sendOp(op, channel)
-              this.onOp(message)
-            })
-          })
+        // FIXME: remove listener if reject
+        doc.once('saved', () => {
+          op = {
+            id: id,
+            type: 'ack'
+          }
+          this.sendOp(op, channel)
+          this.onOp(message)
+        })
         break
 
       default:
@@ -271,22 +247,29 @@ class Store extends EventEmitter {
   sendOp (op, channel) {
     debug('sendOp', op.type)
 
+    try {
+      this.send(op, channel)
+    } catch (err) {
+      console.error('sendOp', err)
+    }
+  }
+
+  async send (op, channel) {
     if ((op.type === 'q' || op.type === 'qdiff') && op.docs) {
+      let docPromises = []
       for (let docId in op.docs) {
         let docData = op.docs[docId]
-        this.docSet
+        let docPromise = this.docSet
           .getOrCreateDoc(op.collectionName, docData._id)
           .then((doc) => {
             doc.subscribe(channel, docData._v)
           })
+        docPromises.push(docPromise)
       }
+      await Promise.all(docPromises)
     }
 
-    try {
-      channel.send(op)
-    } catch (err) {
-      console.error('channel.send', err)
-    }
+    channel.send(op)
   }
 
   modelMiddleware () {
