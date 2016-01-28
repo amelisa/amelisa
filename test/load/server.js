@@ -1,40 +1,32 @@
 import http from 'http'
-import { EventEmitter } from 'events'
-import { MongoStorage, RedisChannel, ServerSocketChannel, Store } from '../../src'
+import { ServerSocketChannel } from '../../src'
+import { Server as WebSocketServer } from 'ws'
+import app from './app'
+import store from './store'
 
-EventEmitter.prototype._maxListeners = 1000
+const port = process.env.PORT || 3000
 
-let port = 3000
-let mongoUrl = 'mongodb://localhost:27017/test'
-let redisUrl = 'redis://localhost:6379/15'
+async function init() {
+  await store.init()
 
-let storage = new MongoStorage(mongoUrl)
-let redis = new RedisChannel(redisUrl)
-let pubsub = new RedisChannel(redisUrl)
+  let server = http.createServer()
 
-storage
-  .init()
-  .then(() => redis.init())
-  .then(() => pubsub.init(true))
-  .then(() => {
-    let store = new Store(storage, redis, pubsub)
+  server.on('request', app)
 
-    let httpServer = http.createServer()
+  let wsServer = new WebSocketServer({server})
 
-    let app = require('./app')(store, httpServer)
-
-    app.ws('/', (client, req) => {
-      let channel = new ServerSocketChannel(client, req)
-      store.onChannel(channel)
-    })
-
-    httpServer.on('request', app)
-
-    httpServer.listen(port, (err) => {
-      if (err) {
-        console.error('Can\'t start server, Error:', err)
-      } else {
-        console.info(`${process.pid} listening. Go to: http://localhost:${port}`)
-      }
-    })
+  wsServer.on('connection', (socket) => {
+    let channel = new ServerSocketChannel(socket, socket.upgradeReq)
+    store.onChannel(channel)
   })
+
+  server.listen(port, (err) => {
+    if (err) {
+      console.error('Can\'t start server, Error:', err)
+    } else {
+      console.info(`${process.pid} listening. Go to: http://localhost:${port}`)
+    }
+  })
+}
+
+init().catch((err) => console.log(err, err.stack))

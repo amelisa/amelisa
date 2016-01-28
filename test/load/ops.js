@@ -1,37 +1,34 @@
 import createClient from './createClient'
 
-createClient()
-  .then((model) => {
-    let index = 0
-    let count = 0
-    function createDoc () {
-      let doc = {
-        _id: '1',
-        name: null
-      }
+async function init() {
+  let model = await createClient()
 
-      model
-        .add('items', doc)
-        .then(() => {
-          console.log('item created')
-        })
+  let index = 0
+  let count = 0
+  async function createDoc () {
+    let doc = {
+      _id: '1',
+      name: null
     }
 
-    function mutateDoc () {
-      model
-        .set('items', '1', 'name', index++)
-        .then(() => {
-          count++
-          mutateDoc()
-        })
-    }
+    await model.add('items', doc)
+    console.log('item created')
+  }
 
-    function showCount () {
-      console.log('ops/sec', count)
-      count = 0
-    }
+  async function mutateDoc () {
+    model.set(['items', '1', 'name'], index++)
+    count++
+    setTimeout(mutateDoc, 0)
+  }
 
-    createDoc()
-    mutateDoc()
-    setInterval(showCount, 1000)
-  })
+  function showCount () {
+    console.log('ops/sec', count)
+    count = 0
+  }
+
+  await createDoc()
+  mutateDoc()
+  setInterval(showCount, 1000)
+}
+
+init().catch((err) => console.log(err, err.stack))

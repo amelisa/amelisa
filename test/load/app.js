@@ -1,10 +1,8 @@
 import express from 'express'
-import expressWs from 'express-ws'
+import store from './store'
 
-export default function (store, httpServer) {
-  let app = express()
-  expressWs(app, httpServer)
-  app.use(store.modelMiddleware())
+let app = express()
 
-  return app
-}
+app.use(store.modelMiddleware())
+
+export default app
