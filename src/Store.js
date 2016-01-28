@@ -183,39 +183,32 @@ class Store extends EventEmitter {
           }
         }
 
-        let getQueryPromises = []
-
-        for (let hash in syncData.queries) {
-          let querySyncData = syncData.queries[hash]
-          let { collectionName, expression } = querySyncData
-          let getQueryPromise = () => {
-            let queryPromise = this.querySet
-              .getOrCreateQuery(collectionName, expression)
-              .then((query) => {
-                query.subscribe(channel, 'id')
-              })
-            return queryPromise
-          }
-          getQueryPromises.push(getQueryPromise)
-        }
-
         Promise
           .all(docPromises)
-          .then((docs) => {
-            return Promise
-              .all(getQueryPromises.map((getQueryPromise) => getQueryPromise()))
-              .then((queries) => {
-                let op = {
-                  type: 'sync',
-                  value: {
-                    version: this.options.version,
-                    projectionHashes: this.options.projectionHashes,
-                    docs,
-                    queries
-                  }
-                }
-                this.sendOp(op, channel)
-              })
+          .then(() => {
+            let queryPromises = []
+
+            for (let hash in syncData.queries) {
+              let querySyncData = syncData.queries[hash]
+              let { collectionName, expression } = querySyncData
+              let queryPromise = this.querySet
+                .getOrCreateQuery(collectionName, expression)
+                .then((query) => {
+                  query.subscribe(channel, 'id')
+                })
+              queryPromises.push(queryPromise)
+            }
+            return Promise.all(queryPromises)
+          })
+          .then(() => {
+            let op = {
+              type: 'sync',
+              value: {
+                version: this.options.version,
+                projectionHashes: this.options.projectionHashes
+              }
+            }
+            this.sendOp(op, channel)
           })
         break
 
