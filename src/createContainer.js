@@ -1,4 +1,5 @@
 import React from 'react'
+import Loading from './Loading'
 import util from './util'
 
 function createContainer (Component) {
@@ -149,7 +150,7 @@ function createContainer (Component) {
 
     render () {
       if (!this.state.hasResults) {
-        return <div>Empty</div>
+        return <Loading />
       } else {
         let props = this.props
         if (this.subscription) {
