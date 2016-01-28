@@ -8,6 +8,9 @@ class Collection extends EventEmitter {
     this.name = name
     this.data = data
     this.model = model
+
+    // all collection queries listen to collection change event
+    this.setMaxListeners(0)
   }
 
   get (docId, field) {
