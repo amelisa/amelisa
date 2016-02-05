@@ -5,16 +5,17 @@ import redisUrl from 'redis-url'
 const channelName = 'op'
 
 class RedisChannel extends EventEmitter {
-  constructor (url) {
+  constructor (url, sub = false) {
     super()
     this.url = url
+    this.sub = sub
   }
 
-  init (pubsub) {
+  init () {
     let db = this.db = redisUrl.connect(this.url)
     return new Promise((resolve, reject) => {
       db.on('connect', () => {
-        if (!pubsub) return resolve()
+        if (!this.sub) return resolve()
 
         db.on('subscribe', resolve)
         db.on('message', (channelName, message) => {

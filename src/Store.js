@@ -9,11 +9,11 @@ import Model from './Model'
 import util from './util'
 
 class Store extends EventEmitter {
-  constructor (storage, redis, pubsub, options = {}) {
+  constructor (storage, pub, sub, options = {}) {
     super()
     this.storage = storage
-    this.redis = redis
-    this.pubsub = pubsub
+    this.pub = pub
+    this.sub = sub
     options.collections = options.collections || {}
     options.projectionHashes = options.projectionHashes || {}
     this.options = options
@@ -24,7 +24,7 @@ class Store extends EventEmitter {
     this.projections = {}
     this.sentOps = {}
 
-    if (pubsub) pubsub.on('message', this.onPubSubOp.bind(this))
+    if (sub) sub.on('message', this.onPubSubOp.bind(this))
 
     if (options.projections) {
       for (let collectionName in options.projections) {
@@ -237,7 +237,7 @@ class Store extends EventEmitter {
     this.querySet.onOp(op)
     this.docSet.onOp(op)
     this.sentOps[op.id] = true
-    if (this.redis) this.redis.send(op)
+    if (this.pub) this.pub.send(op)
   }
 
   onPubSubOp (op) {
