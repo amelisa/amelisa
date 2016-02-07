@@ -46,6 +46,7 @@ class Doc extends EventEmitter {
 
     ops.sort(sortByDate).reverse()
 
+    let docRewrited = false
     let fields = {}
     let ids = {}
     let distilledOps = []
@@ -63,7 +64,11 @@ class Doc extends EventEmitter {
       let field = op.field
 
       if (!field) {
-        return distilledOps.push(op)
+        if (docRewrited) continue
+
+        distilledOps.push(op)
+        docRewrited = true
+        continue
       }
 
       let parts = field.split('.')
@@ -156,9 +161,12 @@ class Doc extends EventEmitter {
     this.state = state
   }
 
-  applyOp (op) {
+  applyOp (newOp) {
     // debug('applyOp', op.type)
-    this.ops.push(op)
+    let existingOp = this.ops.find((op) => op.id === newOp.id)
+    if (existingOp) return
+
+    this.ops.push(newOp)
     this.distillOps()
     this.refreshState()
   }

@@ -118,6 +118,44 @@ describe('Doc', () => {
     assert.equal(doc.ops[1].date, lastDate + 10)
   })
 
+  it('should distillOps on same docId if no fields', () => {
+    let ops = []
+    let lastDate = Date.now()
+
+    let op = {
+      id: 'id',
+      source: source,
+      type: 'add',
+      date: lastDate,
+      collectionName: collectionName,
+      docId: docId,
+      value: {
+        [field]: value
+      }
+    }
+    ops.push(op)
+
+    for (let i = 0; i < 10; i++) {
+      lastDate = Date.now()
+      op = {
+        id: 'id' + i,
+        source: source,
+        type: 'set',
+        date: lastDate + i + 1,
+        collectionName: collectionName,
+        docId: docId,
+        value: 'Ivan'
+      }
+      ops.push(op)
+    }
+
+    let doc = new Doc(docId, ops)
+    doc.distillOps()
+
+    assert.equal(doc.ops.length, 2)
+    assert.equal(doc.ops[1].date, lastDate + 10)
+  })
+
   it('should refreshState on different field', () => {
     let ops = []
 
