@@ -1,7 +1,7 @@
 import assert from 'assert'
-import { MemoryStorage, Store, RootComponent, createContainer, renderToStaticMarkup } from '../src'
-import { collectionName, docId, field, value, sleep } from './util'
 import React from 'react'
+import { MemoryStorage, Store, RootComponent, createContainer, renderToStaticMarkup } from '../src'
+import { collectionName, docId, field, value } from './util'
 
 let storage
 let store
@@ -11,16 +11,15 @@ class TestComponent extends React.Component {
 
   getQueries () {
     return {
-      // users: ['users', {name: 'Ivan'}]
-      user: [collectionName, docId]
+      userId: ['_session', 'userId'],
+      user: ['users', '1']
     }
   }
 
   render () {
-    let { user } = this.props // eslint-disable-line
-    let name = user ? user.name : 'no'
+    let { userId, user } = this.props // eslint-disable-line
 
-    let components = [<div key='1'>{name}</div>]
+    let components = [<div key='1'>{userId}</div>, <div key='2'>{user.name}</div>]
 
     return (
       <div className='ivan'>
@@ -38,6 +37,7 @@ class Root extends RootComponent {
     let { children } = this.props // eslint-disable-line
 
     let components = [<div key='1'>Root</div>]
+
     return (
       <div className='root'>
         {components}
@@ -47,7 +47,7 @@ class Root extends RootComponent {
   }
 }
 
-describe('serverRendering3', () => {
+describe.skip('serverRendering4', () => {
   beforeEach(async () => {
     storage = new MemoryStorage()
 
@@ -63,13 +63,13 @@ describe('serverRendering3', () => {
     await model.add(collectionName, doc)
   })
 
-  it('should render to string and dispose container', async () => {
+  it('should render to string local data', async () => {
+    model.set(['_session.userId'], '123-456')
     let html = await renderToStaticMarkup(Root, {model}, <Container />)
 
     assert(html)
     assert.equal(typeof html, 'string')
-
-    await sleep(10)
-    await model.set([collectionName, docId, field], 'Petr')
+    assert(html.indexOf('Ivan') > -1)
+    assert(html.indexOf('123-456') > -1)
   })
 })

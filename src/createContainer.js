@@ -21,6 +21,7 @@ function createContainer (Component) {
       }
       this.props = props
       this.mounted = false
+      // console.log('constructor', Component.name, props)
     }
 
     componentWillMount () {
@@ -150,7 +151,8 @@ function createContainer (Component) {
 
     render () {
       if (!this.state.hasResults) {
-        return <Loading />
+        return <div>Loading...</div>
+        // return <Loading />
       } else {
         let props = this.props
         if (this.subscription) {

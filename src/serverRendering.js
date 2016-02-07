@@ -17,55 +17,85 @@ function overrideCreateElement (replacement, callback) {
   React.createElement = originalCreateElement
 }
 
-function render (method, Component, baseProps = {}, baseChildren, promises = []) {
+async function render (method, Component, baseProps = {}, baseChildren = [], promises = []) {
   baseProps = Object.assign({}, baseProps)
-  baseChildren = Object.assign({}, baseChildren)
   let nextPromises = []
   let index = 0
   let html
 
-  return Promise
-    .all(promises)
-    .then((datas) => {
-      function replacement (originalCreateElement, ...args) {
-        let [type, props] = args
-        if (!props) props = args[1] = {}
+  let datas = await Promise.all(promises)
 
-        if (isContainer(type)) {
-          if (datas.length) {
-            let data = datas.shift()
-            Object.assign(props, data, {hasResults: true})
-            let promise = promises[index]
-            nextPromises.push(promise)
-          } else {
-            props.onFetch = (promise) => {
-              nextPromises.push(promise)
-            }
-          }
-          index++
-        }
+  let onFetch = (promise) => {
+    nextPromises.push(promise)
+  }
 
-        return originalCreateElement.apply(null, args)
+  // function processChildren (children) {
+  //   console.log('processChildren', children)
+  //   if (!Array.isArray(children)) children = React.Children.toArray(children)
+  //   children = children.map((child) => {
+  //     console.log('child', child.type.name || child.type, isContainer(child.type), datas.length)
+  //
+  //     let childChildren = child.props.children
+  //     if (childChildren) childChildren = processChildren(childChildren)
+  //
+  //     if (isContainer(child.type)) {
+  //       if (datas.length) {
+  //         let data = datas.shift()
+  //         let promise = promises[index]
+  //         nextPromises.push(promise)
+  //         return React.cloneElement(child, Object.assign({}, data, {hasResults: true, children: childChildren}))
+  //       } else {
+  //         return React.cloneElement(child, {onFetch, children: childChildren})
+  //       }
+  //       index++
+  //     } else {
+  //       return child
+  //     }
+  //   })
+  //   if (children.length === 1) children = children[0]
+  //   console.log(children)
+  //   return children
+  // }
+  //
+  // baseChildren = processChildren(baseChildren)
+
+  function replacement (originalCreateElement, ...args) {
+    let [type, props] = args
+    if (!props) props = args[1] = {}
+    // console.log('type', type.name || type, isContainer(type), datas.length)
+
+    if (isContainer(type)) {
+      if (datas.length) {
+        let data = datas.shift()
+        Object.assign(props, data, {hasResults: true})
+        let promise = promises[index]
+        nextPromises.push(promise)
+      } else {
+        props.onFetch = onFetch
       }
+      index++
+    }
 
-      function callback () {
-        html = ReactDOMServer[method](<Component {...baseProps}>{baseChildren}</Component>)
-      }
+    return originalCreateElement.apply(null, args)
+  }
 
-      overrideCreateElement(replacement, callback)
+  function callback () {
+    html = ReactDOMServer[method](<Component {...baseProps}>{baseChildren}</Component>)
+  }
 
-      if (promises.length < nextPromises.length) {
-        return render(method, Component, baseProps, baseChildren, nextPromises.slice())
-      }
-      return html
-    })
+  overrideCreateElement(replacement, callback)
+
+  if (promises.length < nextPromises.length) {
+    return render(method, Component, baseProps, baseChildren, nextPromises.slice())
+  }
+  return html
 }
 
-function renderToString (...args) {
+async function renderToString (...args) {
   return render.apply(null, ['renderToString'].concat(args))
 }
 
-function renderToStaticMarkup (...args) {
+async function renderToStaticMarkup (...args) {
   return render.apply(null, ['renderToStaticMarkup'].concat(args))
 }
 

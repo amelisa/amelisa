@@ -30,7 +30,7 @@ class TestComponent2 extends React.Component {
   }
 }
 
-let Container2 = createContainer(TestComponent2, React)
+let Container2 = createContainer(TestComponent2)
 
 class TestComponent extends React.Component {
 
@@ -56,7 +56,7 @@ class TestComponent extends React.Component {
   }
 }
 
-let Container = createContainer(TestComponent, React)
+let Container = createContainer(TestComponent)
 
 class Root extends RootComponent {
 
@@ -85,7 +85,7 @@ describe.skip('serverRendering2', () => {
     ])
   })
 
-  it('should render to string', async () => {
+  it('should render to string with children', async () => {
     let html = await renderToStaticMarkup(Root, {model})
 
     assert(html)

@@ -39,7 +39,7 @@ class TestComponent5 extends React.Component {
   }
 }
 
-let Container5 = createContainer(TestComponent5, React)
+let Container5 = createContainer(TestComponent5)
 
 class TestComponent4 extends React.Component {
 
@@ -62,7 +62,7 @@ class TestComponent4 extends React.Component {
   }
 }
 
-let Container4 = createContainer(TestComponent4, React)
+let Container4 = createContainer(TestComponent4)
 
 class TestComponent3 extends React.Component {
 
@@ -87,7 +87,7 @@ class TestComponent3 extends React.Component {
   }
 }
 
-let Container3 = createContainer(TestComponent3, React)
+let Container3 = createContainer(TestComponent3)
 
 class TestComponent2 extends React.Component {
 
@@ -112,7 +112,7 @@ class TestComponent2 extends React.Component {
   }
 }
 
-let Container2 = createContainer(TestComponent2, React)
+let Container2 = createContainer(TestComponent2)
 
 class TestComponent extends React.Component {
 
@@ -137,7 +137,7 @@ class TestComponent extends React.Component {
   }
 }
 
-let Container = createContainer(TestComponent, React)
+let Container = createContainer(TestComponent)
 
 class Root extends RootComponent {
 
