@@ -151,8 +151,8 @@ function createContainer (Component) {
 
     render () {
       if (!this.state.hasResults) {
-        return <div>Loading...</div>
-        // return <Loading />
+        // return <div>Loading...</div>
+        return <Loading />
       } else {
         let props = this.props
         if (this.subscription) {
