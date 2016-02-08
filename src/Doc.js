@@ -56,9 +56,14 @@ class Doc extends EventEmitter {
       if (ids[op.id]) continue
       ids[op.id] = true
 
-      if (op.type === 'add' || (op.type === 'del' && !op.field)) {
+      if (op.type === 'add') {
         distilledOps.push(op)
         continue
+      }
+
+      if (op.type === 'del' && !op.field) {
+        distilledOps = [op]
+        break
       }
 
       let field = op.field

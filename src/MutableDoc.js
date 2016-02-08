@@ -24,9 +24,10 @@ class MutableDoc extends Doc {
     let op = this.model.createOp({
       type: 'del',
       collectionName: this.collection.name,
-      docId: this.docId,
-      field: field
+      docId: this.docId
     })
+
+    if (field) op.field = field
 
     return this.onOp(op)
   }
