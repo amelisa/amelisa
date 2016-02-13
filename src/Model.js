@@ -325,6 +325,10 @@ class Model extends EventEmitter {
     this.channel.emit('close')
   }
 
+  destroy () {
+    this.close()
+  }
+
   getBundleJsonFromDom () {
     if (this.json) return this.json
     let dataScript = document.getElementById('bundle')
