@@ -36,16 +36,20 @@ class MongoQueries {
 
   getQueryResultFromArray (allDocs, expression) {
     let query = this.normalizeQuery(expression)
+
+    if (query.$aggregate) {
+      let agg = new Mingo.Aggregator(query.$aggregate)
+      return agg.run(allDocs)
+    }
+
     let mingoQuery = new Mingo.Query(query.$query)
     let cursor = mingoQuery.find(allDocs)
 
-    if (query.$count) {
-      return cursor.count()
-    }
+    if (query.$orderby) cursor.sort(query.$orderby)
 
-    if (query.$orderby) {
-      cursor.sort(query.$orderby)
-    }
+    if (query.$skip) cursor.skip(query.$skip)
+
+    if (query.$limit) cursor.limit(query.$limit)
 
     if (query.$findOptions) {
       for (let key in query.$findOptions) {
@@ -53,6 +57,8 @@ class MongoQueries {
         cursor = cursor[key](value)
       }
     }
+
+    if (query.$count) return cursor.count()
 
     return cursor.all()
   }
