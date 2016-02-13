@@ -40,6 +40,7 @@ class ClientQuerySet {
     for (let hash in this.data) {
       let query = this.data[hash]
       if (util.isLocalCollection(query.collectionName)) continue
+      if (!query.subscribed) continue
       data[hash] = query.getSyncData()
     }
 

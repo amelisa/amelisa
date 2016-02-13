@@ -129,7 +129,7 @@ class Store extends EventEmitter {
 
       case 'qfetch':
         query = await this.querySet.getOrCreateQuery(collectionName, expression)
-        query.fetch(channel, ids, docVersions, id)
+        query.fetch(channel, id)
         break
 
       case 'sub':
@@ -144,7 +144,7 @@ class Store extends EventEmitter {
 
       case 'qsub':
         query = await this.querySet.getOrCreateQuery(collectionName, expression)
-        query.subscribe(channel, ids, docVersions, id)
+        query.subscribe(channel, id)
         break
 
       case 'qunsub':
@@ -178,11 +178,11 @@ class Store extends EventEmitter {
         let queryPromises = []
 
         for (let hash in syncData.queries) {
-          let { collectionName, expression, ids, docVersions } = syncData.queries[hash]
+          let { collectionName, expression } = syncData.queries[hash]
           let queryPromise = this.querySet
             .getOrCreateQuery(collectionName, expression)
             .then((query) => {
-              query.subscribe(channel, ids, docVersions, 'id')
+              query.subscribe(channel, 'id')
             })
           queryPromises.push(queryPromise)
         }

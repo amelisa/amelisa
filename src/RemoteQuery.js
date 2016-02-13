@@ -17,12 +17,6 @@ class RemoteQuery extends ClientQuery {
       expression: this.expression
     }
 
-    if (this.isDocs) {
-      let ids = this.getDataFromVersionDiffs()
-      op.ids = ids
-      op.docVersions = ids.map((docId) => this.collection.getDoc(docId).version())
-    }
-
     return this.model.sendOp(op)
   }
 
@@ -144,12 +138,6 @@ class RemoteQuery extends ClientQuery {
       expression: this.expression
     }
 
-    if (this.isDocs) {
-      let ids = this.getDataFromVersionDiffs()
-      op.ids = ids
-      op.docVersions = ids.map((docId) => this.collection.getDoc(docId).version())
-    }
-
     return this.model.sendOp(op)
   }
 
@@ -170,15 +158,14 @@ class RemoteQuery extends ClientQuery {
   getSyncData () {
     let data = {
       collectionName: this.collectionName,
-      expression: this.expression,
-      subscribed: !!this.subscribed
+      expression: this.expression
     }
 
-    if (this.isDocs) {
-      let ids = this.getDataFromVersionDiffs()
-      data.ids = ids
-      data.docVersions = ids.map((docId) => this.collection.getDoc(docId).version())
-    }
+    // if (this.isDocs) {
+    //   let ids = this.getDataFromVersionDiffs()
+    //   data.ids = ids
+    //   data.docVersions = ids.map((docId) => this.collection.getDoc(docId).version())
+    // }
 
     return data
   }

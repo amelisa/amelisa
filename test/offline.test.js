@@ -478,4 +478,55 @@ describe('offline', () => {
     assert.equal(query2.length, 2)
     assert.equal(JSON.stringify(query), JSON.stringify(query2))
   })
+
+  it('should sync on online when subscribed to count query and there are some ops', async () => {
+    let model3 = store.createModel()
+    let expression2 = {$count: true}
+
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+    let doc2 = {
+      _id: '2',
+      [field]: value
+    }
+    let doc3 = {
+      _id: '3',
+      [field]: value
+    }
+    let doc4 = {
+      _id: '4',
+      [field]: value
+    }
+    let doc5 = {
+      _id: '5',
+      [field]: value
+    }
+    model3.add(collectionName, doc)
+    model3.add(collectionName, doc2)
+    model3.add(collectionName, doc3)
+
+    let subscribes = [[collectionName, expression2]]
+    await model.subscribe(subscribes)
+    await model2.subscribe(subscribes)
+
+    model2.close()
+    model.close()
+
+    model.add(collectionName, doc4)
+    model2.add(collectionName, doc5)
+    model.del([collectionName, docId])
+    model2.del([collectionName, '3'])
+    model.set([collectionName, '2', field], 'Petr')
+    model2.set([collectionName, '2', field], 'Vasya')
+
+    store.connectModel(model)
+    store.connectModel(model2)
+
+    await sleep(10)
+
+    assert.equal(model.query(collectionName, expression2).get(), 3)
+    assert.equal(model2.query(collectionName, expression2).get(), 3)
+  })
 })
