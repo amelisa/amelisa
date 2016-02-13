@@ -425,7 +425,7 @@ describe('offline', () => {
     assert.equal(model2.get(collectionName, '3', field), 'Vasya')
   })
 
-  it.only('should sync on online when subscribed to query and there are some ops 2', async () => {
+  it('should sync on online when subscribed to query and there are some ops 2', async () => {
     let subscribes = [[collectionName, expression]]
     await model.subscribe(subscribes)
     await model2.subscribe(subscribes)
