@@ -30,9 +30,7 @@ class Model extends EventEmitter {
 
     channel.on('close', () => {
       debug('close')
-      this.online = false
-      this.set('_session.online', false)
-      this.emit('offline')
+      this.setOffline()
     })
 
     this.once('online', () => {
@@ -84,6 +82,12 @@ class Model extends EventEmitter {
 
     this.set('_session.online', true)
     this.emit('online')
+  }
+
+  setOffline () {
+    this.online = false
+    this.set('_session.online', false)
+    this.emit('offline')
   }
 
   onMessage (message) {
@@ -318,7 +322,7 @@ class Model extends EventEmitter {
   }
 
   close () {
-    // TODO: cleanup
+    this.channel.emit('close')
   }
 
   getBundleJsonFromDom () {

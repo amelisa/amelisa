@@ -35,7 +35,6 @@ describe('projections', () => {
 
   it('should subscribe to projected doc', async () => {
     let subscribes = [[collectionName, docId]]
-
     let subscription = await model.subscribe(subscribes)
 
     let data = subscription.get()
@@ -58,7 +57,6 @@ describe('projections', () => {
 
   it('should subscribe to projected query', async () => {
     let subscribes = [[collectionName, expression]]
-
     let subscription = await model.subscribe(subscribes)
 
     let data = subscription.get()
@@ -83,7 +81,6 @@ describe('projections', () => {
 
   it('should subscribe to projected join query', async () => {
     let subscribes = [[collectionName, joinExpression]]
-
     let subscription = await model.subscribe(subscribes)
 
     let data = subscription.get()
@@ -245,37 +242,23 @@ describe('projections', () => {
 
   it('should send and receive ops on online when subscribed to projected doc', async () => {
     let subscribes = [[collectionName, docId]]
-
     await model.subscribe(subscribes)
 
-    await sleep(10)
+    model.close()
+    model2.close()
 
     let doc = {
       _id: docId,
       [field]: value
     }
-
-    model.channel.emit('close')
-    model.channel.pipedChannel.emit('close')
-
-    model2.channel.emit('close')
-    model2.channel.pipedChannel.emit('close')
-
     model2.add(collectionName, doc)
 
     await sleep(10)
 
     assert(!model.get(collectionName, docId))
 
-    let channel2 = new ServerChannel()
-    model.channel.pipe(channel2).pipe(model.channel)
-    store.onChannel(channel2)
-    model.channel.emit('open')
-
-    let channel3 = new ServerChannel()
-    model2.channel.pipe(channel3).pipe(model2.channel)
-    store.onChannel(channel3)
-    model2.channel.emit('open')
+    store.connectModel(model)
+    store.connectModel(model2)
 
     await sleep(10)
 
@@ -284,41 +267,28 @@ describe('projections', () => {
 
   it('should send and receive ops on online when subscribed to projected query', async () => {
     let subscribes = [[collectionName, expression]]
-
     await model.subscribe(subscribes)
 
-    await sleep(10)
+    model.close()
+    model2.close()
 
     let doc = {
       _id: docId,
       [field]: value
     }
-
-    model.channel.emit('close')
-    model.channel.pipedChannel.emit('close')
-
-    model2.channel.emit('close')
-    model2.channel.pipedChannel.emit('close')
-
     model2.add(collectionName, doc)
 
     await sleep(10)
 
     assert.equal(model.query(collectionName, expression).get().length, 0)
 
-    let channel3 = new ServerChannel()
-    model2.channel.pipe(channel3).pipe(model2.channel)
-    store.onChannel(channel3)
-    model2.channel.emit('open')
+    store.connectModel(model2)
 
     await sleep(10)
 
     assert.equal(model.query(collectionName, expression).get().length, 0)
 
-    let channel2 = new ServerChannel()
-    model.channel.pipe(channel2).pipe(model.channel)
-    store.onChannel(channel2)
-    model.channel.emit('open')
+    store.connectModel(model)
 
     await sleep(10)
 
@@ -327,41 +297,28 @@ describe('projections', () => {
 
   it('should send and receive ops on online when subscribed to projected count query', async () => {
     let subscribes = [[collectionName, countExpression]]
-
     await model.subscribe(subscribes)
 
-    await sleep(10)
+    model.close()
+    model2.close()
 
     let doc = {
       _id: docId,
       [field]: value
     }
-
-    model.channel.emit('close')
-    model.channel.pipedChannel.emit('close')
-
-    model2.channel.emit('close')
-    model2.channel.pipedChannel.emit('close')
-
     model2.add(collectionName, doc)
 
     await sleep(10)
 
     assert.equal(model.query(collectionName, countExpression).get(), 0)
 
-    let channel3 = new ServerChannel()
-    model2.channel.pipe(channel3).pipe(model2.channel)
-    store.onChannel(channel3)
-    model2.channel.emit('open')
+    store.connectModel(model2)
 
     await sleep(10)
 
     assert.equal(model.query(collectionName, countExpression).get(), 0)
 
-    let channel2 = new ServerChannel()
-    model.channel.pipe(channel2).pipe(model.channel)
-    store.onChannel(channel2)
-    model.channel.emit('open')
+    store.connectModel(model)
 
     await sleep(10)
 

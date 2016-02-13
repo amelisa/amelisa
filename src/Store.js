@@ -44,10 +44,19 @@ class Store extends EventEmitter {
     let model = new Model(channel, this.source, Object.assign({}, this.options, options))
     model.server = true
 
-    model.setOnline()
     this.onChannel(channel2)
+    channel.emit('open')
 
     return model
+  }
+
+  connectModel (model) {
+    let { channel } = model
+    let channel2 = new ServerChannel()
+    channel.pipe(channel2).pipe(channel)
+
+    this.onChannel(channel2)
+    channel.emit('open')
   }
 
   onChannel (channel) {
