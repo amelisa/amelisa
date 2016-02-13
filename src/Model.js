@@ -152,7 +152,7 @@ class Model extends EventEmitter {
           .onProjections(value.projectionHashes)
           .then(() => {
             if (value.version !== this.get('_app.version')) {
-              // TODO: reload app
+              this.emit('version', value.version)
             }
           })
           .catch((error) => {
