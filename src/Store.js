@@ -76,11 +76,11 @@ class Store extends EventEmitter {
   }
 
   async validateMessage (message, channel) {
-    if (this.hook) {
+    if (this.preHook) {
       let { session, params } = this.getHookParams(channel)
 
       try {
-        await this.hook(message, session, params)
+        await this.preHook(message, session, params)
       } catch (err) {
         let op = {
           id: message.id,

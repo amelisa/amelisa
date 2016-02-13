@@ -39,8 +39,8 @@ export default function (serverDone) {
 
       let store = new Store(storage, redis, pubsub, options)
 
-      store.hook = (op, session, params, done) => {
-        done()
+      store.preHook = async (op, session, params) => {
+        
       }
 
       let httpServer = http.createServer()
