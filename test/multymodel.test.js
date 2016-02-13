@@ -1,7 +1,7 @@
 import assert from 'assert'
 import eventToPromise from 'event-to-promise'
 import { MemoryStorage, Store } from '../src'
-import { collectionName, docId, expression, joinExpression, field, value } from './util'
+import { collectionName, docId, expression, joinExpression, field, value, sleep } from './util'
 
 let storage
 let store
@@ -169,5 +169,26 @@ describe('multymodel', () => {
     data = subscription.get()
     query = data[0]
     assert.equal(query.length, 1)
+  })
+
+  it('should do several operations synchronously', async () => {
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+    model.add(collectionName, doc)
+    model.set([collectionName, docId, field], 'Petr')
+    model.set([collectionName, docId, field], 'Vasya')
+    model.set([collectionName, docId, 'age'], 20)
+
+    await sleep(20)
+
+    let $user = model2.doc(collectionName, docId)
+    await $user.fetch()
+
+    let user = $user.get()
+    assert(user)
+    assert.equal(user[field], 'Vasya')
+    assert.equal(user.age, 20)
   })
 })
