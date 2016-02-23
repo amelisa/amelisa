@@ -1,6 +1,6 @@
 // let debug = require('debug')('Doc')
 import { EventEmitter } from 'events'
-import util from './util'
+import { clone } from './util'
 
 class Doc extends EventEmitter {
   constructor (docId, ops = []) {
@@ -115,11 +115,11 @@ class Doc extends EventEmitter {
     for (let op of ops) {
       switch (op.type) {
         case 'add':
-          state = util.clone(op.value)
+          state = clone(op.value)
           break
         case 'set':
           if (!op.field) {
-            state = util.clone(op.value)
+            state = clone(op.value)
             break
           }
 
@@ -244,7 +244,7 @@ class Doc extends EventEmitter {
     for (let op of this.ops) {
       let versionDate = map[op.source]
       if (!versionDate || versionDate < op.date) {
-        opsToSend.push(util.clone(op))
+        opsToSend.push(clone(op))
       }
     }
 

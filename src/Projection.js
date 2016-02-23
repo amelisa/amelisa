@@ -1,4 +1,4 @@
-import util from './util'
+import { clone, dbFields } from './util'
 
 class Projection {
   constructor (collectionName, dbCollectionName, fields = {}) {
@@ -47,12 +47,12 @@ class Projection {
       for (let field in this.fields) {
         projectedDoc[field] = doc[field]
       }
-      for (let field in util.dbFields) {
+      for (let field in dbFields) {
         if (doc[field]) projectedDoc[field] = doc[field]
       }
     } else {
       for (let field in doc) {
-        if (this.fields[field] !== false || util.dbFields[field]) {
+        if (this.fields[field] !== false || dbFields[field]) {
           projectedDoc[field] = doc[field]
         }
       }
@@ -69,16 +69,16 @@ class Projection {
   }
 
   projectOp (op) {
-    let projectedOp = util.clone(op)
+    let projectedOp = clone(op)
 
     if (projectedOp.collectionName) projectedOp.collectionName = this.collectionName
 
     if (op.type === 'add') {
       for (let field in op.value) {
         if (this.inclusive) {
-          if (!this.fields[field] && !util.dbFields[field]) delete projectedOp.value[field]
+          if (!this.fields[field] && !dbFields[field]) delete projectedOp.value[field]
         } else {
-          if (this.fields[field] === false && !util.dbFields[field]) delete projectedOp.value[field]
+          if (this.fields[field] === false && !dbFields[field]) delete projectedOp.value[field]
         }
       }
     }

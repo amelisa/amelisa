@@ -1,14 +1,14 @@
 let debug = require('debug')('ServerQuery')
 import arraydiff from 'arraydiff'
 import Query from './Query'
-import util from './util'
+import { arrayRemove, clone, fastEqual } from './util'
 
 const unattachTimeout = 5000
 
 class ServerQuery extends Query {
   constructor (collectionName, expression, store, querySet) {
     super(collectionName, expression)
-    this.originalExpression = util.clone(expression)
+    this.originalExpression = clone(expression)
     this.store = store
     this.querySet = querySet
     this.loaded = false
@@ -50,7 +50,7 @@ class ServerQuery extends Query {
     debug('broadcast', this.projectionCollectionName, this.collectionName, this.expression, this.channels.length)
 
     if (!this.isDocs) {
-      if (util.fastEqual(this.prev, this.data)) return
+      if (fastEqual(this.prev, this.data)) return
 
       for (let channel of this.channels) {
         this.sendNotDocsQuerySnapshotToChannel(channel)
@@ -197,7 +197,7 @@ class ServerQuery extends Query {
   }
 
   unsubscribe (channel) {
-    util.arrayRemove(this.channels, channel)
+    arrayRemove(this.channels, channel)
 
     this.maybeUnattach()
   }

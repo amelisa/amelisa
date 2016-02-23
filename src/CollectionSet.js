@@ -1,6 +1,6 @@
 import LocalCollection from './LocalCollection'
 import RemoteCollection from './RemoteCollection'
-import util from './util'
+import { isLocalCollection } from './util'
 
 class CollectionSet {
   constructor (model, data = {}) {
@@ -31,7 +31,7 @@ class CollectionSet {
     let collection = this.data[collectionName]
 
     if (!collection) {
-      if (util.isLocalCollection(collectionName)) {
+      if (isLocalCollection(collectionName)) {
         collection = new LocalCollection(collectionName, undefined, this.model)
       } else {
         collection = new RemoteCollection(collectionName, undefined, this.model)
@@ -67,7 +67,7 @@ class CollectionSet {
 
     let promises = []
     for (let collectionName of this.model.storage.collectionNames) {
-      if (!util.isLocalCollection(collectionName)) continue
+      if (!isLocalCollection(collectionName)) continue
       let collection = this.getOrCreateCollection(collectionName)
       promises.push(collection.fillFromClientStorage())
     }
@@ -105,7 +105,7 @@ class CollectionSet {
     let data = {}
 
     for (let collectionName in this.data) {
-      if (util.isLocalCollection(collectionName)) continue
+      if (isLocalCollection(collectionName)) continue
       let collection = this.data[collectionName]
       data[collectionName] = collection.getSyncData()
     }

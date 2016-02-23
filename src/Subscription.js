@@ -2,7 +2,7 @@
 import MutableDoc from './MutableDoc'
 import ClientQuery from './ClientQuery'
 import UrlQuery from './UrlQuery'
-import util from './util'
+import { parsePath } from './util'
 import { EventEmitter } from 'events'
 
 const debounceTimeout = 0
@@ -39,7 +39,7 @@ class Subscription extends EventEmitter {
         let urlQuery = new UrlQuery(url, defaultValue, this.collectionSet.model)
         subscribes.push(urlQuery)
       } else {
-        let [collectionName, docIdOrExpression] = util.parsePath(subscribe)
+        let [collectionName, docIdOrExpression] = parsePath(subscribe)
 
         if (typeof docIdOrExpression === 'string') {
           let doc = this.collectionSet.getOrCreateDoc(collectionName, docIdOrExpression)

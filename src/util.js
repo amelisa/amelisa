@@ -1,4 +1,6 @@
-let isServer = process.title !== 'browser'
+// in react-native process.title === undefined
+let isServer = process.title && process.title !== 'browser'
+let isBrowser = process.title === 'browser'
 
 let dbFields = {
   _ops: true,
@@ -75,6 +77,7 @@ export default {
   dbFields,
   fastEqual,
   isServer,
+  isBrowser,
   shallowClone,
   serverRequire,
   isLocalCollection,

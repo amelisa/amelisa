@@ -6,7 +6,7 @@ import ServerDocSet from './ServerDocSet'
 import ServerQuerySet from './ServerQuerySet'
 import ServerChannel from './ServerChannel'
 import Model from './Model'
-import util from './util'
+import { arrayRemove } from './util'
 
 class Store extends EventEmitter {
   constructor (storage, pub, sub, options = {}) {
@@ -72,7 +72,7 @@ class Store extends EventEmitter {
 
     channel.on('close', () => {
       debug('close', this.clients.length)
-      util.arrayRemove(this.clients, channel)
+      arrayRemove(this.clients, channel)
       this.docSet.channelClose(channel)
       this.querySet.channelClose(channel)
     })
@@ -107,7 +107,7 @@ class Store extends EventEmitter {
 
   async onMessage (message, channel) {
     debug('onMessage', message.type)
-    let { type, id, collectionName, docId, expression, value, version, ids, docVersions } = message
+    let { type, id, collectionName, docId, expression, value, version } = message
     let doc
     let query
 

@@ -4,7 +4,7 @@ import { EventEmitter } from 'events'
 import CollectionSet from './CollectionSet'
 import ClientQuerySet from './ClientQuerySet'
 import Subscription from './Subscription'
-import util from './util'
+import { clone, isLocalCollection, isServer, parseArguments, parsePath } from './util'
 
 class Model extends EventEmitter {
   constructor (channel, source, options = {}) {
@@ -31,6 +31,10 @@ class Model extends EventEmitter {
     channel.on('close', () => {
       debug('close')
       this.setOffline()
+    })
+
+    channel.on('error', (err) => {
+      console.error('Connection error', err)
     })
 
     this.once('online', () => {
@@ -178,7 +182,7 @@ class Model extends EventEmitter {
   }
 
   get () {
-    let [collectionName, docId, field] = util.parseArguments(arguments)
+    let [collectionName, docId, field] = parseArguments(arguments)
     return this.collectionSet.get(collectionName, docId, field)
   }
 
@@ -188,7 +192,7 @@ class Model extends EventEmitter {
     if (!docData) return console.error('Model.add docData is required')
     if (typeof docData !== 'object') return console.error('Model.add docData should be an object')
 
-    docData = util.clone(docData)
+    docData = clone(docData)
     let docId = docData._id
     if (!docId) docId = this.id()
     else delete docData._id
@@ -198,7 +202,7 @@ class Model extends EventEmitter {
   }
 
   set (path, value) {
-    let [collectionName, docId, field] = util.parsePath(path)
+    let [collectionName, docId, field] = parsePath(path)
 
     if (!collectionName) return console.error('Model.set collectionName is required')
     if (typeof collectionName !== 'string') return console.error('Model.set collectionName should be a string')
@@ -212,7 +216,7 @@ class Model extends EventEmitter {
   }
 
   del (path) {
-    let [collectionName, docId, field] = util.parsePath(path)
+    let [collectionName, docId, field] = parsePath(path)
 
     if (!collectionName) return console.error('Model.del collectionName is required')
     if (typeof collectionName !== 'string') return console.error('Model.del collectionName should be a string')
@@ -340,7 +344,7 @@ class Model extends EventEmitter {
   }
 
   getBundleJson () {
-    if (!util.isServer) return this.getBundleJsonFromDom()
+    if (!isServer) return this.getBundleJsonFromDom()
 
     let bundle = {
       collections: this.collectionSet.bundle()
@@ -382,7 +386,7 @@ class Model extends EventEmitter {
     let state = this.collectionSet.get()
     for (let collectionName in state) {
       let collectionOptions = options.collections[collectionName]
-      if (!util.isLocalCollection(collectionName) && (!collectionOptions || !collectionOptions.client)) {
+      if (!isLocalCollection(collectionName) && (!collectionOptions || !collectionOptions.client)) {
         this.collectionSet.clearCollection(collectionName)
       }
     }

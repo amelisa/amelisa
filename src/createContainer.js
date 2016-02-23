@@ -1,6 +1,6 @@
 import React from 'react'
 import Loading from './Loading'
-import util from './util'
+import { isServer, fastEqual } from './util'
 
 function createContainer (Component) {
   class Container extends React.Component {
@@ -41,7 +41,7 @@ function createContainer (Component) {
 
     componentWillReceiveProps (nextProps) {
       let subscribeQueries = this.getQueries(nextProps)
-      if (!util.fastEqual(subscribeQueries, this.subscribeQueries)) {
+      if (!fastEqual(subscribeQueries, this.subscribeQueries)) {
         this.setQueries(subscribeQueries)
       }
     }
@@ -73,7 +73,7 @@ function createContainer (Component) {
     setSubscription (subscribeQueries) {
       let rawSubscribes = this.getRawSubscribes(subscribeQueries)
 
-      if (util.isServer && this.props.onFetch && !this.state.hasResults) { // eslint-disable-line
+      if (isServer && this.props.onFetch && !this.state.hasResults) { // eslint-disable-line
         let promise = new Promise((resolve, reject) => {
           this.context.model
             .subscribe(rawSubscribes)
@@ -92,7 +92,7 @@ function createContainer (Component) {
           .then((subscription) => {
             this.subscription = subscription
 
-            if (!util.isServer) {
+            if (!isServer) {
               subscription.on('change', () => {
                 this.refresh()
               })

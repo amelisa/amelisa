@@ -1,6 +1,6 @@
 let debug = require('debug')('ServerDoc')
 import Doc from './Doc'
-import util from './util'
+import { arrayRemove } from './util'
 
 class ServerDoc extends Doc {
   constructor (collectionName, docId, ops, store, docSet) {
@@ -141,7 +141,7 @@ class ServerDoc extends Doc {
   }
 
   unsubscribe (channel) {
-    util.arrayRemove(this.channels, channel)
+    arrayRemove(this.channels, channel)
 
     this.maybeUnattach()
   }

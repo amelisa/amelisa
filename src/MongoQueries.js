@@ -1,5 +1,5 @@
 import Mingo from 'mingo'
-import util from './util'
+import { shallowClone } from './util'
 
 Mingo.setup({
   key: '_id'
@@ -68,8 +68,8 @@ class MongoQueries {
     // for selctors and can modify them without affecting the original object
     let query
     if (expression.$query) {
-      query = util.shallowClone(expression)
-      query.$query = util.shallowClone(query.$query)
+      query = shallowClone(expression)
+      query.$query = shallowClone(query.$query)
     } else {
       query = {$query: {}}
       for (let key in expression) {

@@ -1,7 +1,7 @@
-let debug = require('debug')('ClientQuery')
+// let debug = require('debug')('ClientQuery')
 import Query from './Query'
 import RemoteDoc from './RemoteDoc'
-import util from './util'
+import { dbFields } from './util'
 
 class ClientQuery extends Query {
   constructor (collectionName, expression, model, collection, querySet) {
@@ -14,7 +14,7 @@ class ClientQuery extends Query {
   getStateFromDocData (doc) {
     let state = {}
     for (let field in doc) {
-      if (!util.dbFields[field]) state[field] = doc[field]
+      if (!dbFields[field]) state[field] = doc[field]
     }
     return state
   }

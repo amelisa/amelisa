@@ -1,7 +1,7 @@
 // let debug = require('debug')('ClientQuerySet')
 import LocalQuery from './LocalQuery'
 import RemoteQuery from './RemoteQuery'
-import util from './util'
+import { isLocalCollection } from './util'
 
 class ClientQuerySet {
   constructor (model) {
@@ -16,7 +16,7 @@ class ClientQuerySet {
 
     if (!query) {
       let collection = this.model.collectionSet.getOrCreateCollection(collectionName)
-      if (util.isLocalCollection(collectionName)) {
+      if (isLocalCollection(collectionName)) {
         query = new LocalQuery(collectionName, expression, this.model, collection, this)
       } else {
         query = new RemoteQuery(collectionName, expression, this.model, collection, this)
@@ -39,7 +39,7 @@ class ClientQuerySet {
 
     for (let hash in this.data) {
       let query = this.data[hash]
-      if (util.isLocalCollection(query.collectionName)) continue
+      if (isLocalCollection(query.collectionName)) continue
       if (!query.subscribed) continue
       data[hash] = query.getSyncData()
     }

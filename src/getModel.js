@@ -1,16 +1,17 @@
 import IndexedDbStorage from './IndexedDbStorage'
 import Model from './Model'
+import ReconnectableWebSocket from 'reconnectable-websocket'
 import WebSocketChannel from './WebSocketChannel'
-import util from './util'
+import { isBrowser, onDomReady } from './util'
 
 let model
 
 async function initModel () {
-  await util.onDomReady()
+  if (isBrowser) await onDomReady()
 
   // unbundle _app.clientStorage, _app.collectionNames, _app.version and _app.newProjectionHashes
-  model.unbundleLocalData()
-  let { clientStorage, collectionNames, version } = model.get('_app')
+  if (isBrowser) model.unbundleLocalData()
+  let { clientStorage, collectionNames, version } = model.get('_app') || {}
 
   if (clientStorage) {
     let storage = new IndexedDbStorage(Array.from(collectionNames).concat(['_app', '_session']), version)
@@ -40,30 +41,29 @@ async function initModel () {
   let projectionHashes = model.get('_app.newProjectionHashes')
   model.set('_app.projectionHashes', projectionHashes)
 
-  model.unbundleData()
+  if (isBrowser) model.unbundleData()
 }
 
-function getModel (channel) {
+function getModel (channel, options = {}) {
   if (model) return model
 
   let ws
 
   if (!channel) {
-    let wsUrl = 'ws://' + window.location.host
-    let ReconnectingWebSocket = require('reconnectingwebsocket')
+    let wsUrl = options.wsUrl || 'ws://' + (isBrowser ? window.location.host : 'localhost:3000')
 
     // TODO: reconnection interval should be random
     let wsOptions = {
       automaticOpen: false,
       reconnectInterval: 3000
     }
-    ws = new ReconnectingWebSocket(wsUrl, null, wsOptions)
+    ws = new ReconnectableWebSocket(wsUrl, null, wsOptions)
     channel = new WebSocketChannel(ws)
   }
 
   model = new Model(channel)
 
-  window.model = model
+  if (isBrowser) window.model = model
 
   let initPromise = new Promise((resolve, reject) => {
     initModel()

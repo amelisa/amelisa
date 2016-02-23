@@ -1,6 +1,6 @@
 let debug = require('debug')('RemoteDoc')
 import MutableDoc from './MutableDoc'
-import util from './util'
+import { arrayRemove } from './util'
 
 class RemoteDoc extends MutableDoc {
   constructor (docId, ops, collection, model, serverVersion) {
@@ -75,7 +75,7 @@ class RemoteDoc extends MutableDoc {
     let op = this.ops.find((op) => op.id === opId)
     debug('rejectOp', opId, op, this.ops.length, this.get())
     if (op) {
-      util.arrayRemove(this.ops, op)
+      arrayRemove(this.ops, op)
       this.refreshState()
       this.emit('change')
       this.collection.emit('change', op)

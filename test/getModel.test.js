@@ -18,7 +18,7 @@ describe('getModel', () => {
     await model.init()
 
     assert(model)
-    assert.equal(Object.keys(model.get()).length, 2)
+    assert.equal(Object.keys(model.get()).length, 1)
     assert.equal(typeof model.get('_app.source'), 'string')
     assert.equal(model.get('_app.projectionHashes'), undefined)
   })

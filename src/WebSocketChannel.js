@@ -28,7 +28,6 @@ class WebSocketChannel extends EventEmitter {
     }
 
     socket.onerror = (err) => {
-      console.error(err)
       this.emit('error', err)
     }
   }
