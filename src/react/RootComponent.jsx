@@ -1,9 +1,9 @@
-import React from 'react'
+import { Component, PropTypes } from 'react'
 
-class RootComponent extends React.Component {
+class RootComponent extends Component {
 
   static childContextTypes = {
-    model: React.PropTypes.object
+    model: PropTypes.object
   };
 
   getChildContext () {

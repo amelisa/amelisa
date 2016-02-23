@@ -1,6 +1,6 @@
 import assert from 'assert'
-import HtmlLayout from '../src/HtmlLayout'
-import { MemoryStorage, Store } from '../src'
+import HtmlLayout from '../../src/react/HtmlLayout'
+import { MemoryStorage, Store } from '../../src'
 import React from 'react'
 import { renderToString } from 'react-dom/server'
 

@@ -1,29 +1,22 @@
-import debug from 'debug'
-debug.enable(process.env.DEBUG)
 import React from 'react'
-import { isServer, serverRequire } from './util'
-import getModel from './getModel'
-import createContainer from './createContainer'
-import RootComponent from './RootComponent'
+import MemoryStorage from './MemoryStorage'
+import MongoStorage from './MongoStorage'
+import RedisChannel from './RedisChannel'
+import ServerSocketChannel from './ServerSocketChannel'
+import Store from './Store'
+import { renderToString, renderToStaticMarkup } from './react/serverRendering'
 
-let api = {
-  createContainer,
-  getModel,
-  RootComponent
+function createElement (...args) {
+  return React.createElement.apply(null, args)
 }
 
-if (isServer) {
-  api.MemoryStorage = serverRequire(module, './MemoryStorage')
-  api.MongoStorage = serverRequire(module, './MongoStorage')
-  api.RedisChannel = serverRequire(module, './RedisChannel')
-  api.ServerSocketChannel = serverRequire(module, './ServerSocketChannel')
-  api.Store = serverRequire(module, './Store')
-  let { renderToString, renderToStaticMarkup } = serverRequire(module, './serverRendering')
-  api.renderToString = renderToString
-  api.renderToStaticMarkup = renderToStaticMarkup
-  api.createElement = (...args) => {
-    return React.createElement.apply(null, args)
-  }
+export default {
+  MemoryStorage,
+  MongoStorage,
+  RedisChannel,
+  ServerSocketChannel,
+  Store,
+  renderToString,
+  renderToStaticMarkup,
+  createElement
 }
-
-export default api

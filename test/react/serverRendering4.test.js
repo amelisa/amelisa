@@ -1,7 +1,8 @@
 import assert from 'assert'
 import React from 'react'
-import { MemoryStorage, Store, RootComponent, createContainer, renderToStaticMarkup } from '../src'
-import { collectionName, docId, field, value } from './util'
+import { MemoryStorage, Store, renderToStaticMarkup } from '../../src'
+import { RootComponent, createContainer } from '../../src/react'
+import { collectionName, docId, field, value } from '../util'
 
 let storage
 let store

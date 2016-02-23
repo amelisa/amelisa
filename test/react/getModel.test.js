@@ -1,9 +1,9 @@
 import assert from 'assert'
 import fakeIndexedDb from 'fake-indexeddb'
 import jsdom from 'node-jsdom'
-import getModel from '../src/getModel'
-import ServerChannel from '../src/ServerChannel'
-import { value } from './util'
+import getModel from '../../src/react/getModel'
+import ServerChannel from '../../src/ServerChannel'
+import { value } from '../util'
 
 global.document = jsdom.jsdom('<!doctype html><html><body></body></html>')
 global.window = document.parentWindow

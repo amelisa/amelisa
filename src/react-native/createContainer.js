@@ -1,12 +1,12 @@
-import React from 'react'
+import React, { PropTypes } from 'react-native'
 import Loading from './Loading'
-import { isServer, fastEqual } from './util'
+import { fastEqual } from '../util'
 
 function createContainer (Component) {
   class Container extends React.Component {
 
     static contextTypes = {
-      model: React.PropTypes.object
+      model: PropTypes.object
     };
 
     static isContainer = true;
@@ -73,34 +73,17 @@ function createContainer (Component) {
     setSubscription (subscribeQueries) {
       let rawSubscribes = this.getRawSubscribes(subscribeQueries)
 
-      if (isServer && this.props.onFetch && !this.state.hasResults) { // eslint-disable-line
-        let promise = new Promise((resolve, reject) => {
-          this.context.model
-            .subscribe(rawSubscribes)
-            .then((subscription) => {
-              this.subscription = subscription
+      this.context.model
+        .subscribe(rawSubscribes)
+        .then((subscription) => {
+          this.subscription = subscription
 
-              let data = this.getPropsFromSubscription(subscription)
-              resolve(data)
-            })
-        })
-
-        this.props.onFetch(promise) // eslint-disable-line
-      } else {
-        this.context.model
-          .subscribe(rawSubscribes)
-          .then((subscription) => {
-            this.subscription = subscription
-
-            if (!isServer) {
-              subscription.on('change', () => {
-                this.refresh()
-              })
-            }
-
+          subscription.on('change', () => {
             this.refresh()
           })
-      }
+
+          this.refresh()
+        })
     }
 
     refresh () {
