@@ -2,15 +2,15 @@ import IndexedDbStorage from '../IndexedDbStorage'
 import Model from '../Model'
 import ReconnectableWebSocket from 'reconnectable-websocket'
 import WebSocketChannel from '../WebSocketChannel'
-import { isBrowser, onDomReady } from '../util'
+import { onDomReady } from '../util'
 
 let model
 
 async function initModel () {
-  if (isBrowser) await onDomReady()
+  await onDomReady()
 
   // unbundle _app.clientStorage, _app.collectionNames, _app.version and _app.newProjectionHashes
-  if (isBrowser) model.unbundleLocalData()
+  model.unbundleLocalData()
   let { clientStorage, collectionNames, version } = model.get('_app') || {}
 
   if (clientStorage) {
@@ -41,7 +41,7 @@ async function initModel () {
   let projectionHashes = model.get('_app.newProjectionHashes')
   model.set('_app.projectionHashes', projectionHashes)
 
-  if (isBrowser) model.unbundleData()
+  model.unbundleData()
 }
 
 function getModel (channel, options = {}) {
@@ -50,7 +50,7 @@ function getModel (channel, options = {}) {
   let ws
 
   if (!channel) {
-    let wsUrl = options.wsUrl || 'ws://' + (isBrowser ? window.location.host : 'localhost:3000')
+    let wsUrl = options.wsUrl || `ws://${window.location.host}`
 
     let wsOptions = {
       automaticOpen: false,
@@ -62,7 +62,7 @@ function getModel (channel, options = {}) {
 
   model = new Model(channel)
 
-  if (isBrowser) window.model = model
+  window.model = model
 
   let initPromise = new Promise((resolve, reject) => {
     initModel()
