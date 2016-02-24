@@ -52,7 +52,6 @@ function getModel (channel, options = {}) {
   if (!channel) {
     let wsUrl = options.wsUrl || 'ws://' + (isBrowser ? window.location.host : 'localhost:3000')
 
-    // TODO: reconnection interval should be random
     let wsOptions = {
       automaticOpen: false,
       reconnectInterval: 3000
