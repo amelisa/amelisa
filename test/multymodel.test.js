@@ -191,4 +191,23 @@ describe('multymodel', () => {
     assert.equal(user[field], 'Vasya')
     assert.equal(user.age, 20)
   })
+
+  it('should emit only one change event', async (done) => {
+    let doc = {
+      _id: docId,
+      [field]: value
+    }
+    model.add(collectionName, doc)
+    model.set([collectionName, docId, field], 'Petr')
+    model.set([collectionName, docId, field], 'Vasya')
+    model.set([collectionName, docId, 'age'], 20)
+
+    await sleep(20)
+
+    let $user = model2.doc(collectionName, docId)
+
+    $user.on('change', done)
+
+    $user.subscribe()
+  })
 })

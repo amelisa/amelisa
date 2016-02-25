@@ -121,13 +121,12 @@ class ServerDoc extends Doc {
     channel._session.subscribeDoc(this.collectionName, this.docId, version)
     this.channels.push(channel)
 
-    this.sendOpsToChannel(channel, version)
-
     let op = {
       type: 'sub',
       collectionName: this.collectionName,
       docId: this.docId,
-      version: this.version()
+      version: this.version(),
+      ops: this.getOpsToSend(version)
     }
     this.sendOp(op, channel)
 

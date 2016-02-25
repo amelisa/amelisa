@@ -96,7 +96,7 @@ class Model extends EventEmitter {
   }
 
   onMessage (message) {
-    let { type, id, collectionName, docId, expression, value, version, ids, diffs, docs, error } = message
+    let { type, id, collectionName, docId, expression, value, version, ids, diffs, docs, ops, error } = message
     let doc
     let query
     let collection
@@ -134,7 +134,7 @@ class Model extends EventEmitter {
       case 'sub':
         doc = this.collectionSet.getDoc(collectionName, docId)
         if (doc) {
-          doc.onSubscribed(version)
+          doc.onSubscribed(version, ops)
         }
         break
 
