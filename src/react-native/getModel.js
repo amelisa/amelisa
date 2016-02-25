@@ -38,6 +38,7 @@ function getModel (channel, options = {}) {
 
     let wsOptions = {
       automaticOpen: false,
+      reconnectOnError: true,
       reconnectInterval: 3000
     }
     ws = new ReconnectableWebSocket(wsUrl, null, wsOptions)

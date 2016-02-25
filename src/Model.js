@@ -25,16 +25,17 @@ class Model extends EventEmitter {
 
     channel.on('open', () => {
       debug('open')
-      this.setOnline()
+      if (!this.online) this.setOnline()
     })
 
     channel.on('close', () => {
       debug('close')
-      this.setOffline()
+      if (this.online) this.setOffline()
     })
 
     channel.on('error', (err) => {
       console.error('Connection error', err)
+      if (this.online) this.setOffline()
     })
 
     this.once('online', () => {
