@@ -33,15 +33,15 @@ class ClientQuery extends Query {
 
   attachDocsToCollection (docs) {
     for (let docId in docs) {
-      let docData = docs[docId]
-      let serverVersion = RemoteDoc.prototype.getVersionFromOps(docData._ops)
-      let doc = this.collection.getDoc(docData._id)
+      let ops = docs[docId]
+      let serverVersion = RemoteDoc.prototype.getVersionFromOps(ops)
+      let doc = this.collection.getDoc(docId)
       if (doc) {
-        doc.applyOps(docData._ops)
+        doc.applyOps(ops)
         doc.distillOps()
         doc.serverVersion = serverVersion
       } else {
-        doc = this.collection.attach(docData._id, docData._ops, serverVersion)
+        doc = this.collection.attach(docId, ops, serverVersion)
       }
       doc.save()
     }

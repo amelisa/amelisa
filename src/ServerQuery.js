@@ -100,7 +100,7 @@ class ServerQuery extends Query {
     let docs = {}
 
     for (let doc of this.data) {
-      docs[doc._id] = doc
+      docs[doc._id] = doc._ops
     }
 
     return docs
@@ -123,7 +123,7 @@ class ServerQuery extends Query {
     for (let diff of diffs) {
       if (diff.type === 'insert') {
         for (let docId of diff.values) {
-          docs[docId] = docMap[docId]
+          docs[docId] = docMap[docId]._ops
         }
       }
     }

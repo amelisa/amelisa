@@ -14,9 +14,11 @@ class ProjectedQuery extends ServerQuery {
     if (op.collectionName) op.collectionName = this.projectionCollectionName
 
     if ((op.type === 'q' || op.type === 'qdiff') && this.isDocs) {
-      let projectedDocs = []
+      let projectedDocs = {}
       for (let docId in op.docs) {
-        projectedDocs.push(this.projection.projectDoc(op.docs[docId]))
+        let ops = op.docs[docId]
+        let projectedOps = ops.map((docOp) => this.projection.projectOp(docOp))
+        projectedDocs[docId] = projectedOps
       }
       op.docs = projectedDocs
     }
