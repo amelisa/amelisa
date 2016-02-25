@@ -1,10 +1,20 @@
 import Model from '../Model'
 import ReconnectableWebSocket from 'reconnectable-websocket'
 import WebSocketChannel from '../WebSocketChannel'
+import AsyncStorage from './AsyncStorage'
 
 let model
 
 async function initModel () {
+  let storage = new AsyncStorage(['_app', '_session'])
+  model.storage = storage
+
+  await storage.init()
+
+  await model.collectionSet.fillFromClientStorage()
+
+  model.set('_session.online', false)
+
   let source = model.get('_app.source')
   if (!source) {
     source = model.id()
@@ -35,6 +45,8 @@ function getModel (channel, options = {}) {
   }
 
   model = new Model(channel)
+
+  window.model = model
 
   let initPromise = new Promise((resolve, reject) => {
     initModel()

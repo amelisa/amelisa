@@ -56,19 +56,19 @@ describe('Subscription', () => {
       [field]: value
     }
 
-    model.add(collectionName, doc)
+    setTimeout(() => model.add(collectionName, doc), 0)
 
     await eventToPromise(subscription, 'change')
 
-    model.set([collectionName, docId, field], value)
+    setTimeout(() => model.set([collectionName, docId, field], value), 0)
 
     await eventToPromise(subscription, 'change')
 
-    model.del([collectionName, docId, field])
+    setTimeout(() => model.del([collectionName, docId, field]), 0)
 
     await eventToPromise(subscription, 'change')
 
-    model.del([collectionName, docId])
+    setTimeout(() => model.del([collectionName, docId]), 0)
 
     await eventToPromise(subscription, 'change')
   })

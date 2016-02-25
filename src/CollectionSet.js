@@ -62,29 +62,25 @@ class CollectionSet {
     delete this.data[collectionName]
   }
 
-  fillLocalCollectionsFromClientStorage () {
-    if (!this.model.storage) return Promise.resolve()
+  async fillLocalCollectionsFromClientStorage () {
+    if (!this.model.storage) return
 
-    let promises = []
-    for (let collectionName of this.model.storage.collectionNames) {
+    let collectionNames = await this.model.storage.getCollectionNames()
+    for (let collectionName of collectionNames) {
       if (!isLocalCollection(collectionName)) continue
       let collection = this.getOrCreateCollection(collectionName)
-      promises.push(collection.fillFromClientStorage())
+      await collection.fillFromClientStorage()
     }
-
-    return Promise.all(promises)
   }
 
-  fillFromClientStorage () {
-    if (!this.model.storage) return Promise.resolve()
+  async fillFromClientStorage () {
+    if (!this.model.storage) return
 
-    let promises = []
-    for (let collectionName of this.model.storage.collectionNames) {
+    let collectionNames = await this.model.storage.getCollectionNames()
+    for (let collectionName of collectionNames) {
       let collection = this.getOrCreateCollection(collectionName)
-      promises.push(collection.fillFromClientStorage())
+      await collection.fillFromClientStorage()
     }
-
-    return Promise.all(promises)
   }
 
   mergeDataFromServer (data) {

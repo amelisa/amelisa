@@ -43,8 +43,8 @@ class Model extends EventEmitter {
     })
   }
 
-  ready () {
-    if (this.ready) return Promise.resolve()
+  async ready () {
+    if (this.ready) return
 
     return new Promise((resolve, reject) => {
       this.once('ready', () => {

@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react-native'
 import Loading from './Loading'
-import { fastEqual } from '../util'
+import { isServer, fastEqual } from '../util'
 
 function createContainer (Component) {
   class Container extends React.Component {
@@ -73,17 +73,34 @@ function createContainer (Component) {
     setSubscription (subscribeQueries) {
       let rawSubscribes = this.getRawSubscribes(subscribeQueries)
 
-      this.context.model
-        .subscribe(rawSubscribes)
-        .then((subscription) => {
-          this.subscription = subscription
+      if (isServer && this.props.onFetch && !this.state.hasResults) { // eslint-disable-line
+        let promise = new Promise((resolve, reject) => {
+          this.context.model
+            .subscribe(rawSubscribes)
+            .then((subscription) => {
+              this.subscription = subscription
 
-          subscription.on('change', () => {
+              let data = this.getPropsFromSubscription(subscription)
+              resolve(data)
+            })
+        })
+
+        this.props.onFetch(promise) // eslint-disable-line
+      } else {
+        this.context.model
+          .subscribe(rawSubscribes)
+          .then((subscription) => {
+            this.subscription = subscription
+
+            if (!isServer) {
+              subscription.on('change', () => {
+                this.refresh()
+              })
+            }
+
             this.refresh()
           })
-
-          this.refresh()
-        })
+      }
     }
 
     refresh () {

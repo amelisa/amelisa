@@ -93,6 +93,7 @@ class Collection extends EventEmitter {
         .catch((err) => {
           console.error('Collection.fillFromClientStorage', err)
 
+          // TODO: remove collection if was not able to read from it
           // Resolve anyway
           resolve()
         })

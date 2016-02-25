@@ -29,6 +29,8 @@ async function initModel () {
     await model.collectionSet.fillFromClientStorage()
   }
 
+  model.set('_session.online', false)
+
   let source = model.get('_app.source')
   if (!source) {
     source = model.id()

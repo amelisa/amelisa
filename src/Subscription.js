@@ -5,8 +5,6 @@ import UrlQuery from './UrlQuery'
 import { parsePath } from './util'
 import { EventEmitter } from 'events'
 
-const debounceTimeout = 0
-
 class Subscription extends EventEmitter {
   constructor (rawSubscribes, collectionSet, querySet, fetchOnly = false) {
     super()
@@ -77,11 +75,7 @@ class Subscription extends EventEmitter {
   }
 
   onChange () {
-    if (this.timeout) clearTimeout(this.timeout)
-    this.timeout = setTimeout(() => {
-      this.emit('change')
-      delete this.timeout
-    }, debounceTimeout)
+    this.emit('change')
   }
 
   changeSubscribes (nextRawSubscribes) {

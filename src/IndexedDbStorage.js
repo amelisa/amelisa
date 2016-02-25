@@ -11,6 +11,10 @@ class IndexedDbStorage extends MongoQueries {
     this.version = version
   }
 
+  getCollectionNames = async () => {
+    return this.collectionNames
+  };
+
   init () {
     return new Promise((resolve, reject) => {
       let request = window.indexedDB.open(dbName, this.version)
