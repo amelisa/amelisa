@@ -45,6 +45,19 @@ class RemoteDoc extends MutableDoc {
     })
   }
 
+  onFetched (serverVersion, ops) {
+    debug('fetched', serverVersion)
+    this.serverVersion = serverVersion
+    this.applyOps(ops)
+    this.emit('change')
+    this.save()
+
+    let opsToSend = this.getOpsToSend(serverVersion)
+    for (let op of opsToSend) {
+      this.model.send(op)
+    }
+  }
+
   onSubscribed (serverVersion, ops) {
     debug('subscribed', serverVersion)
     this.serverVersion = serverVersion

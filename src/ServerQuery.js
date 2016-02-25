@@ -65,19 +65,20 @@ class ServerQuery extends Query {
     }
   }
 
-  sendNotDocsQuerySnapshotToChannel (channel) {
+  sendNotDocsQuerySnapshotToChannel (channel, opId) {
     let op = {
       type: 'q',
       collectionName: this.collectionName,
       expression: this.originalExpression,
       version: this.version(),
-      value: this.data
+      value: this.data,
+      ackId: opId
     }
 
     this.sendOp(op, channel)
   }
 
-  async sendDocsQuerySnapshotToChannel (channel) {
+  async sendDocsQuerySnapshotToChannel (channel, opId) {
     let docs = this.getDocs()
 
     let op = {
@@ -86,7 +87,8 @@ class ServerQuery extends Query {
       expression: this.originalExpression,
       version: this.version(),
       ids: this.getIds(),
-      docs
+      docs,
+      ackId: opId
     }
 
     this.sendOp(op, channel)
@@ -162,13 +164,7 @@ class ServerQuery extends Query {
   }
 
   async fetch (channel, opId) {
-    await this.sendQuery(channel)
-
-    let op = {
-      id: opId,
-      type: 'ack'
-    }
-    this.sendOp(op, channel)
+    await this.sendQuery(channel, opId)
 
     this.maybeUnattach()
   }
@@ -178,21 +174,14 @@ class ServerQuery extends Query {
 
     if (!opId) return
 
-    await this.sendQuery(channel)
-
-    let op = {
-      id: opId,
-      type: 'ack'
-    }
-
-    this.sendOp(op, channel)
+    await this.sendQuery(channel, opId)
   }
 
-  async sendQuery (channel) {
+  async sendQuery (channel, opId) {
     if (this.isDocs) {
-      await this.sendDocsQuerySnapshotToChannel(channel)
+      await this.sendDocsQuerySnapshotToChannel(channel, opId)
     } else {
-      await this.sendNotDocsQuerySnapshotToChannel(channel)
+      await this.sendNotDocsQuerySnapshotToChannel(channel, opId)
     }
   }
 

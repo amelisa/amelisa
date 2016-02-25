@@ -101,12 +101,14 @@ class ServerDoc extends Doc {
   }
 
   fetch (channel, version, opId) {
-    this.sendOpsToChannel(channel, version)
-
     let op = {
-      id: opId,
-      type: 'ack'
+      type: 'fetch',
+      collectionName: this.collectionName,
+      docId: this.docId,
+      version: this.version(),
+      ops: this.getOpsToSend(version)
     }
+    if (opId) op.ackId = opId
     this.sendOp(op, channel)
 
     this.maybeUnattach()
@@ -128,15 +130,8 @@ class ServerDoc extends Doc {
       version: this.version(),
       ops: this.getOpsToSend(version)
     }
+    if (opId) op.ackId = opId
     this.sendOp(op, channel)
-
-    if (opId) {
-      op = {
-        id: opId,
-        type: 'ack'
-      }
-      this.sendOp(op, channel)
-    }
   }
 
   unsubscribe (channel) {

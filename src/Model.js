@@ -96,7 +96,7 @@ class Model extends EventEmitter {
   }
 
   onMessage (message) {
-    let { type, id, collectionName, docId, expression, value, version, ids, diffs, docs, ops, error } = message
+    let { type, id, collectionName, docId, expression, value, version, ids, diffs, docs, ops, ackId, error } = message
     let doc
     let query
     let collection
@@ -104,6 +104,15 @@ class Model extends EventEmitter {
     if (type === 'ackdate' || type === 'ack') {
       callbacks = this.callbacks[id]
       if (callbacks) delete this.callbacks[id]
+    }
+    if (ackId) {
+      callbacks = this.callbacks[ackId]
+      if (callbacks) {
+        delete this.callbacks[ackId]
+        for (let callback of callbacks) {
+          callback()
+        }
+      }
     }
 
     debug('onMessage', this.source, type, id, collectionName, docId, expression, !!callbacks, value, diffs, docs)
@@ -128,6 +137,13 @@ class Model extends EventEmitter {
               callback(null, value)
             }
           }
+        }
+        break
+
+      case 'fetch':
+        doc = this.collectionSet.getDoc(collectionName, docId)
+        if (doc) {
+          doc.onFetched(version, ops)
         }
         break
 
