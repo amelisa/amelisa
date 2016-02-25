@@ -1,12 +1,12 @@
 import Model from '../Model'
 import ReconnectableWebSocket from 'reconnectable-websocket'
 import WebSocketChannel from '../WebSocketChannel'
-import AsyncStorage from './AsyncStorage'
+import SqliteStorage from './SqliteStorage'
 
 let model
 
 async function initModel () {
-  let storage = new AsyncStorage(['_app', '_session'])
+  let storage = new SqliteStorage(['_app', '_session'])
   model.storage = storage
 
   await storage.init()
