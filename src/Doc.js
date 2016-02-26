@@ -63,6 +63,7 @@ class Doc extends EventEmitter {
         continue
       }
 
+      // TODO: make possible to recreate doc after del?
       if (op.type === 'del' && !op.field) {
         distilledOps = [op]
         break
@@ -218,6 +219,7 @@ class Doc extends EventEmitter {
       versions.push(source + ' ' + date)
     }
 
+    // TODO: sort version?
     // versions.sort().reverse()
     return versions.join('|')
   }
