@@ -1,17 +1,18 @@
 import { AsyncStorage as AsyncNativeStorage } from 'react-native'
-import MongoQueries from '../MongoQueries'
 
-class AsyncStorage extends MongoQueries {
+class AsyncStorage {
   constructor (collectionNames = []) {
-    super()
-
     this.data = {}
     this.collectionNames = collectionNames
   }
 
-  getCollectionNames = async () => {
-    return this.collectionNames
-  };
+  async getCollectionNames () {
+    return this.existingCollectionNames
+  }
+
+  async getExistingCollectionNames () {
+    return AsyncNativeStorage.getAllKeys()
+  }
 
   async init () {
     for (let collectionName of this.collectionNames) {
@@ -19,6 +20,14 @@ class AsyncStorage extends MongoQueries {
       if (collection) collection = JSON.parse(collection)
       this.data[collectionName] = collection || {}
     }
+
+    let existingCollectionNames = await this.getExistingCollectionNames()
+    this.existingCollectionNames = existingCollectionNames
+
+    // for (let collectionName of existingCollectionNames) {
+    //   if (this.collectionNames.indexOf(collectionName) > -1) continue
+    //   await this.removeCollection(collectionName)
+    // }
   }
 
   async clear () {
@@ -31,40 +40,51 @@ class AsyncStorage extends MongoQueries {
     return collection
   }
 
-  async getDocById (collectionName, docId) {
-    let collection = this.getOrCreateCollection(collectionName)
-
-    return collection[docId]
-  }
+  // async getDocById (collectionName, docId) {
+  //   let collection = this.getOrCreateCollection(collectionName)
+  //
+  //   return collection[docId]
+  // }
 
   async getAllDocs (collectionName) {
-    return this.getDocsByQuery(collectionName, MongoQueries.allSelector)
-  }
-
-  async getDocsByQuery (collectionName, expression) {
     let collection = this.getOrCreateCollection(collectionName)
 
-    let allDocs = []
+    let docs = []
     for (let docId in collection) {
-      allDocs.push(collection[docId])
+      docs.push(collection[docId])
     }
-
-    let docs = this.getQueryResultFromArray(allDocs, expression)
 
     return docs
   }
 
+  // async getAllDocs (collectionName) {
+  //   return this.getDocsByQuery(collectionName, MongoQueries.allSelector)
+  // }
+
+  // async getDocsByQuery (collectionName, expression) {
+  //   let collection = this.getOrCreateCollection(collectionName)
+  //
+  //   let allDocs = []
+  //   for (let docId in collection) {
+  //     allDocs.push(collection[docId])
+  //   }
+  //
+  //   let docs = this.getQueryResultFromArray(allDocs, expression)
+  //
+  //   return docs
+  // }
+
   async saveDoc (collectionName, docId, state, prevVersion, version, ops) {
     let doc = {
       _id: docId,
-      _v: version,
+      // _v: version,
       _sv: prevVersion,
       _ops: ops
     }
 
-    for (let key in state) {
-      doc[key] = state[key]
-    }
+    // for (let key in state) {
+    //   doc[key] = state[key]
+    // }
 
     let collection = this.getOrCreateCollection(collectionName)
     collection[docId] = doc

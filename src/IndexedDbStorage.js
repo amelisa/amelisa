@@ -1,40 +1,45 @@
 let debug = require('debug')('IndexedDbStorage')
-import MongoQueries from './MongoQueries'
 
 const dbName = 'amelisa'
 
-class IndexedDbStorage extends MongoQueries {
+class IndexedDbStorage {
   constructor (collectionNames = [], version) {
-    super()
-
     this.collectionNames = collectionNames
     this.version = version
   }
 
-  getCollectionNames = async () => {
+  async getCollectionNames () {
     return this.collectionNames
-  };
+  }
 
-  init () {
+  getExistingCollectionNames () {
+    return Array.from(this.db.objectStoreNames)
+  }
+
+  async init () {
     return new Promise((resolve, reject) => {
       let request = window.indexedDB.open(dbName, this.version)
       request.onsuccess = (event) => {
         debug('onsuccess')
         this.db = event.target.result
+        let existingCollectionNames = this.getExistingCollectionNames()
+        this.existingCollectionNames = existingCollectionNames
         resolve(this)
       }
       request.onupgradeneeded = (event) => {
         debug('onupgradeneeded', event)
-        let db = event.target.result
-        db.onerror = (event) => {
+        this.db = event.target.result
+        let existingCollectionNames = this.getExistingCollectionNames()
+        this.existingCollectionNames = existingCollectionNames
+        this.db.onerror = (event) => {
           debug('onerror upgrage', event)
         }
-        let prevCollectionNames = Array.from(db.objectStoreNames)
+
         for (let collectionName of this.collectionNames) {
           debug('collectionName', collectionName)
-          if (prevCollectionNames.indexOf(collectionName) > -1) continue
+          if (existingCollectionNames.indexOf(collectionName) > -1) continue
 
-          let objectStore = db.createObjectStore(collectionName, {keyPath: '_id'})
+          let objectStore = this.db.createObjectStore(collectionName, {keyPath: '_id'})
           objectStore.transaction.oncomplete = (e) => {
             debug('oncomplete', e)
             // TODO: handle it
@@ -59,36 +64,31 @@ class IndexedDbStorage extends MongoQueries {
     return transaction.objectStore(collectionName)
   }
 
-  getDocById (collectionName, docId) {
-    return new Promise((resolve, reject) => {
-      let objectStore = this.getObjectStore(collectionName, 'readonly')
-      let request = objectStore.get(docId)
-      request.onsuccess = (event) => {
-        resolve(event.target.result)
-      }
-      request.onerror = (event) => {
-        reject(event.target.webkitErrorMessage || event.target.error)
-      }
-    })
-  }
+  // async getDocById (collectionName, docId) {
+  //   return new Promise((resolve, reject) => {
+  //     let objectStore = this.getObjectStore(collectionName, 'readonly')
+  //     let request = objectStore.get(docId)
+  //     request.onsuccess = (event) => {
+  //       resolve(event.target.result)
+  //     }
+  //     request.onerror = (event) => {
+  //       reject(event.target.webkitErrorMessage || event.target.error)
+  //     }
+  //   })
+  // }
 
-  getAllDocs (collectionName) {
-    return this.getDocsByQuery(collectionName, MongoQueries.allSelector)
-  }
-
-  getDocsByQuery (collectionName, expression) {
+  async getAllDocs (collectionName) {
     return new Promise((resolve, reject) => {
-      let allDocs = []
+      let docs = []
       let objectStore = this.getObjectStore(collectionName, 'readonly')
 
       let request = objectStore.openCursor()
       request.onsuccess = (event) => {
-        var cursor = event.target.result
+        let cursor = event.target.result
         if (cursor) {
-          allDocs.push(cursor.value)
+          docs.push(cursor.value)
           cursor.continue()
         } else {
-          let docs = this.getQueryResultFromArray(allDocs, expression)
           resolve(docs)
         }
       }
@@ -98,7 +98,33 @@ class IndexedDbStorage extends MongoQueries {
     })
   }
 
-  clearCollection (collectionName) {
+  // getAllDocs (collectionName) {
+  //   return this.getDocsByQuery(collectionName, MongoQueries.allSelector)
+  // }
+
+  // async getDocsByQuery (collectionName, expression) {
+  //   return new Promise((resolve, reject) => {
+  //     let allDocs = []
+  //     let objectStore = this.getObjectStore(collectionName, 'readonly')
+  //
+  //     let request = objectStore.openCursor()
+  //     request.onsuccess = (event) => {
+  //       let cursor = event.target.result
+  //       if (cursor) {
+  //         allDocs.push(cursor.value)
+  //         cursor.continue()
+  //       } else {
+  //         let docs = this.getQueryResultFromArray(allDocs, expression)
+  //         resolve(docs)
+  //       }
+  //     }
+  //     request.onerror = (event) => {
+  //       reject(event.target.webkitErrorMessage || event.target.error)
+  //     }
+  //   })
+  // }
+
+  async clearCollection (collectionName) {
     return new Promise((resolve, reject) => {
       let objectStore = this.getObjectStore(collectionName, 'readwrite')
       let request = objectStore.clear()
@@ -111,7 +137,7 @@ class IndexedDbStorage extends MongoQueries {
     })
   }
 
-  clear () {
+  async clear () {
     let promises = []
 
     for (let collectionName of this.collectionNames) {
@@ -121,17 +147,17 @@ class IndexedDbStorage extends MongoQueries {
     return Promise.all(promises)
   }
 
-  saveDoc (collectionName, docId, state, serverVersion, version, ops) {
+  async saveDoc (collectionName, docId, state, serverVersion, version, ops) {
     let doc = {
       _id: docId,
       _ops: ops,
-      _v: version,
+      // _v: version,
       _sv: serverVersion
     }
 
-    for (let key in state) {
-      doc[key] = state[key]
-    }
+    // for (let key in state) {
+    //   doc[key] = state[key]
+    // }
 
     return new Promise((resolve, reject) => {
       let objectStore = this.getObjectStore(collectionName, 'readwrite')
