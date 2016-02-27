@@ -1,6 +1,6 @@
 import assert from 'assert'
 import fakeIndexedDb from 'fake-indexeddb'
-import IndexedDbStorage from '../../src/react/IndexedDbStorage'
+import IndexedDbStorage from '../../src/web/IndexedDbStorage'
 import { collectionName, docId, field, value } from '../util'
 
 global.window = {

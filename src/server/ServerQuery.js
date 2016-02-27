@@ -1,14 +1,14 @@
 let debug = require('debug')('ServerQuery')
 import arraydiff from 'arraydiff'
 import Query from '../client/Query'
-import { arrayRemove, clone, fastEqual } from '../util'
+import { arrayRemove, deepClone, fastEqual } from '../util'
 
 const unattachTimeout = 5000
 
 class ServerQuery extends Query {
   constructor (collectionName, expression, store, querySet) {
     super(collectionName, expression)
-    this.originalExpression = clone(expression)
+    this.originalExpression = deepClone(expression)
     this.store = store
     this.querySet = querySet
     this.loaded = false

@@ -4,7 +4,8 @@ import { EventEmitter } from 'events'
 import CollectionSet from './CollectionSet'
 import ClientQuerySet from './ClientQuerySet'
 import Subscription from './Subscription'
-import { clone, isLocalCollection, isServer, parseArguments, parsePath } from '../util'
+import { getBundleJsonFromDom } from '../web/dom'
+import { deepClone, isLocalCollection, isServer, parseArguments, parsePath } from '../util'
 
 class Model extends EventEmitter {
   constructor (channel, source, options = {}) {
@@ -209,7 +210,7 @@ class Model extends EventEmitter {
     if (!docData) return console.error('Model.add docData is required')
     if (typeof docData !== 'object') return console.error('Model.add docData should be an object')
 
-    docData = clone(docData)
+    docData = deepClone(docData)
     let docId = docData._id
     if (!docId) docId = this.id()
     else delete docData._id
@@ -350,18 +351,14 @@ class Model extends EventEmitter {
     this.close()
   }
 
-  getBundleJsonFromDom () {
-    if (this.json) return this.json
-    let dataScript = document.getElementById('bundle')
-    if (!dataScript) return '{}'
-
-    let json = dataScript.innerHTML
-    this.json = json
+  getBundleJsonFromCacheOrDom () {
+    if (this.bundleJson) return this.bundleJson
+    let json = this.bundleJson = getBundleJsonFromDom()
     return json
   }
 
   getBundleJson () {
-    if (!isServer) return this.getBundleJsonFromDom()
+    if (!isServer) return this.getBundleJsonFromCacheOrDom()
 
     let bundle = {
       collections: this.collectionSet.bundle()
@@ -374,7 +371,7 @@ class Model extends EventEmitter {
 
   unbundle () {
     if (this.bundle) return this.bundle
-    let json = this.getBundleJsonFromDom()
+    let json = this.getBundleJsonFromCacheOrDom()
     let bundle = JSON.parse(json)
     this.bundle = bundle
     return bundle

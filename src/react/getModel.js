@@ -1,8 +1,8 @@
-import IndexedDbStorage from './IndexedDbStorage'
+import IndexedDbStorage from '../web/IndexedDbStorage'
 import Model from '../client/Model'
 import ReconnectableWebSocket from 'reconnectable-websocket'
 import WebSocketChannel from '../client/WebSocketChannel'
-import { onDomReady } from '../util'
+import { onDomReady } from '../web/dom'
 
 let model
 

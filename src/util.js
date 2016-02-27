@@ -15,23 +15,10 @@ function arrayRemove (array, el) {
   return index
 }
 
-function serverRequire (module, id) {
-  if (!isServer) return
-  return module.require(id)
-}
-
-function clone (object) {
+function deepClone (object) {
   if (object == null || typeof object !== 'object') return object
 
   return JSON.parse(JSON.stringify(object))
-}
-
-function shallowClone (object) {
-  let out = {}
-  for (let key in object) {
-    out[key] = object[key]
-  }
-  return out
 }
 
 function fastEqual (object1, object2) {
@@ -60,26 +47,13 @@ function parseArguments (...args) {
   return parsePath(Array.from(args[0]))
 }
 
-function onDomReady () {
-  return new Promise((resolve, reject) => {
-    if (document.readyState === 'complete') {
-      resolve()
-    } else {
-      window.addEventListener('load', resolve, false)
-    }
-  })
-}
-
 export default {
   arrayRemove,
-  clone,
+  deepClone,
   dbFields,
   fastEqual,
   isServer,
-  shallowClone,
-  serverRequire,
   isLocalCollection,
   parsePath,
-  parseArguments,
-  onDomReady
+  parseArguments
 }

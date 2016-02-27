@@ -1,6 +1,6 @@
 // let debug = require('debug')('Doc')
 import { EventEmitter } from 'events'
-import { clone } from '../util'
+import { deepClone } from '../util'
 
 class Doc extends EventEmitter {
   constructor (docId, ops = []) {
@@ -118,11 +118,11 @@ class Doc extends EventEmitter {
     for (let op of ops) {
       switch (op.type) {
         case 'add':
-          state = clone(op.value)
+          state = deepClone(op.value)
           break
         case 'set':
           if (!op.field) {
-            state = clone(op.value)
+            state = deepClone(op.value)
             break
           }
 
@@ -248,7 +248,7 @@ class Doc extends EventEmitter {
     for (let op of this.ops) {
       let versionDate = map[op.source]
       if (!versionDate || versionDate < op.date) {
-        opsToSend.push(clone(op))
+        opsToSend.push(deepClone(op))
       }
     }
 

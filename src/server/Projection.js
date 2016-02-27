@@ -1,4 +1,4 @@
-import { clone, dbFields } from '../util'
+import { deepClone, dbFields } from '../util'
 
 class Projection {
   constructor (collectionName, dbCollectionName, fields = {}) {
@@ -69,7 +69,7 @@ class Projection {
   }
 
   projectOp (op) {
-    let projectedOp = clone(op)
+    let projectedOp = deepClone(op)
 
     if (projectedOp.collectionName) projectedOp.collectionName = this.collectionName
 
