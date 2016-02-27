@@ -48,15 +48,15 @@ class Doc extends EventEmitter {
 
     let docRewrited = false
     let fields = {}
-    let ids = {}
+    let opIds = {}
     let distilledOps = []
 
     for (let op of ops) {
       // undefined op
       if (!op) continue
       // dublicate ops
-      if (ids[op.id]) continue
-      ids[op.id] = true
+      if (opIds[op.id]) continue
+      opIds[op.id] = true
 
       if (op.type === 'add') {
         distilledOps.push(op)

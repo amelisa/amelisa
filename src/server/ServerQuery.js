@@ -12,8 +12,6 @@ class ServerQuery extends Query {
     this.loaded = false
     this.loading = false
     this.channels = []
-    this.timestamp = Date.now()
-    this.versionNumber = 0
 
     this.load()
     this.on('loaded', () => {
@@ -36,7 +34,6 @@ class ServerQuery extends Query {
         this.data = docs
         this.loading = false
         this.loaded = true
-        this.versionNumber++
         this.emit('loaded')
       })
       .catch((err) => {
@@ -58,6 +55,8 @@ class ServerQuery extends Query {
 
     let diffs = this.getDiffs(this.prev, this.data)
 
+    if (!diffs.length) return
+
     for (let channel of this.channels) {
       this.sendDiffQueryToChannel(channel, diffs)
     }
@@ -68,7 +67,6 @@ class ServerQuery extends Query {
       type: 'q',
       collectionName: this.collectionName,
       expression: this.originalExpression,
-      version: this.version(),
       value: this.data,
       ackId
     }
@@ -83,7 +81,6 @@ class ServerQuery extends Query {
       type: 'q',
       collectionName: this.collectionName,
       expression: this.originalExpression,
-      version: this.version(),
       docIds,
       docOps,
       ackId
@@ -113,9 +110,7 @@ class ServerQuery extends Query {
     }
   }
 
-  async sendDiffQueryToChannel (channel, diffs) {
-    if (!diffs.length) return
-
+  async sendDiffQueryToChannel (channel, diffs, ackId) {
     let docMap = {}
     for (let doc of this.data) {
       docMap[doc._id] = doc
@@ -137,17 +132,17 @@ class ServerQuery extends Query {
       type: 'qdiff',
       collectionName: this.collectionName,
       expression: this.originalExpression,
-      version: this.version(),
       diffs,
-      docOps
+      docOps,
+      ackId
     }
 
-    this.sendOp(op, channel)
-
     await this.subscribeDocs(docVersions, channel)
+
+    this.sendOp(op, channel)
   }
 
-  getDiffs (prev, data) {
+  getDiffs (prev = [], data) {
     let prevIds = prev.map((doc) => doc._id)
     let docIds = data.map((doc) => doc._id)
 
@@ -168,23 +163,22 @@ class ServerQuery extends Query {
     return Promise.all(docPromises)
   }
 
-  async fetch (channel, ackId) {
-    await this.sendQuery(channel, ackId)
+  async fetch (channel, docIds, ackId) {
+    await this.sendQuery(channel, docIds, ackId)
 
     this.maybeUnattach()
   }
 
-  async subscribe (channel, ackId) {
+  async subscribe (channel, docIds, ackId) {
     this.channels.push(channel)
 
-    if (!ackId) return
-
-    await this.sendQuery(channel, ackId)
+    await this.sendQuery(channel, docIds, ackId)
   }
 
-  async sendQuery (channel, ackId) {
+  async sendQuery (channel, docIds, ackId) {
     if (this.isDocs) {
-      await this.sendDocsQuerySnapshotToChannel(channel, ackId)
+      let diffs = this.getDiffs(docIds, this.data)
+      await this.sendDiffQueryToChannel(channel, diffs, ackId)
     } else {
       await this.sendNotDocsQuerySnapshotToChannel(channel, ackId)
     }
@@ -218,10 +212,6 @@ class ServerQuery extends Query {
 
   sendOp (op, channel) {
     this.store.sendOp(op, channel)
-  }
-
-  version () {
-    return this.timestamp + '|' + this.versionNumber
   }
 }
 

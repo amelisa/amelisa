@@ -125,15 +125,15 @@ class Model extends EventEmitter {
       case 'q':
         query = this.querySet.getOrCreateQuery(collectionName, expression)
         if (query.isDocs) {
-          query.onSnapshotDocs(docIds, docOps, version)
+          query.onSnapshotDocs(docIds, docOps)
         } else {
-          query.onSnapshotNotDocs(value, version)
+          query.onSnapshotNotDocs(value)
         }
         break
 
       case 'qdiff':
         query = this.querySet.getOrCreateQuery(collectionName, expression)
-        query.onDiff(diffs, docOps, version)
+        query.onDiff(diffs, docOps)
         break
 
       case 'sync':

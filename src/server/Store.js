@@ -119,7 +119,7 @@ class Store extends EventEmitter {
 
   async onMessage (message, channel) {
     debug('onMessage', message.type)
-    let { type, id, collectionName, docId, expression, value, version } = message
+    let { type, id, collectionName, docId, expression, value, version, docIds } = message
     let doc
     let query
     let op
@@ -143,7 +143,7 @@ class Store extends EventEmitter {
 
       case 'qfetch':
         query = await this.querySet.getOrCreateQuery(collectionName, expression)
-        query.fetch(channel, id)
+        query.fetch(channel, docIds, id)
         break
 
       case 'sub':
@@ -158,7 +158,7 @@ class Store extends EventEmitter {
 
       case 'qsub':
         query = await this.querySet.getOrCreateQuery(collectionName, expression)
-        query.subscribe(channel, id)
+        query.subscribe(channel, docIds, id)
         break
 
       case 'qunsub':
@@ -181,7 +181,7 @@ class Store extends EventEmitter {
                   doc.onOp(op)
                   this.onOp(op)
                 }
-                doc.subscribe(channel, version, 'id')
+                doc.subscribe(channel, version)
               })
             docPromises.push(docPromise)
           }
@@ -192,11 +192,11 @@ class Store extends EventEmitter {
         let queryPromises = []
 
         for (let hash in syncData.queries) {
-          let { collectionName, expression } = syncData.queries[hash]
+          let { collectionName, expression, docIds } = syncData.queries[hash]
           let queryPromise = this.querySet
             .getOrCreateQuery(collectionName, expression)
             .then((query) => {
-              query.subscribe(channel, 'id')
+              query.subscribe(channel, docIds)
             })
           queryPromises.push(queryPromise)
         }

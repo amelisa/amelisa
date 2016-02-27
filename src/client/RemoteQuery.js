@@ -6,8 +6,6 @@ class RemoteQuery extends ClientQuery {
     super(collectionName, expression, model, collection, querySet)
     this.server = false
     this.subscribed = 0
-    this.timestamp = null
-    this.versionDiffs = {}
   }
 
   async fetch () {
@@ -17,96 +15,59 @@ class RemoteQuery extends ClientQuery {
       expression: this.expression
     }
 
+    if (this.isDocs) op.docIds = this.data
+
     return this.model.sendOp(op)
   }
 
-  onSnapshotNotDocs (data, version) {
-    let [timestamp, versionNumber] = version.split('|')
-    if (+timestamp < this.timestamp) {
-      return console.error(`onSnapshotNotDocs timestamps does not match for ${this.collectionName} ${timestamp} ${this.timestamp}`)
-    } else if (+timestamp > this.timestamp) {
-      this.timestamp = +timestamp
-      this.versionDiffs = {}
-    }
-
-    this.versionDiffs[+versionNumber] = {snapshot: true, data}
-    this.refreshFromVersionDiffs()
+  onSnapshotNotDocs (data) {
+    debug('onSnapshotNotDocs', this.data, data)
+    this.refreshDataFromServer(data)
   }
 
-  onSnapshotDocs (ids, docs, version) {
-    debug('onSnapshotDocs', this.data, ids, docs, version)
-    let [timestamp, versionNumber] = version.split('|')
-    if (+timestamp < this.timestamp) {
-      return console.error(`onSnapshotDocs timestamps does not match for ${this.collectionName} ${timestamp} ${this.timestamp}`)
-    } else if (+timestamp > this.timestamp) {
-      this.timestamp = +timestamp
-      this.versionDiffs = {}
-    }
+  onSnapshotDocs (docIds, docOps) {
+    debug('onSnapshotDocs', this.data, docIds, docOps)
+    this.attachDocsToCollection(docOps)
 
-    this.versionDiffs[+versionNumber] = {snapshot: true, ids}
-    this.attachDocsToCollection(docs)
-
-    this.refreshFromVersionDiffs()
+    this.refreshDataFromServer(docIds)
   }
 
-  onDiff (diffs, docs, version) {
-    debug('onDiff', this.data, diffs, version, this.server)
+  onDiff (diffs, docOps) {
+    debug('onDiff', this.data, diffs, docOps, this.server)
+    this.attachDocsToCollection(docOps)
 
-    let [timestamp, versionNumber] = version.split('|')
-    if (+timestamp < this.timestamp) {
-      return console.error(`onDiff timestamps does not match for ${this.collectionName} ${timestamp} ${this.timestamp}`)
-    } else if (+timestamp > this.timestamp) {
-      this.timestamp = +timestamp
-      this.versionDiffs = {}
-    }
+    let docIds = this.applyDiffs(diffs)
 
-    this.versionDiffs[+versionNumber] = {diff: true, diffs}
-    this.attachDocsToCollection(docs)
-
-    this.refreshFromVersionDiffs()
+    this.refreshDataFromServer(docIds)
   }
 
-  getDataFromVersionDiffs () {
-    let ids = this.data
+  applyDiffs (diffs) {
+    let docIds = this.data
 
-    for (let versionNumber in this.versionDiffs) {
-      let versionDiff = this.versionDiffs[versionNumber]
+    for (let diff of diffs) {
+      switch (diff.type) {
+        case 'insert':
+          let before = docIds.slice(0, diff.index)
+          let after = docIds.slice(diff.index)
+          docIds = before.concat(diff.values, after)
+          break
 
-      if (versionDiff.snapshot) {
-        if (this.isDocs) {
-          ids = versionDiff.ids.slice(0)
-        } else {
-          ids = versionDiff.data
-        }
-      } else {
-        for (let diff of versionDiff.diffs) {
-          switch (diff.type) {
-            case 'insert':
-              let before = ids.slice(0, diff.index)
-              let after = ids.slice(diff.index)
-              ids = before.concat(diff.values, after)
-              break
+        case 'move':
+          let move = docIds.splice(diff.from, diff.howMany)
+          docIds.splice.apply(docIds, [diff.to, 0].concat(move))
+          break
 
-            case 'move':
-              let move = ids.splice(diff.from, diff.howMany)
-              ids.splice.apply(ids, [diff.to, 0].concat(move))
-              break
-
-            case 'remove':
-              ids.splice(diff.index, diff.howMany)
-              break
-          }
-        }
+        case 'remove':
+          docIds.splice(diff.index, diff.howMany)
+          break
       }
     }
 
-    return ids
+    return docIds
   }
 
-  refreshFromVersionDiffs () {
-    let ids = this.getDataFromVersionDiffs()
-
-    this.data = ids
+  refreshDataFromServer (data) {
+    this.data = data
 
     this.server = true
     this.emit('change')
@@ -138,6 +99,8 @@ class RemoteQuery extends ClientQuery {
       expression: this.expression
     }
 
+    if (this.isDocs) op.docIds = this.data
+
     return this.model.sendOp(op)
   }
 
@@ -161,11 +124,7 @@ class RemoteQuery extends ClientQuery {
       expression: this.expression
     }
 
-    // if (this.isDocs) {
-    //   let ids = this.getDataFromVersionDiffs()
-    //   data.ids = ids
-    //   data.docVersions = ids.map((docId) => this.collection.getDoc(docId).version())
-    // }
+    if (this.isDocs) data.docIds = this.data
 
     return data
   }
