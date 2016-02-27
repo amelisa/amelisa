@@ -283,17 +283,17 @@ class Model extends EventEmitter {
   }
 
   createOp (opData) {
+    let date = this.date()
+    if (this.lastOpDate && this.lastOpDate >= date) date = this.lastOpDate + 1
+    this.lastOpDate = date
+
     let op = {
       id: this.id(),
       source: this.source,
-      date: this.date()
+      date
     }
 
-    for (let key in opData) {
-      if (opData[key] !== undefined) op[key] = opData[key]
-    }
-
-    return op
+    return Object.assign({}, opData, op)
   }
 
   async sendOp (opData) {

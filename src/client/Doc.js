@@ -265,10 +265,6 @@ function sortByDate (op1, op2) {
 
   if (op1.date < op2.date) return -1
 
-  // Handle sync ops with same date
-  if (op1.type === 'add') return -1
-  if (op2.type === 'add') return 1
-
   return 0
 }
 
