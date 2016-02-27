@@ -68,16 +68,6 @@ class SqliteStorage {
     }
   }
 
-  // async getDocById (collectionName, docId) {
-  //   let args = await this.db.executeSql(`SELECT * FROM ${collectionName} WHERE _id = '${docId}'`)
-  //   let rows = this.getQueryRows(args)
-  //   let row = rows[0]
-  //   if (!row || !row.data) return
-  //
-  //   let doc = JSON.parse(row.data)
-  //   return doc
-  // }
-
   async getAllDocs (collectionName) {
     let args = await this.db.executeSql(`SELECT * FROM ${collectionName}`)
     let rows = this.getQueryRows(args)
@@ -92,37 +82,12 @@ class SqliteStorage {
     return docs
   }
 
-  // async getAllDocs (collectionName) {
-  //   return this.getDocsByQuery(collectionName, MongoQueries.allSelector)
-  // }
-
-  // async getDocsByQuery (collectionName, expression) {
-  //   let args = await this.db.executeSql(`SELECT * FROM ${collectionName}`)
-  //   let rows = this.getQueryRows(args)
-  //
-  //   let allDocs = []
-  //   for (let row of rows) {
-  //     if (!row.data) continue
-  //     let doc = JSON.parse(row.data)
-  //     allDocs.push(doc)
-  //   }
-  //
-  //   let docs = this.getQueryResultFromArray(allDocs, expression)
-  //
-  //   return docs
-  // }
-
-  async saveDoc (collectionName, docId, state, prevVersion, version, ops) {
+  async saveDoc (collectionName, docId, ops, serverVersion) {
     let doc = {
       _id: docId,
-      // _v: version,
-      _sv: prevVersion,
-      _ops: ops
+      _ops: ops,
+      _sv: serverVersion
     }
-
-    // for (let key in state) {
-    //   doc[key] = state[key]
-    // }
 
     let data = JSON.stringify(doc)
 

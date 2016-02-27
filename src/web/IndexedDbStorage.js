@@ -64,19 +64,6 @@ class IndexedDbStorage {
     return transaction.objectStore(collectionName)
   }
 
-  // async getDocById (collectionName, docId) {
-  //   return new Promise((resolve, reject) => {
-  //     let objectStore = this.getObjectStore(collectionName, 'readonly')
-  //     let request = objectStore.get(docId)
-  //     request.onsuccess = (event) => {
-  //       resolve(event.target.result)
-  //     }
-  //     request.onerror = (event) => {
-  //       reject(event.target.webkitErrorMessage || event.target.error)
-  //     }
-  //   })
-  // }
-
   async getAllDocs (collectionName) {
     return new Promise((resolve, reject) => {
       let docs = []
@@ -97,32 +84,6 @@ class IndexedDbStorage {
       }
     })
   }
-
-  // getAllDocs (collectionName) {
-  //   return this.getDocsByQuery(collectionName, MongoQueries.allSelector)
-  // }
-
-  // async getDocsByQuery (collectionName, expression) {
-  //   return new Promise((resolve, reject) => {
-  //     let allDocs = []
-  //     let objectStore = this.getObjectStore(collectionName, 'readonly')
-  //
-  //     let request = objectStore.openCursor()
-  //     request.onsuccess = (event) => {
-  //       let cursor = event.target.result
-  //       if (cursor) {
-  //         allDocs.push(cursor.value)
-  //         cursor.continue()
-  //       } else {
-  //         let docs = this.getQueryResultFromArray(allDocs, expression)
-  //         resolve(docs)
-  //       }
-  //     }
-  //     request.onerror = (event) => {
-  //       reject(event.target.webkitErrorMessage || event.target.error)
-  //     }
-  //   })
-  // }
 
   async clearCollection (collectionName) {
     return new Promise((resolve, reject) => {
@@ -147,17 +108,12 @@ class IndexedDbStorage {
     return Promise.all(promises)
   }
 
-  async saveDoc (collectionName, docId, state, serverVersion, version, ops) {
+  async saveDoc (collectionName, docId, ops, serverVersion) {
     let doc = {
       _id: docId,
       _ops: ops,
-      // _v: version,
       _sv: serverVersion
     }
-
-    // for (let key in state) {
-    //   doc[key] = state[key]
-    // }
 
     return new Promise((resolve, reject) => {
       let objectStore = this.getObjectStore(collectionName, 'readwrite')

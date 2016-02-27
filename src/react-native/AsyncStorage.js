@@ -40,12 +40,6 @@ class AsyncStorage {
     return collection
   }
 
-  // async getDocById (collectionName, docId) {
-  //   let collection = this.getOrCreateCollection(collectionName)
-  //
-  //   return collection[docId]
-  // }
-
   async getAllDocs (collectionName) {
     let collection = this.getOrCreateCollection(collectionName)
 
@@ -57,34 +51,12 @@ class AsyncStorage {
     return docs
   }
 
-  // async getAllDocs (collectionName) {
-  //   return this.getDocsByQuery(collectionName, MongoQueries.allSelector)
-  // }
-
-  // async getDocsByQuery (collectionName, expression) {
-  //   let collection = this.getOrCreateCollection(collectionName)
-  //
-  //   let allDocs = []
-  //   for (let docId in collection) {
-  //     allDocs.push(collection[docId])
-  //   }
-  //
-  //   let docs = this.getQueryResultFromArray(allDocs, expression)
-  //
-  //   return docs
-  // }
-
-  async saveDoc (collectionName, docId, state, prevVersion, version, ops) {
+  async saveDoc (collectionName, docId, ops, serverVersion) {
     let doc = {
       _id: docId,
-      // _v: version,
-      _sv: prevVersion,
-      _ops: ops
+      _ops: ops,
+      _sv: serverVersion
     }
-
-    // for (let key in state) {
-    //   doc[key] = state[key]
-    // }
 
     let collection = this.getOrCreateCollection(collectionName)
     collection[docId] = doc

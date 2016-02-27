@@ -7,7 +7,7 @@ import { source, source2, collectionName, docId, field, field2, value, value2 } 
 let channel
 let model
 
-describe.only('Doc', () => {
+describe('Doc', () => {
   beforeEach(() => {
     channel = new ServerChannel()
     model = new Model(channel, source)

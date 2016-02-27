@@ -1,9 +1,8 @@
 import MongoQueries from './MongoQueries'
 
 class MemoryStorage extends MongoQueries {
-  constructor (client = false) {
+  constructor () {
     super()
-    this.client = client
     this.data = {}
   }
 
@@ -47,8 +46,6 @@ class MemoryStorage extends MongoQueries {
       _v: version,
       _ops: ops
     }
-
-    if (this.client) doc._sv = prevVersion
 
     for (let key in state) {
       doc[key] = state[key]
