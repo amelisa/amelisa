@@ -6,17 +6,12 @@ class LocalDoc extends MutableDoc {
     super(docId, ops, collection, model)
   }
 
-  subscribe () {
-    return Promise.resolve()
-  }
+  async subscribe () {}
 
-  unsubscribe () {
-    return Promise.resolve()
-  }
+  async unsubscribe () {}
 
-  onOp (op) {
-    super.onOp(op)
-    return Promise.resolve()
+  async onOp (op) {
+    return super.onOp(op)
   }
 }
 

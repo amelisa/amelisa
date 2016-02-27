@@ -14,7 +14,7 @@ class RemoteDoc extends MutableDoc {
     this.emit('change')
   }
 
-  fetch () {
+  async fetch () {
     return this.model.sendOp({
       type: 'fetch',
       collectionName: this.collection.name,
@@ -22,9 +22,9 @@ class RemoteDoc extends MutableDoc {
     })
   }
 
-  subscribe () {
+  async subscribe () {
     this.subscribed++
-    if (this.subscribed !== 1) return Promise.resolve()
+    if (this.subscribed !== 1) return
 
     return this.model.sendOp({
       type: 'sub',
@@ -34,9 +34,9 @@ class RemoteDoc extends MutableDoc {
     })
   }
 
-  unsubscribe () {
+  async unsubscribe () {
     this.subscribed--
-    if (this.subscribed !== 0) return Promise.resolve()
+    if (this.subscribed !== 0) return
 
     return this.model.sendOp({
       type: 'unsub',
@@ -71,7 +71,7 @@ class RemoteDoc extends MutableDoc {
     }
   }
 
-  onOp (op) {
+  async onOp (op) {
     debug('onOp', op)
     super.onOp(op)
     return this.model.send(op)

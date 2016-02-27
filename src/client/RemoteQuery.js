@@ -10,7 +10,7 @@ class RemoteQuery extends ClientQuery {
     this.versionDiffs = {}
   }
 
-  fetch () {
+  async fetch () {
     let op = {
       type: 'qfetch',
       collectionName: this.collection.name,
@@ -125,10 +125,10 @@ class RemoteQuery extends ClientQuery {
     this.emit('change')
   }
 
-  subscribe () {
+  async subscribe () {
     this.subscribed++
     debug('subscribe', this.subscribed)
-    if (this.subscribed !== 1) return Promise.resolve()
+    if (this.subscribed !== 1) return
 
     this.collection.on('change', this.onCollectionChange)
 
@@ -141,10 +141,10 @@ class RemoteQuery extends ClientQuery {
     return this.model.sendOp(op)
   }
 
-  unsubscribe () {
+  async unsubscribe () {
     this.subscribed--
     debug('unsubscribe', this.subscribed)
-    if (this.subscribed !== 0) return Promise.resolve()
+    if (this.subscribed !== 0) return
 
     this.collection.removeListener('change', this.onCollectionChange)
 

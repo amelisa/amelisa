@@ -14,7 +14,7 @@ class UrlQuery extends EventEmitter {
     return this.value
   }
 
-  load () {
+  async load () {
     return new Promise((resolve, reject) => {
       if (!this.model.online) {
         this.value = this.defaultValue
@@ -35,17 +35,15 @@ class UrlQuery extends EventEmitter {
     })
   }
 
-  fetch () {
+  async fetch () {
     return this.load()
   }
 
-  subscribe () {
+  async subscribe () {
     return this.load()
   }
 
-  unsubscribe () {
-    return Promise.resolve()
-  }
+  async unsubscribe () {}
 }
 
 export default UrlQuery

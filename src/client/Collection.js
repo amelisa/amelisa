@@ -43,7 +43,7 @@ class Collection extends EventEmitter {
     let op = this.model.createOp({
       type: 'add',
       collectionName: this.name,
-      docId: docId,
+      docId,
       value: docData
     })
 
@@ -80,7 +80,7 @@ class Collection extends EventEmitter {
     }
   }
 
-  fillFromClientStorage () {
+  async fillFromClientStorage () {
     return new Promise((resolve, reject) => {
       this.model.storage
         .getAllDocs(this.name)

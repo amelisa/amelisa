@@ -8,7 +8,7 @@ class MongoStorage extends MongoQueries {
     this.url = url
   }
 
-  init () {
+  async init () {
     return new Promise((resolve, reject) => {
       MongoClient.connect(this.url, (err, db) => {
         if (err) return reject(err)
@@ -19,7 +19,7 @@ class MongoStorage extends MongoQueries {
     })
   }
 
-  clear () {
+  async clear () {
     return new Promise((resolve, reject) => {
       this.db.dropDatabase((err, result) => {
         if (err) return reject(err)
@@ -29,7 +29,7 @@ class MongoStorage extends MongoQueries {
     })
   }
 
-  getDocById (collectionName, docId) {
+  async getDocById (collectionName, docId) {
     let query = {
       _id: docId
     }
@@ -47,7 +47,7 @@ class MongoStorage extends MongoQueries {
     })
   }
 
-  getDocsByQuery (collectionName, expression) {
+  async getDocsByQuery (collectionName, expression) {
     // debug('getDocsByQuery', collectionName, expression)
     let query = this.normalizeQuery(expression)
     let projection = {}
@@ -105,7 +105,7 @@ class MongoStorage extends MongoQueries {
     })
   }
 
-  saveDoc (collectionName, docId, state, prevVersion, version, ops) {
+  async saveDoc (collectionName, docId, state, prevVersion, version, ops) {
     let query = {
       _id: docId,
       _v: prevVersion

@@ -7,7 +7,7 @@ class RemoteCollection extends Collection {
     super(name, data, model)
   }
 
-  add (docId, docData) {
+  async add (docId, docData) {
     let doc = super.add(docId, docData)
     doc.save()
     let op = doc.ops[doc.ops.length - 1]

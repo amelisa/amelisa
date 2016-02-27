@@ -19,10 +19,6 @@ class ServerChannel extends EventEmitter {
     })
   }
 
-  init () {
-    return Promise.resolve()
-  }
-
   send (message) {}
 
   pipe (channel) {

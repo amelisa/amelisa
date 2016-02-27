@@ -63,12 +63,6 @@ class Doc extends EventEmitter {
         continue
       }
 
-      // TODO: make possible to recreate doc after del?
-      if (op.type === 'del' && !op.field) {
-        distilledOps = [op]
-        break
-      }
-
       let field = op.field
 
       if (!field) {
@@ -116,22 +110,26 @@ class Doc extends EventEmitter {
     let current
 
     for (let op of ops) {
-      switch (op.type) {
+      let { type, field, value } = op
+
+      if (state && state._del) state = undefined
+
+      switch (type) {
         case 'add':
-          state = deepClone(op.value)
+          state = deepClone(value)
           break
         case 'set':
-          if (!op.field) {
-            state = deepClone(op.value)
+          if (!field) {
+            state = deepClone(value)
             break
           }
 
-          parts = op.field.split('.')
+          parts = field.split('.')
           if (!state) state = {}
           current = state
           parts.forEach((part, index) => {
             if (index === parts.length - 1) {
-              current[part] = op.value
+              current[part] = value
             } else {
               if (typeof current[part] === 'object') {
                 current = current[part]
@@ -143,13 +141,13 @@ class Doc extends EventEmitter {
           })
           break
         case 'del':
-          if (!op.field) {
-            if (!state) state = {}
+          if (!field) {
+            state = {}
             state._del = true
             break
           }
 
-          parts = op.field.split('.')
+          parts = field.split('.')
           if (!state) state = {}
           current = state
           parts.forEach((part, index) => {

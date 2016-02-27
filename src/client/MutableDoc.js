@@ -8,19 +8,19 @@ class MutableDoc extends Doc {
     this.model = model
   }
 
-  set (field, value) {
+  async set (field, value) {
     let op = this.model.createOp({
       type: 'set',
       collectionName: this.collection.name,
       docId: this.docId,
-      field: field,
-      value: value
+      field,
+      value
     })
 
     return this.onOp(op)
   }
 
-  del (field) {
+  async del (field) {
     let op = this.model.createOp({
       type: 'del',
       collectionName: this.collection.name,
@@ -37,16 +37,15 @@ class MutableDoc extends Doc {
     this.emit('change')
   }
 
-  onOp (op) {
+  async onOp (op) {
     debug('onOp', op)
     this.applyOp(op)
-    this.save()
     this.emit('change')
     this.collection.emit('change', op)
-    return Promise.resolve()
+    return this.save()
   }
 
-  save () {
+  async save () {
     if (!this.model.storage || !this.ops.length) return
     debug('save', this.state, this.ops)
     return this.model.storage

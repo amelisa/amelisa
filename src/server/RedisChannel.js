@@ -11,7 +11,7 @@ class RedisChannel extends EventEmitter {
     this.sub = sub
   }
 
-  init () {
+  async init () {
     let db = this.db = redisUrl.connect(this.url)
     return new Promise((resolve, reject) => {
       db.on('connect', () => {

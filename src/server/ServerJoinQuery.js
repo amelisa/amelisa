@@ -51,7 +51,7 @@ class ServerJoinQuery extends ServerQuery {
       })
   }
 
-  loadJoinFields () {
+  async loadJoinFields () {
     let promises = []
 
     for (let field in this.joinFieldValues) {

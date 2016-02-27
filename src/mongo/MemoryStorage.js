@@ -7,9 +7,7 @@ class MemoryStorage extends MongoQueries {
     this.data = {}
   }
 
-  init () {
-    return Promise.resolve()
-  }
+  async init () {}
 
   getOrCreateCollection (collectionName) {
     let collection = this.data[collectionName]
@@ -20,18 +18,17 @@ class MemoryStorage extends MongoQueries {
     return collection
   }
 
-  clear () {
+  async clear () {
     this.data = {}
-    return Promise.resolve()
   }
 
-  getDocById (collectionName, docId) {
+  async getDocById (collectionName, docId) {
     let collection = this.getOrCreateCollection(collectionName)
 
-    return Promise.resolve(collection[docId])
+    return collection[docId]
   }
 
-  getDocsByQuery (collectionName, expression) {
+  async getDocsByQuery (collectionName, expression) {
     let collection = this.getOrCreateCollection(collectionName)
 
     let allDocs = []
@@ -41,10 +38,10 @@ class MemoryStorage extends MongoQueries {
 
     let docs = this.getQueryResultFromArray(allDocs, expression)
 
-    return Promise.resolve(docs)
+    return docs
   }
 
-  saveDoc (collectionName, docId, state, prevVersion, version, ops) {
+  async saveDoc (collectionName, docId, state, prevVersion, version, ops) {
     let doc = {
       _id: docId,
       _v: version,
@@ -59,8 +56,6 @@ class MemoryStorage extends MongoQueries {
 
     let collection = this.getOrCreateCollection(collectionName)
     collection[docId] = doc
-
-    return Promise.resolve()
   }
 }
 

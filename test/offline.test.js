@@ -307,6 +307,7 @@ describe('offline', () => {
     }
     model.add(collectionName, doc)
     model2.add(collectionName, doc2)
+    await sleep(10)
     model2.set([collectionName, docId, field], 'Vasya')
 
     await sleep(10)

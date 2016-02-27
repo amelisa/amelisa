@@ -1,4 +1,4 @@
-function onDomReady () {
+async function onDomReady () {
   return new Promise((resolve, reject) => {
     if (document.readyState === 'complete') {
       resolve()

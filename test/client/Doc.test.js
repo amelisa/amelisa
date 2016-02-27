@@ -389,6 +389,47 @@ describe('Doc', () => {
     assert.equal(doc.get(), undefined)
   })
 
+  it('should refreshState when set after del', () => {
+    let ops = []
+
+    let op = {
+      source: source,
+      type: 'add',
+      date: Date.now(),
+      collectionName: collectionName,
+      docId: docId,
+      value: {
+        [field]: value
+      }
+    }
+    ops.push(op)
+
+    op = {
+      source: source,
+      type: 'del',
+      date: Date.now() + 1,
+      collectionName: collectionName,
+      docId: docId
+    }
+    ops.push(op)
+
+    op = {
+      source: source,
+      type: 'set',
+      date: Date.now() + 2,
+      collectionName: collectionName,
+      docId,
+      field,
+      value
+    }
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+
+    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get(field), value)
+  })
+
   it('should refreshState with field del', () => {
     let ops = []
 

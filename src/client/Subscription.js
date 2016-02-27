@@ -51,11 +51,11 @@ class Subscription extends EventEmitter {
     return subscribes
   }
 
-  fetch () {
+  async fetch () {
     return Promise.all(this.subscribes.map((subscribe) => subscribe.fetch()))
   }
 
-  subscribe () {
+  async subscribe () {
     return Promise.all(
       this.subscribes.map((subscribe) => {
         subscribe.on('change', this.onChange)
@@ -64,7 +64,7 @@ class Subscription extends EventEmitter {
     )
   }
 
-  unsubscribe () {
+  async unsubscribe () {
     return Promise.all(
       this.subscribes.map((subscribe) => {
         subscribe.removeListener('change', this.onChange)
@@ -77,7 +77,7 @@ class Subscription extends EventEmitter {
     this.emit('change')
   }
 
-  changeSubscribes (nextRawSubscribes) {
+  async changeSubscribes (nextRawSubscribes) {
     this.unsubscribe()
     this.subscribes = this.parseRawSubscribes(nextRawSubscribes)
     return this.subscribe()

@@ -8,9 +8,8 @@ class LocalCollection extends Collection {
     this.local = true
   }
 
-  add (docId, docData) {
+  async add (docId, docData) {
     super.add(docId, docData)
-    return Promise.resolve()
   }
 
   attach (docId, ops) {

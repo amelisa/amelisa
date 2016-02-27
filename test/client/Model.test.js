@@ -58,12 +58,12 @@ describe('Model', () => {
       assert.equal(newDoc.name, doc.name)
     })
 
-    it('should del field', () => {
+    it('should del field', async () => {
       let doc = {
         _id: docId,
         [field]: value
       }
-      model.add(collectionName, doc)
+      await model.add(collectionName, doc)
 
       model.del([collectionName, docId, field])
 
@@ -74,12 +74,12 @@ describe('Model', () => {
       assert.equal(newDoc.name, undefined)
     })
 
-    it('should del doc', () => {
+    it('should del doc', async () => {
       let doc = {
         _id: docId,
         [field]: value
       }
-      model.add(collectionName, doc)
+      await model.add(collectionName, doc)
 
       model.del([collectionName, docId])
 
@@ -89,12 +89,12 @@ describe('Model', () => {
       assert.equal(name, undefined)
     })
 
-    it('should set when array', () => {
+    it('should set when array', async () => {
       let doc = {
         _id: docId,
         [field]: value
       }
-      model.add(collectionName, doc)
+      await model.add(collectionName, doc)
       let newValue = 'Vasya'
 
       model.set([collectionName, docId, field], newValue)
@@ -103,12 +103,12 @@ describe('Model', () => {
       assert.equal(name, newValue)
     })
 
-    it('should set when path', () => {
+    it('should set when path', async () => {
       let doc = {
         _id: docId,
         [field]: value
       }
-      model.add(collectionName, doc)
+      await model.add(collectionName, doc)
       let newValue = 'Vasya'
 
       model.set(`${collectionName}.${docId}.${field}`, newValue)

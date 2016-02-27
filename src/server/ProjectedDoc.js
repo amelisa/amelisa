@@ -16,7 +16,7 @@ class ProjectedDoc extends ServerDoc {
         ackId: op.id,
         collectionName: this.projectionCollectionName,
         docId: this.docId,
-        error: error
+        error
       }
       return this.sendOp(op, channel)
     }
