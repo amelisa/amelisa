@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { MemoryStorage, Store, renderToStaticMarkup } from '../../src'
+import { MemoryStorage, Store, renderToStaticMarkup } from '../../src/server'
 import { RootComponent, createContainer } from '../../src/react'
 import { collectionName, docId, field, value, sleep } from '../util'
 import React from 'react'

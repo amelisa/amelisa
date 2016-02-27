@@ -1,6 +1,6 @@
-import Model from '../Model'
+import Model from '../client/Model'
 import ReconnectableWebSocket from 'reconnectable-websocket'
-import WebSocketChannel from '../WebSocketChannel'
+import WebSocketChannel from '../client/WebSocketChannel'
 import SqliteStorage from './SqliteStorage'
 
 let model

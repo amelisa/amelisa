@@ -2,7 +2,7 @@ import assert from 'assert'
 import fakeIndexedDb from 'fake-indexeddb'
 import jsdom from 'node-jsdom'
 import getModel from '../../src/react/getModel'
-import ServerChannel from '../../src/ServerChannel'
+import ServerChannel from '../../src/server/ServerChannel'
 import { value } from '../util'
 
 global.document = jsdom.jsdom('<!doctype html><html><body></body></html>')
