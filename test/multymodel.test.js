@@ -1,7 +1,7 @@
 import assert from 'assert'
 import eventToPromise from 'event-to-promise'
-import { MemoryStorage, Store } from '../../src/server'
-import { collectionName, docId, expression, joinExpression, field, value, sleep } from '../util'
+import { MemoryStorage, Store } from '../src/server'
+import { collectionName, docId, expression, joinExpression, field, value, sleep } from './util'
 
 let storage
 let store
