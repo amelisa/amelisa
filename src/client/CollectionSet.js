@@ -83,15 +83,6 @@ class CollectionSet {
     }
   }
 
-  mergeDataFromServer (data) {
-    return new Promise((resolve, reject) => {
-      if (!data || Object.keys(data).length === 0) return resolve()
-
-      // TODO: implement
-      resolve()
-    })
-  }
-
   rejectOp (collectionName, docId, opId) {
     let doc = this.getOrCreateDoc(collectionName, docId)
     doc.rejectOp(opId)

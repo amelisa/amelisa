@@ -15,6 +15,8 @@ async function initModel () {
 
   model.set('_session.online', false)
 
+  model.dateDiff = model.get('_app.dateDiff') || 0
+
   let source = model.get('_app.source')
   if (!source) {
     source = model.id()

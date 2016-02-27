@@ -3,8 +3,6 @@ import arraydiff from 'arraydiff'
 import Query from '../client/Query'
 import { arrayRemove, deepClone, fastEqual } from '../util'
 
-const unattachTimeout = 5000
-
 class ServerQuery extends Query {
   constructor (collectionName, expression, store, querySet) {
     super(collectionName, expression)
@@ -65,49 +63,54 @@ class ServerQuery extends Query {
     }
   }
 
-  sendNotDocsQuerySnapshotToChannel (channel, opId) {
+  sendNotDocsQuerySnapshotToChannel (channel, ackId) {
     let op = {
       type: 'q',
       collectionName: this.collectionName,
       expression: this.originalExpression,
       version: this.version(),
       value: this.data,
-      ackId: opId
+      ackId
     }
 
     this.sendOp(op, channel)
   }
 
-  async sendDocsQuerySnapshotToChannel (channel, opId) {
-    let docs = this.getDocs()
+  async sendDocsQuerySnapshotToChannel (channel, ackId) {
+    let { docIds, docOps, docVersions } = this.getDocsData()
 
     let op = {
       type: 'q',
       collectionName: this.collectionName,
       expression: this.originalExpression,
       version: this.version(),
-      ids: this.getIds(),
-      docs,
-      ackId: opId
+      docIds,
+      docOps,
+      ackId
     }
 
     this.sendOp(op, channel)
 
-    await this.subscribeDocs(docs, channel)
+    await this.subscribeDocs(docVersions, channel)
   }
 
-  getDocs () {
-    let docs = {}
+  getDocsData () {
+    let docIds = []
+    let docOps = {}
+    let docVersions = {}
 
     for (let doc of this.data) {
-      docs[doc._id] = doc._ops
+      let docId = doc._id
+      docIds.push(docId)
+      docOps[docId] = doc._ops
+      docVersions[docId] = doc._v
     }
 
-    return docs
-  }
-
-  getIds () {
-    return this.data.map((doc) => doc._id)
+    return {
+      docIds,
+      docOps,
+      docVersions
+    }
   }
 
   async sendDiffQueryToChannel (channel, diffs) {
@@ -118,12 +121,14 @@ class ServerQuery extends Query {
       docMap[doc._id] = doc
     }
 
-    let docs = {}
+    let docOps = {}
+    let docVersions = {}
 
     for (let diff of diffs) {
       if (diff.type === 'insert') {
         for (let docId of diff.values) {
-          docs[docId] = docMap[docId]._ops
+          docOps[docId] = docMap[docId]._ops
+          docVersions[docId] = docMap[docId]._v
         }
       }
     }
@@ -133,13 +138,13 @@ class ServerQuery extends Query {
       collectionName: this.collectionName,
       expression: this.originalExpression,
       version: this.version(),
-      diffs: diffs,
-      docs: docs
+      diffs,
+      docOps
     }
 
     this.sendOp(op, channel)
 
-    await this.subscribeDocs(docs, channel)
+    await this.subscribeDocs(docVersions, channel)
   }
 
   getDiffs (prev, data) {
@@ -149,39 +154,39 @@ class ServerQuery extends Query {
     return arraydiff(prevIds, docIds)
   }
 
-  async subscribeDocs (docs, channel) {
-    let docPromises = []
-    for (let docId in docs) {
-      let docData = docs[docId]
-      let docPromise = this.store.docSet
-        .getOrCreateDoc(this.collectionName, docData._id)
-        .then((doc) => {
-          doc.subscribe(channel, docData._v)
-        })
-      docPromises.push(docPromise)
-    }
-    await Promise.all(docPromises)
+  async subscribeDocs (docVersions, channel) {
+    let docPromises = Object
+      .keys(docVersions)
+      .map((docId) => {
+        let version = docVersions[docId]
+        return this.store.docSet
+          .getOrCreateDoc(this.collectionName, docId)
+          .then((doc) => {
+            doc.subscribe(channel, version)
+          })
+      })
+    return Promise.all(docPromises)
   }
 
-  async fetch (channel, opId) {
-    await this.sendQuery(channel, opId)
+  async fetch (channel, ackId) {
+    await this.sendQuery(channel, ackId)
 
     this.maybeUnattach()
   }
 
-  async subscribe (channel, opId) {
+  async subscribe (channel, ackId) {
     this.channels.push(channel)
 
-    if (!opId) return
+    if (!ackId) return
 
-    await this.sendQuery(channel, opId)
+    await this.sendQuery(channel, ackId)
   }
 
-  async sendQuery (channel, opId) {
+  async sendQuery (channel, ackId) {
     if (this.isDocs) {
-      await this.sendDocsQuerySnapshotToChannel(channel, opId)
+      await this.sendDocsQuerySnapshotToChannel(channel, ackId)
     } else {
-      await this.sendNotDocsQuerySnapshotToChannel(channel, opId)
+      await this.sendNotDocsQuerySnapshotToChannel(channel, ackId)
     }
   }
 
@@ -196,7 +201,7 @@ class ServerQuery extends Query {
       if (this.channels.length === 0) {
         this.destroy()
       }
-    }, unattachTimeout)
+    }, this.store.options.unattachTimeout)
   }
 
   destroy () {

@@ -15,12 +15,12 @@ class ProjectedQuery extends ServerQuery {
 
     if ((op.type === 'q' || op.type === 'qdiff') && this.isDocs) {
       let projectedDocs = {}
-      for (let docId in op.docs) {
-        let ops = op.docs[docId]
+      for (let docId in op.docOps) {
+        let ops = op.docOps[docId]
         let projectedOps = ops.map((docOp) => this.projection.projectOp(docOp))
         projectedDocs[docId] = projectedOps
       }
-      op.docs = projectedDocs
+      op.docOps = projectedDocs
     }
 
     super.sendOp(op, channel)

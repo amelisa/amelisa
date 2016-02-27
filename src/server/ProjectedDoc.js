@@ -13,8 +13,7 @@ class ProjectedDoc extends ServerDoc {
     let error = this.projection.validateOp(op)
     if (error) {
       op = {
-        id: op.id,
-        type: 'ack',
+        ackId: op.id,
         collectionName: this.projectionCollectionName,
         docId: this.docId,
         error: error

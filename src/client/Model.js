@@ -8,12 +8,13 @@ import { getBundleJsonFromDom } from '../web/dom'
 import { deepClone, isLocalCollection, isServer, parseArguments, parsePath } from '../util'
 
 class Model extends EventEmitter {
-  constructor (channel, source, options = {}) {
+  constructor (channel, source, options = {}, projectionHashes = {}) {
     super()
     this.channel = channel
     this.online = false
     this.source = source
     this.options = options
+    this.projectionHashes = projectionHashes
     this.collectionSet = new CollectionSet(this)
     this.querySet = new ClientQuerySet(this)
     this.callbacks = {}
@@ -22,6 +23,9 @@ class Model extends EventEmitter {
     channel.on('message', (message) => {
       debug('message', message)
       this.onMessage(message)
+        .catch((err) => {
+          console.error('Error on processing message', message, err)
+        })
     })
 
     channel.on('open', () => {
@@ -71,11 +75,10 @@ class Model extends EventEmitter {
     return subscription
   }
 
-  setOnline () {
+  async setOnline () {
     this.online = true
 
-    // TODO: do not sync when server
-    this.syncDate()
+    if (!isServer) await this.syncDate()
 
     let syncData = {
       collections: this.collectionSet.getSyncData(),
@@ -96,51 +99,15 @@ class Model extends EventEmitter {
     this.emit('offline')
   }
 
-  onMessage (message) {
-    let { type, id, collectionName, docId, expression, value, version, ids, diffs, docs, ops, ackId, error } = message
+  async onMessage (message) {
+    let { type, id, collectionName, docId, expression, value, version, diffs, docIds, docOps, ops, ackId, error } = message
     let doc
     let query
     let collection
-    let callbacks
-    if (type === 'ackdate' || type === 'ack') {
-      callbacks = this.callbacks[id]
-      if (callbacks) delete this.callbacks[id]
-    }
-    if (ackId) {
-      callbacks = this.callbacks[ackId]
-      if (callbacks) {
-        delete this.callbacks[ackId]
-        for (let callback of callbacks) {
-          callback()
-        }
-      }
-    }
 
-    debug('onMessage', this.source, type, id, collectionName, docId, expression, !!callbacks, value, diffs, docs)
+    debug('onMessage', this.source, type, id, collectionName, docId, expression, value, diffs)
 
     switch (type) {
-      case 'ackdate':
-        if (callbacks && !error) {
-          for (let callback of callbacks) {
-            callback(null, value)
-          }
-        }
-        break
-
-      case 'ack':
-        if (error) this.collectionSet.rejectOp(collectionName, docId, id)
-
-        if (callbacks) {
-          for (let callback of callbacks) {
-            if (error) {
-              callback(new Error(error))
-            } else {
-              callback(null, value)
-            }
-          }
-        }
-        break
-
       case 'fetch':
         doc = this.collectionSet.getDoc(collectionName, docId)
         if (doc) {
@@ -158,7 +125,7 @@ class Model extends EventEmitter {
       case 'q':
         query = this.querySet.getOrCreateQuery(collectionName, expression)
         if (query.isDocs) {
-          query.onSnapshotDocs(ids, docs, version)
+          query.onSnapshotDocs(docIds, docOps, version)
         } else {
           query.onSnapshotNotDocs(value, version)
         }
@@ -166,20 +133,14 @@ class Model extends EventEmitter {
 
       case 'qdiff':
         query = this.querySet.getOrCreateQuery(collectionName, expression)
-        query.onDiff(diffs, docs, version)
+        query.onDiff(diffs, docOps, version)
         break
 
       case 'sync':
-        this
-          .onProjections(value.projectionHashes)
-          .then(() => {
-            if (value.version !== this.get('_app.version')) {
-              this.emit('version', value.version)
-            }
-          })
-          .catch((error) => {
-            console.error(error)
-          })
+        await this.onProjections(value.projectionHashes)
+        if (value.version !== this.get('_app.version')) {
+          this.emit('version', value.version)
+        }
         break
 
       case 'add':
@@ -197,6 +158,22 @@ class Model extends EventEmitter {
 
       default:
     }
+
+    if (ackId) {
+      if (error) this.collectionSet.rejectOp(collectionName, docId, ackId)
+
+      let callbacks = this.callbacks[ackId]
+      if (callbacks) {
+        delete this.callbacks[ackId]
+        for (let callback of callbacks) {
+          if (error) {
+            callback(new Error(error))
+          } else {
+            callback(null, value)
+          }
+        }
+      }
+    }
   }
 
   get () {
@@ -204,7 +181,7 @@ class Model extends EventEmitter {
     return this.collectionSet.get(collectionName, docId, field)
   }
 
-  add (collectionName, docData) {
+  async add (collectionName, docData) {
     if (!collectionName) return console.error('Model.add collectionName is required')
     if (typeof collectionName !== 'string') return console.error('Model.add collectionName should be a string')
     if (!docData) return console.error('Model.add docData is required')
@@ -219,7 +196,7 @@ class Model extends EventEmitter {
     return collection.add(docId, docData)
   }
 
-  set (path, value) {
+  async set (path, value) {
     let [collectionName, docId, field] = parsePath(path)
 
     if (!collectionName) return console.error('Model.set collectionName is required')
@@ -233,7 +210,7 @@ class Model extends EventEmitter {
     return doc.set(field, value)
   }
 
-  del (path) {
+  async del (path) {
     let [collectionName, docId, field] = parsePath(path)
 
     if (!collectionName) return console.error('Model.del collectionName is required')
@@ -255,12 +232,12 @@ class Model extends EventEmitter {
     return this.querySet.getOrCreateQuery(collectionName, expression)
   }
 
-  onProjections (newProjectionHashes) {
+  async onProjections (newProjectionHashes) {
     let prevProjectionHashes = this.get('_app.projectionHashes')
 
     let collectionNames = this.getCollectionNamesToClear(prevProjectionHashes, newProjectionHashes)
 
-    if (!this.storage) return Promise.resolve()
+    if (!this.storage) return
     return Promise.all(collectionNames.map((collectionName) => this.storage.clearCollection(collectionName)))
   }
 
@@ -281,21 +258,27 @@ class Model extends EventEmitter {
     return collectionNames
   }
 
-  send (message) {
+  async send (message) {
     debug('send', message, this.online)
-    if (!this.online) return Promise.resolve()
+    if (!this.online || !message.id) return
 
     return new Promise((resolve, reject) => {
-      let callback = (err) => {
+      let callback = (err, value) => {
         if (err) return reject(err)
 
-        resolve()
+        resolve(value)
       }
       let callbacks = this.callbacks[message.id]
       if (!callbacks) callbacks = this.callbacks[message.id] = []
       callbacks.push(callback)
 
-      this.channel.send(message)
+      try {
+        this.channel.send(message)
+      } catch (err) {
+        console.error('Error while sending message', message, err)
+        // TODO: probably we should not reject here
+        reject(err)
+      }
     })
   }
 
@@ -313,26 +296,27 @@ class Model extends EventEmitter {
     return op
   }
 
-  sendOp (opData) {
+  async sendOp (opData) {
     // debug('sendOp', opData)
     let op = this.createOp(opData)
 
     return this.send(op)
   }
 
-  syncDate () {
+  async syncDate () {
     let start = Date.now()
-    this.sendOp({type: 'date'}, (err, serverDate) => {
-      if (err) return console.error('syncDate error:', err)
-      // TODO: could it be better?
-      let end = Date.now()
-      let requestTime = end - start
-      let serverNow = serverDate - (requestTime / 2)
-      let diff = serverNow - end
-      // debug('syncDate', requestTime, diff)
-      // TODO: save diff in localStorage
-      this.dateDiff = diff
-    })
+    let op = {
+      id: this.id(),
+      type: 'date'
+    }
+    let serverDate = await this.send(op)
+    if (!serverDate) return
+    // TODO: could it be better?
+    let end = Date.now()
+    let requestTime = end - start
+    let serverNow = serverDate - (requestTime / 2)
+    let dateDiff = this.dateDiff = serverNow - end
+    this.set('_app.dateDiff', dateDiff)
   }
 
   date () {
@@ -414,11 +398,9 @@ class Model extends EventEmitter {
     }
 
     this.set('_app.version', options.version)
-    this.set('_app.newProjectionHashes', options.projectionHashes)
+    this.set('_app.newProjectionHashes', this.projectionHashes)
     this.set('_app.clientStorage', options.clientStorage)
     this.set('_app.collectionNames', collectionNames)
-
-    return Promise.resolve()
   }
 }
 

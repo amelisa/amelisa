@@ -2,7 +2,6 @@ import assert from 'assert'
 import eventToPromise from 'event-to-promise'
 import { MemoryStorage, Store } from '../../src/server'
 import { collectionName, dbCollectionName, docId, expression, countExpression, joinExpression, field, value, sleep } from '../util'
-import ServerChannel from '../../src/server/ServerChannel'
 
 let storage
 let store

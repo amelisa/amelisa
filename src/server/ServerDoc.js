@@ -100,15 +100,15 @@ class ServerDoc extends Doc {
     }
   }
 
-  fetch (channel, version, opId) {
+  fetch (channel, version, ackId) {
     let op = {
       type: 'fetch',
       collectionName: this.collectionName,
       docId: this.docId,
       version: this.version(),
-      ops: this.getOpsToSend(version)
+      ops: this.getOpsToSend(version),
+      ackId
     }
-    if (opId) op.ackId = opId
     this.sendOp(op, channel)
 
     this.maybeUnattach()
@@ -119,7 +119,7 @@ class ServerDoc extends Doc {
     this.channels.push(channel)
   }
 
-  subscribe (channel, version, opId) {
+  subscribe (channel, version, ackId) {
     channel._session.subscribeDoc(this.collectionName, this.docId, version)
     this.channels.push(channel)
 
@@ -128,9 +128,9 @@ class ServerDoc extends Doc {
       collectionName: this.collectionName,
       docId: this.docId,
       version: this.version(),
-      ops: this.getOpsToSend(version)
+      ops: this.getOpsToSend(version),
+      ackId
     }
-    if (opId) op.ackId = opId
     this.sendOp(op, channel)
   }
 
@@ -141,10 +141,11 @@ class ServerDoc extends Doc {
   }
 
   maybeUnattach () {
-    // TODO: add timeout
-    if (this.channels.length === 0) {
-      this.docSet.unattach(this.collectionName, this.docId)
-    }
+    setTimeout(() => {
+      if (this.channels.length === 0) {
+        this.docSet.unattach(this.collectionName, this.docId)
+      }
+    }, this.store.options.unattachTimeout)
   }
 
   sync (channel, version, resubscribe) {

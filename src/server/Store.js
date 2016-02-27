@@ -8,32 +8,35 @@ import ServerChannel from './ServerChannel'
 import Model from '../client/Model'
 import { arrayRemove } from '../util'
 
+const defaultOptions = {
+  collections: {},
+  projections: {},
+  source: 'server',
+  unattachTimeout: 5000
+}
+
 class Store extends EventEmitter {
   constructor (storage, pub, sub, options = {}) {
     super()
     this.storage = storage
     this.pub = pub
     this.sub = sub
-    options.collections = options.collections || {}
-    options.projectionHashes = options.projectionHashes || {}
-    this.options = options
-    this.source = options.source || 'server'
+    this.options = Object.assign({}, defaultOptions, options)
     this.docSet = new ServerDocSet(this)
     this.querySet = new ServerQuerySet(this)
     this.clients = []
     this.projections = {}
+    this.projectionHashes = {}
     this.sentOps = {}
 
     if (sub) sub.on('message', this.onPubSubOp.bind(this))
 
-    if (options.projections) {
-      for (let collectionName in options.projections) {
-        let projectionOptions = options.projections[collectionName]
-        let projection = new Projection(collectionName,
-          projectionOptions.collectionName, projectionOptions.fields)
-        this.projections[collectionName] = projection
-        options.projectionHashes[collectionName] = projection.getHash()
-      }
+    for (let collectionName in this.options.projections) {
+      let projectionOptions = this.options.projections[collectionName]
+      let projection = new Projection(collectionName,
+        projectionOptions.collectionName, projectionOptions.fields)
+      this.projections[collectionName] = projection
+      this.projectionHashes[collectionName] = projection.getHash()
     }
   }
 
@@ -41,7 +44,7 @@ class Store extends EventEmitter {
     let channel = new ServerChannel()
     let channel2 = new ServerChannel()
     channel.pipe(channel2).pipe(channel)
-    let model = new Model(channel, this.source, Object.assign({}, this.options, options))
+    let model = new Model(channel, this.source, Object.assign({}, this.options, options), this.projectionHashes)
     model.server = true
 
     this.onChannel(channel2)
@@ -67,7 +70,17 @@ class Store extends EventEmitter {
     channel.on('message', (message) => {
       // debug('message', message)
       this.validateMessage(message, channel)
-        .catch((err) => console.error('validateMessage error', err, err.stack))
+        .catch((err) => {
+          let op = {
+            ackId: message.id,
+            collectionName: message.collectionName,
+            docId: message.docId,
+            error: 'Internal Error'
+          }
+          this.sendOp(op, channel)
+
+          console.error('validateMessage error', err, err.stack)
+        })
     })
 
     channel.on('close', () => {
@@ -92,11 +105,10 @@ class Store extends EventEmitter {
         await this.preHook(message, session, params)
       } catch (err) {
         let op = {
-          id: message.id,
-          type: 'ack',
+          ackId: message.id,
           collectionName: message.collectionName,
           docId: message.docId,
-          error: err
+          error: err && err.message
         }
         return this.sendOp(op, channel)
       }
@@ -110,16 +122,18 @@ class Store extends EventEmitter {
     let { type, id, collectionName, docId, expression, value, version } = message
     let doc
     let query
+    let op
 
     debug(type, id, collectionName, docId, expression)
 
     switch (type) {
       case 'date':
-        this.sendOp({
-          id: id,
-          type: 'ackdate',
+        op = {
+          ackId: id,
+          type: 'date',
           value: Date.now()
-        }, channel)
+        }
+        this.sendOp(op, channel)
         break
 
       case 'fetch':
@@ -188,11 +202,11 @@ class Store extends EventEmitter {
         }
         await Promise.all(queryPromises)
 
-        let op = {
+        op = {
           type: 'sync',
           value: {
             version: this.options.version,
-            projectionHashes: this.options.projectionHashes
+            projectionHashes: this.projectionHashes
           }
         }
         this.sendOp(op, channel)
@@ -207,8 +221,7 @@ class Store extends EventEmitter {
         // FIXME: remove listener if reject
         doc.once('saved', () => {
           op = {
-            id: id,
-            type: 'ack'
+            ackId: id
           }
           this.sendOp(op, channel)
           this.onOp(message)

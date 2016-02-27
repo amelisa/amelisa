@@ -6,11 +6,10 @@ import { parsePath } from '../util'
 import { EventEmitter } from 'events'
 
 class Subscription extends EventEmitter {
-  constructor (rawSubscribes, collectionSet, querySet, fetchOnly = false) {
+  constructor (rawSubscribes, collectionSet, querySet) {
     super()
     this.collectionSet = collectionSet
     this.querySet = querySet
-    this.fetchOnly = fetchOnly
 
     this.subscribes = this.parseRawSubscribes(rawSubscribes)
 
