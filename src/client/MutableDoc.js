@@ -51,7 +51,7 @@ class MutableDoc extends Doc {
     return this.model.storage
       .saveDoc(this.collection.name, this.docId, this.ops, this.serverVersion)
       .catch((err) => {
-        console.error('MutableDoc.save', err)
+        console.error('MutableDoc.save', this.collection.name, err)
       })
   }
 }
