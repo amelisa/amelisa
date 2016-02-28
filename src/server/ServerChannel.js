@@ -4,26 +4,45 @@ class ServerChannel extends EventEmitter {
   constructor () {
     super()
     this.server = true
-    this.open = false
+    this.opened = false
 
     this.on('open', () => {
-      this.open = true
+      if (this.opened) return
+      this.opened = true
+
+      if (!this.pipedChannel) return
+      this.pipedChannel.open()
     })
 
     this.on('close', () => {
-      if (!this.open) return
-      this.open = false
+      if (!this.opened) return
+      this.opened = false
 
       if (!this.pipedChannel) return
-      this.pipedChannel.emit('close')
+      this.pipedChannel.close()
     })
+  }
+
+  open () {
+    if (this.opened) return
+    this.emit('open')
+  }
+
+  close () {
+    if (!this.opened) return
+    this.emit('close')
   }
 
   send (message) {}
 
   pipe (channel) {
+    if (this.pipedChannel) {
+      this.pipedChannel.send = () => {}
+    }
+
     this.pipedChannel = channel
     channel.send = (message) => {
+      if (!channel.opened) return console.error('ServerChannel is closed', message)
       // make it intentionally async
       process.nextTick(() => {
         this.emit('message', message)

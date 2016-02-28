@@ -18,10 +18,12 @@ describe('Store', () => {
     let channel2 = new ServerChannel()
     channel.pipe(channel2).pipe(channel)
     store.onChannel(channel2)
+    channel.open()
   })
 
   it('should sub to empty doc', async () => {
     let op = {
+      id: 'id',
       type: 'sub',
       collectionName: collectionName,
       docId: docId,
@@ -33,6 +35,7 @@ describe('Store', () => {
     let message = await eventToPromise(channel, 'message')
 
     assert.equal(message.type, op.type)
+    assert.equal(message.ackId, op.id)
   })
 
   it('should sub to doc', async () => {

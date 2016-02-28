@@ -1,19 +1,19 @@
 import { EventEmitter } from 'events'
+import ReconnectableWebSocket from 'reconnectable-websocket'
+
+const defaultOptions = {
+  automaticOpen: false,
+  reconnectOnError: true,
+  reconnectInterval: 3000
+}
 
 class WebSocketChannel extends EventEmitter {
-  constructor (socket) {
+  constructor (url, options = {}) {
     super()
-    this.socket = socket
-    this.open = false
-    this.buffer = []
+    options = Object.assign({}, defaultOptions, options)
+    let socket = this.socket = new ReconnectableWebSocket(url, null, options)
 
     socket.onopen = () => {
-      this.open = true
-
-      for (let message of this.buffer) {
-        this.send(message)
-      }
-
       this.emit('open')
     }
 
@@ -23,7 +23,6 @@ class WebSocketChannel extends EventEmitter {
     }
 
     socket.onclose = () => {
-      this.open = false
       this.emit('close')
     }
 
@@ -32,13 +31,17 @@ class WebSocketChannel extends EventEmitter {
     }
   }
 
+  open () {
+    this.socket.open && this.socket.open()
+  }
+
+  close () {
+    this.socket.close && this.socket.close()
+  }
+
   send (data) {
-    if (this.open) {
-      let message = JSON.stringify(data)
-      this.socket.send(message)
-    } else {
-      this.buffer.push(data)
-    }
+    let message = JSON.stringify(data)
+    this.socket.send(message)
   }
 }
 

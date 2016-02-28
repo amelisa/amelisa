@@ -3,7 +3,11 @@ let debug = require('debug')('IndexedDbStorage')
 const dbName = 'amelisa'
 
 class IndexedDbStorage {
-  constructor (collectionNames = [], version) {
+  constructor (collectionNames, version) {
+    if (!collectionNames) collectionNames = JSON.parse(window.localStorage.getItem('collectionNames'))
+    if (!collectionNames) throw new Error('IndexedDbStorage must has collectionNames')
+    if (!version) version = window.localStorage.getItem('version')
+    if (!version) throw new Error('IndexedDbStorage must has version')
     this.collectionNames = collectionNames
     this.version = version
   }
@@ -24,6 +28,8 @@ class IndexedDbStorage {
         this.db = event.target.result
         let existingCollectionNames = this.getExistingCollectionNames()
         this.existingCollectionNames = existingCollectionNames
+        window.localStorage.setItem('version', this.version)
+        window.localStorage.setItem('collectionNames', JSON.stringify(this.collectionNames))
         resolve(this)
       }
       request.onupgradeneeded = (event) => {

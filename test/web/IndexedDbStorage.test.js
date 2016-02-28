@@ -1,16 +1,19 @@
 import assert from 'assert'
 import fakeIndexedDb from 'fake-indexeddb'
+import localStorage from 'localStorage'
 import IndexedDbStorage from '../../src/web/IndexedDbStorage'
 import { collectionName, docId } from '../util'
 
 global.window = {
-  indexedDB: fakeIndexedDb
+  indexedDB: fakeIndexedDb,
+  localStorage
 }
 let storage
 
 describe('IndexedDbStorage', () => {
   beforeEach(async () => {
-    storage = new IndexedDbStorage(['users'], 1)
+    fakeIndexedDb.deleteDatabase('amelisa')
+    storage = new IndexedDbStorage(['users'], 2)
     await storage.init()
   })
 

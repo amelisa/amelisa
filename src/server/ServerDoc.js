@@ -120,6 +120,7 @@ class ServerDoc extends Doc {
   }
 
   subscribe (channel, version, ackId) {
+    debug('subscribe')
     channel._session.subscribeDoc(this.collectionName, this.docId, version)
     this.channels.push(channel)
 
@@ -135,6 +136,7 @@ class ServerDoc extends Doc {
   }
 
   unsubscribe (channel) {
+    debug('unsubscribe')
     arrayRemove(this.channels, channel)
 
     this.maybeUnattach()

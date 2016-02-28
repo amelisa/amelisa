@@ -4,13 +4,14 @@ import { EventEmitter } from 'events'
 import CollectionSet from './CollectionSet'
 import ClientQuerySet from './ClientQuerySet'
 import Subscription from './Subscription'
-import { getBundleJsonFromDom } from '../web/dom'
 import { deepClone, isLocalCollection, isServer, parseArguments, parsePath } from '../util'
 
 class Model extends EventEmitter {
   constructor (channel, source, options = {}, projectionHashes = {}) {
     super()
     this.channel = channel
+    this.inited = false
+    this.ready = false
     this.online = false
     this.source = source
     this.options = options
@@ -18,11 +19,11 @@ class Model extends EventEmitter {
     this.collectionSet = new CollectionSet(this)
     this.querySet = new ClientQuerySet(this)
     this.callbacks = {}
-    this.dateDiff = 0
 
     channel.on('message', (message) => {
       debug('message', message)
-      this.onMessage(message)
+      this
+        .onMessage(message)
         .catch((err) => {
           console.error('Error on processing message', message, err)
         })
@@ -30,26 +31,123 @@ class Model extends EventEmitter {
 
     channel.on('open', () => {
       debug('open')
-      if (!this.online) this.setOnline()
+      if (isServer && !this.options.isClient) {
+        this.inited = true
+        this.setOnline()
+        return
+      }
+      this
+        .handshake()
+        .catch((err) => {
+          console.error('Error while model.handshake', err)
+        })
     })
 
     channel.on('close', () => {
       debug('close')
-      if (this.online) this.setOffline()
+      this.onChannelClose()
     })
 
-    channel.on('error', (err) => {
-      console.error('Connection error', err)
-      if (this.online) this.setOffline()
-    })
-
-    this.once('online', () => {
-      this.ready = true
-      this.emit('ready')
+    channel.on('error', () => {
+      debug('error')
+      this.onChannelClose()
     })
   }
 
-  async ready () {
+  onChannelClose () {
+    debug('onChannelClose', this.inited, this.online)
+    if (!this.inited) {
+      this
+        .init()
+        .catch((err) => {
+          console.error('Error while model.init', err, err.stack)
+        })
+    } else if (this.online) {
+      this.setOffline()
+    }
+  }
+
+  async init () {
+    debug('init')
+
+    this.storage = this.getStorage && this.getStorage()
+
+    if (this.storage) {
+      await this.storage.init()
+
+      await this.collectionSet.fillFromClientStorage()
+    }
+
+    this.set('_session.online', false)
+
+    let source = this.get('_app.source')
+    if (!source) {
+      source = this.id()
+      this.source = source
+      this.set('_app.source', source)
+    } else {
+      this.source = source
+    }
+
+    this.inited = true
+    this.setReady()
+  }
+
+  async handshake () {
+    debug('handshake')
+    let start = Date.now()
+    let op = {
+      id: this.id(),
+      type: 'handshake'
+    }
+    let { collectionNames, date, projectionHashes, version } = await this.send(op, true)
+    this.syncDate(start, date)
+
+    collectionNames = collectionNames.concat(['_app', '_session'])
+    this.storage = this.getStorage && this.getStorage(collectionNames, version)
+
+    if (this.storage) {
+      await this.storage.init()
+
+      // fill _app.projectionHashes
+      await this.collectionSet.fillLocalCollectionsFromClientStorage()
+
+      // clear collections in storage, where projections have changed
+      await this.onProjections(projectionHashes)
+
+      await this.collectionSet.fillFromClientStorage()
+    }
+
+    if (version !== this.get('_app.version')) this.emit('version', version)
+    this.set('_app.version', version)
+
+    let source = this.get('_app.source')
+    if (!source) {
+      source = this.id()
+      this.source = source
+      this.set('_app.source', source)
+    } else {
+      this.source = source
+    }
+
+    await this.unbundleData()
+
+    op = {
+      id: this.id(),
+      type: 'sync',
+      value: {
+        collections: this.collectionSet.getSyncData(),
+        queries: this.querySet.getSyncData()
+      }
+    }
+    await this.send(op, true)
+
+    this.inited = true
+    this.setOnline()
+    this.setReady()
+  }
+
+  async onReady () {
     if (this.ready) return
 
     return new Promise((resolve, reject) => {
@@ -75,19 +173,13 @@ class Model extends EventEmitter {
     return subscription
   }
 
+  setReady () {
+    this.ready = true
+    this.emit('ready')
+  }
+
   async setOnline () {
     this.online = true
-
-    if (!isServer) await this.syncDate()
-
-    let syncData = {
-      collections: this.collectionSet.getSyncData(),
-      queries: this.querySet.getSyncData()
-    }
-    this.sendOp({
-      type: 'sync',
-      value: syncData
-    })
 
     this.set('_session.online', true)
     this.emit('online')
@@ -100,12 +192,10 @@ class Model extends EventEmitter {
   }
 
   async onMessage (message) {
-    let { type, id, collectionName, docId, expression, value, version, diffs, docIds, docOps, ops, ackId, error } = message
+    let { type, collectionName, docId, expression, value, version, diffs, docIds, docOps, ops, ackId, error } = message
     let doc
     let query
     let collection
-
-    debug('onMessage', this.source, type, id, collectionName, docId, expression, value, diffs)
 
     switch (type) {
       case 'fetch':
@@ -134,13 +224,6 @@ class Model extends EventEmitter {
       case 'qdiff':
         query = this.querySet.getOrCreateQuery(collectionName, expression)
         query.onDiff(diffs, docOps)
-        break
-
-      case 'sync':
-        await this.onProjections(value.projectionHashes)
-        if (value.version !== this.get('_app.version')) {
-          this.emit('version', value.version)
-        }
         break
 
       case 'add':
@@ -258,9 +341,9 @@ class Model extends EventEmitter {
     return collectionNames
   }
 
-  async send (message) {
-    debug('send', message, this.online)
-    if (!this.online || !message.id) return
+  async send (message, forceSend) {
+    debug('send', message, forceSend, this.inited, this.online, !!message.id)
+    if (!forceSend && (!this.inited || !this.online || !message.id)) return
 
     return new Promise((resolve, reject) => {
       let callback = (err, value) => {
@@ -303,24 +386,18 @@ class Model extends EventEmitter {
     return this.send(op)
   }
 
-  async syncDate () {
-    let start = Date.now()
-    let op = {
-      id: this.id(),
-      type: 'date'
-    }
-    let serverDate = await this.send(op)
+  syncDate (start, serverDate) {
     if (!serverDate) return
     // TODO: could it be better?
     let end = Date.now()
     let requestTime = end - start
     let serverNow = serverDate - (requestTime / 2)
-    let dateDiff = this.dateDiff = serverNow - end
+    let dateDiff = serverNow - end
     this.set('_app.dateDiff', dateDiff)
   }
 
   date () {
-    return Date.now() + this.dateDiff
+    return Date.now() + (this.get('_app.dateDiff') || 0)
   }
 
   id () {
@@ -328,21 +405,26 @@ class Model extends EventEmitter {
   }
 
   close () {
-    this.channel.emit('close')
+    this.channel.close()
   }
 
   destroy () {
     this.close()
   }
 
-  getBundleJsonFromCacheOrDom () {
-    if (this.bundleJson) return this.bundleJson
-    let json = this.bundleJson = getBundleJsonFromDom()
-    return json
+  bundleJsonFromDom () {
+    if (!this.getBundleJsonFromDom) return JSON.stringify({collections: {}})
+
+    try {
+      return this.getBundleJsonFromDom()
+    } catch (err) {
+      console.error('Error while reading bundle from dom', err)
+      return JSON.stringify({collections: {}})
+    }
   }
 
   getBundleJson () {
-    if (!isServer) return this.getBundleJsonFromCacheOrDom()
+    if (!isServer) return this.bundleJsonFromDom()
 
     let bundle = {
       collections: this.collectionSet.bundle()
@@ -353,29 +435,11 @@ class Model extends EventEmitter {
     return json
   }
 
-  unbundle () {
-    if (this.bundle) return this.bundle
-    let json = this.getBundleJsonFromCacheOrDom()
+  async unbundleData () {
+    if (this.onBundleReady) await this.onBundleReady()
+    if (!this.getBundleJsonFromDom) return
+    let json = this.bundleJsonFromDom()
     let bundle = JSON.parse(json)
-    this.bundle = bundle
-    return bundle
-  }
-
-  unbundleLocalData () {
-    let bundle = this.unbundle()
-    let collections = bundle.collections || {}
-
-    let local = {
-      collections: {
-        _app: collections._app,
-        _session: collections._session
-      }
-    }
-    this.collectionSet.unbundle(local.collections)
-  }
-
-  unbundleData () {
-    let bundle = this.unbundle()
     this.collectionSet.unbundle(bundle.collections)
   }
 
@@ -388,19 +452,6 @@ class Model extends EventEmitter {
         this.collectionSet.clearCollection(collectionName)
       }
     }
-
-    let collectionNames = []
-
-    for (let collectionName in this.options.collections) {
-      if (this.options.collections[collectionName].client) {
-        collectionNames.push(collectionName)
-      }
-    }
-
-    this.set('_app.version', options.version)
-    this.set('_app.newProjectionHashes', this.projectionHashes)
-    this.set('_app.clientStorage', options.clientStorage)
-    this.set('_app.collectionNames', collectionNames)
   }
 }
 

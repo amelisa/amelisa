@@ -1,69 +1,25 @@
 import Model from '../client/Model'
-import ReconnectableWebSocket from 'reconnectable-websocket'
 import WebSocketChannel from '../client/WebSocketChannel'
-import SqliteStorage from './SqliteStorage'
+import SqliteStorage from '../web/SqliteStorage'
 
-let model
-
-async function initModel () {
-  let storage = new SqliteStorage(['_app', '_session'])
-  model.storage = storage
-
-  await storage.init()
-
-  await model.collectionSet.fillFromClientStorage()
-
-  model.set('_session.online', false)
-
-  model.dateDiff = model.get('_app.dateDiff') || 0
-
-  let source = model.get('_app.source')
-  if (!source) {
-    source = model.id()
-    model.source = source
-    model.set('_app.source', source)
-  } else {
-    model.source = source
-  }
-
-  let projectionHashes = model.get('_app.newProjectionHashes')
-  model.set('_app.projectionHashes', projectionHashes)
+function getStorage (collectionNames) {
+  return new SqliteStorage(collectionNames)
 }
 
 function getModel (channel, options = {}) {
-  if (model) return model
-
-  let ws
-
   if (!channel) {
-    let wsUrl = options.wsUrl || 'ws://localhost:3000'
+    let url = options.url || 'ws://localhost:3000'
 
-    let wsOptions = {
-      automaticOpen: false,
-      reconnectOnError: true,
-      reconnectInterval: 3000
-    }
-    ws = new ReconnectableWebSocket(wsUrl, null, wsOptions)
-    channel = new WebSocketChannel(ws)
+    channel = new WebSocketChannel(url, options.ws)
   }
 
-  model = new Model(channel)
+  let model = new Model(channel, options.source, options.model)
 
   window.model = model
 
-  let initPromise = new Promise((resolve, reject) => {
-    initModel()
-      .then(() => {
-        if (ws) ws.open()
-        resolve()
-      })
-      .catch((err) => {
-        console.error(err, err.stack)
-        reject(err)
-      })
-  })
+  model.getStorage = getStorage
 
-  model.init = () => initPromise
+  setTimeout(() => channel.open(), 0)
 
   return model
 }

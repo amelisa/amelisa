@@ -26,10 +26,16 @@ class Store extends EventEmitter {
     this.querySet = new ServerQuerySet(this)
     this.clients = []
     this.projections = {}
+    this.clientCollectionNames = []
     this.projectionHashes = {}
     this.sentOps = {}
 
     if (sub) sub.on('message', this.onPubSubOp.bind(this))
+
+    for (let collectionName in this.options.collections) {
+      let collectionOptions = this.options.collections[collectionName]
+      if (collectionOptions.client) this.clientCollectionNames.push(collectionName)
+    }
 
     for (let collectionName in this.options.projections) {
       let projectionOptions = this.options.projections[collectionName]
@@ -48,7 +54,7 @@ class Store extends EventEmitter {
     model.server = true
 
     this.onChannel(channel2)
-    channel.emit('open')
+    channel.open()
 
     return model
   }
@@ -59,7 +65,7 @@ class Store extends EventEmitter {
     channel.pipe(channel2).pipe(channel)
 
     this.onChannel(channel2)
-    channel.emit('open')
+    channel.open()
   }
 
   onChannel (channel) {
@@ -68,7 +74,7 @@ class Store extends EventEmitter {
     this.clients.push(channel)
 
     channel.on('message', (message) => {
-      // debug('message', message)
+      debug('message', message)
       this.validateMessage(message, channel)
         .catch((err) => {
           let op = {
@@ -118,52 +124,24 @@ class Store extends EventEmitter {
   }
 
   async onMessage (message, channel) {
-    debug('onMessage', message.type)
     let { type, id, collectionName, docId, expression, value, version, docIds } = message
     let doc
     let query
     let op
 
-    debug(type, id, collectionName, docId, expression)
-
     switch (type) {
-      case 'date':
+      case 'handshake':
         op = {
+          type: 'handshake',
           ackId: id,
-          type: 'date',
-          value: Date.now()
+          value: {
+            collectionNames: this.clientCollectionNames,
+            date: Date.now(),
+            projectionHashes: this.projectionHashes,
+            version: this.options.version
+          }
         }
         this.sendOp(op, channel)
-        break
-
-      case 'fetch':
-        doc = await this.docSet.getOrCreateDoc(collectionName, docId)
-        doc.fetch(channel, version, id)
-        break
-
-      case 'qfetch':
-        query = await this.querySet.getOrCreateQuery(collectionName, expression)
-        query.fetch(channel, docIds, id)
-        break
-
-      case 'sub':
-        doc = await this.docSet.getOrCreateDoc(collectionName, docId)
-        doc.subscribe(channel, version, id)
-        break
-
-      case 'unsub':
-        doc = await this.docSet.getOrCreateDoc(collectionName, docId)
-        doc.unsubscribe(channel)
-        break
-
-      case 'qsub':
-        query = await this.querySet.getOrCreateQuery(collectionName, expression)
-        query.subscribe(channel, docIds, id)
-        break
-
-      case 'qunsub':
-        query = await this.querySet.getOrCreateQuery(collectionName, expression)
-        query.unsubscribe(channel)
         break
 
       case 'sync':
@@ -204,12 +182,39 @@ class Store extends EventEmitter {
 
         op = {
           type: 'sync',
-          value: {
-            version: this.options.version,
-            projectionHashes: this.projectionHashes
-          }
+          ackId: id
         }
         this.sendOp(op, channel)
+        break
+
+      case 'fetch':
+        doc = await this.docSet.getOrCreateDoc(collectionName, docId)
+        doc.fetch(channel, version, id)
+        break
+
+      case 'qfetch':
+        query = await this.querySet.getOrCreateQuery(collectionName, expression)
+        query.fetch(channel, docIds, id)
+        break
+
+      case 'sub':
+        doc = await this.docSet.getOrCreateDoc(collectionName, docId)
+        doc.subscribe(channel, version, id)
+        break
+
+      case 'unsub':
+        doc = await this.docSet.getOrCreateDoc(collectionName, docId)
+        doc.unsubscribe(channel)
+        break
+
+      case 'qsub':
+        query = await this.querySet.getOrCreateQuery(collectionName, expression)
+        query.subscribe(channel, docIds, id)
+        break
+
+      case 'qunsub':
+        query = await this.querySet.getOrCreateQuery(collectionName, expression)
+        query.unsubscribe(channel)
         break
 
       case 'add':

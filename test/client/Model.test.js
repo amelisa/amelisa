@@ -210,7 +210,7 @@ describe('Model', () => {
     beforeEach(() => {
       channel = new ServerChannel()
       model = new Model(channel, 'test')
-      model.online = true
+      channel.open()
     })
 
     it('should send op on add', () => {

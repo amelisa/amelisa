@@ -5,8 +5,6 @@ import { collectionName, docId, expression, field, value } from './util'
 import ServerChannel from '../src/server/ServerChannel'
 
 let storage
-let channel
-let channel2
 let store
 let store2
 let model
@@ -15,13 +13,15 @@ let model2
 describe('multystore', () => {
   beforeEach(async () => {
     storage = new MemoryStorage()
-    channel = new ServerChannel()
-    channel2 = new ServerChannel()
-    channel.pipe(channel2).pipe(channel)
     await storage.init()
 
-    store = new Store(storage, channel, channel2, {source: 'store1'})
-    store2 = new Store(storage, channel, channel2, {source: 'store2'})
+    let pub = new ServerChannel()
+    let sub = new ServerChannel()
+    pub.pipe(sub).pipe(pub)
+    pub.open()
+
+    store = new Store(storage, pub, sub, {source: 'store1'})
+    store2 = new Store(storage, pub, sub, {source: 'store2'})
     model = store.createModel()
     model2 = store2.createModel()
   })
