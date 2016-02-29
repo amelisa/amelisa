@@ -109,10 +109,6 @@ class Model extends EventEmitter {
     if (this.storage) {
       await this.storage.init()
 
-      // fill _app.projectionHashes
-      await this.collectionSet.fillLocalCollectionsFromClientStorage()
-
-      // clear collections in storage, where projections have changed
       await this.onProjections(projectionHashes)
 
       await this.collectionSet.fillFromClientStorage()

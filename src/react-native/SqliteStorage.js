@@ -47,12 +47,14 @@ class SqliteStorage {
     this.db = db
 
     let existingCollectionNames = await this.getExistingCollectionNames()
-    this.existingCollectionNames = existingCollectionNames
 
     for (let collectionName of this.collectionNames) {
       if (existingCollectionNames.indexOf(collectionName) > -1) continue
       await this.createCollection(collectionName)
+      existingCollectionNames.push(collectionName)
     }
+
+    this.existingCollectionNames = existingCollectionNames
 
     // for (let collectionName of existingCollectionNames) {
     //   if (this.collectionNames.indexOf(collectionName) > -1) continue
@@ -90,13 +92,6 @@ class SqliteStorage {
     }
 
     let data = JSON.stringify(doc)
-
-    if (this.existingCollectionNames.indexOf(collectionName) === -1) {
-      // Here possible race conditions with other saveDoc's on same collectionName
-      // If table already created, we just ignore error
-      await this.createCollection(collectionName).catch((err) => {}) // eslint-disable-line
-      this.existingCollectionNames.push(collectionName)
-    }
     await this.db.executeSql(`INSERT OR REPLACE INTO ${collectionName} (_id, data) VALUES ('${docId}', '${data}')`)
   }
 }
