@@ -1,6 +1,6 @@
 import Model from '../client/Model'
 import WebSocketChannel from '../client/WebSocketChannel'
-import SqliteStorage from '../web/SqliteStorage'
+import SqliteStorage from './SqliteStorage'
 
 function getStorage (collectionNames) {
   return new SqliteStorage(collectionNames)
@@ -19,7 +19,9 @@ function getModel (channel, options = {}) {
 
   model.getStorage = getStorage
 
-  setTimeout(() => channel.open(), 0)
+  // setTimeout workes unpredictably in react-native while debugging
+  // so we use setImmediate
+  setImmediate(() => channel.open())
 
   return model
 }
