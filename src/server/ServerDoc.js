@@ -115,13 +115,13 @@ class ServerDoc extends Doc {
   }
 
   subscribeWithoutSending (channel, version) {
-    channel._session.subscribeDoc(this.collectionName, this.docId, version)
+    channel._session.saveDocVersion(this.collectionName, this.docId, version)
     this.channels.push(channel)
   }
 
   subscribe (channel, version, ackId) {
     debug('subscribe')
-    channel._session.subscribeDoc(this.collectionName, this.docId, version)
+    channel._session.saveDocVersion(this.collectionName, this.docId, version)
     this.channels.push(channel)
 
     let op = {
@@ -152,7 +152,7 @@ class ServerDoc extends Doc {
 
   sync (channel, version, resubscribe) {
     if (resubscribe) {
-      channel._session.subscribeDoc(this.collectionName, this.docId, version)
+      channel._session.saveDocVersion(this.collectionName, this.docId, version)
       this.channels.push(channel)
     }
     this.sendOpsToChannel(channel)
