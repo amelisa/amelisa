@@ -12,9 +12,13 @@ let storage
 
 describe('IndexedDbStorage', () => {
   beforeEach(async () => {
-    fakeIndexedDb.deleteDatabase('amelisa')
-    storage = new IndexedDbStorage(['users'], 2)
+    storage = new IndexedDbStorage(['users'], 1)
     await storage.init()
+  })
+
+  afterEach(() => {
+    storage.close()
+    fakeIndexedDb.deleteDatabase('amelisa')
   })
 
   it('should save and get doc', async () => {

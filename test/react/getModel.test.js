@@ -22,10 +22,10 @@ const options = {
   }
 }
 let store
+let model
 
 describe('getModel', () => {
   beforeEach(async () => {
-    fakeIndexedDb.deleteDatabase('amelisa')
     for (let key of Object.keys(localStorage)) {
       delete localStorage[key]
     }
@@ -36,9 +36,14 @@ describe('getModel', () => {
     store = new Store(storage, null, null, storeOptions)
   })
 
+  afterEach(() => {
+    model.close()
+    fakeIndexedDb.deleteDatabase('amelisa')
+  })
+
   it('should get model', async () => {
     let channel = new ServerChannel()
-    let model = getModel(channel, options)
+    model = getModel(channel, options)
     store.connectModel(model)
 
     await model.onReady()
@@ -54,7 +59,7 @@ describe('getModel', () => {
     window.localStorage.setItem('version', 1)
     let channel = new ServerChannel()
     channel.open = () => {}
-    let model = getModel(channel, options)
+    model = getModel(channel, options)
     channel.emit('close')
     await model.onReady()
 
@@ -67,12 +72,13 @@ describe('getModel', () => {
 
   it('should save data in indexedDB and get it next time', async () => {
     let channel = new ServerChannel()
-    let model = getModel(channel, options)
+    model = getModel(channel, options)
     store.connectModel(model)
 
     await model.onReady()
 
     await model.set('_session.userId', value)
+    model.close()
 
     channel = new ServerChannel()
     model = getModel(channel, options)

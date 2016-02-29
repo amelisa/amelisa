@@ -402,6 +402,7 @@ class Model extends EventEmitter {
 
   close () {
     this.channel.close()
+    if (this.storage && this.storage.close) this.storage.close()
   }
 
   destroy () {

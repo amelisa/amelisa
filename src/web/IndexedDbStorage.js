@@ -114,6 +114,10 @@ class IndexedDbStorage {
     return Promise.all(promises)
   }
 
+  close () {
+    this.db.close()
+  }
+
   async saveDoc (collectionName, docId, ops, serverVersion) {
     let doc = {
       _id: docId,
