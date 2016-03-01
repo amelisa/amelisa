@@ -10,6 +10,7 @@ class Model extends EventEmitter {
   constructor (channel, source, options = {}, projectionHashes = {}) {
     super()
     this.channel = channel
+    this.initing = false
     this.inited = false
     this.ready = false
     this.online = false
@@ -56,7 +57,7 @@ class Model extends EventEmitter {
 
   onChannelClose () {
     debug('onChannelClose', this.inited, this.online)
-    if (!this.inited) {
+    if (!this.inited && !this.initing) {
       this
         .init()
         .catch((err) => {
@@ -69,6 +70,7 @@ class Model extends EventEmitter {
 
   async init () {
     debug('init')
+    this.initing = true
 
     this.storage = this.getStorage && this.getStorage()
 
@@ -95,6 +97,8 @@ class Model extends EventEmitter {
 
   async handshake () {
     debug('handshake')
+    this.initing = true
+
     let start = Date.now()
     let op = {
       id: this.id(),
