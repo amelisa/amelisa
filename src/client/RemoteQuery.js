@@ -6,6 +6,7 @@ class RemoteQuery extends ClientQuery {
     super(collectionName, expression, model, collection, querySet)
     this.server = false
     this.subscribed = 0
+    if (!model.online) this.refresh()
   }
 
   async fetch () {

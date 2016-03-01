@@ -177,8 +177,9 @@ class ServerQuery extends Query {
 
   async sendQuery (channel, docIds, ackId) {
     if (this.isDocs) {
-      let diffs = this.getDiffs(docIds, this.data)
-      await this.sendDiffQueryToChannel(channel, diffs, ackId)
+      // let diffs = this.getDiffs(docIds, this.data)
+      // await this.sendDiffQueryToChannel(channel, diffs, ackId)
+      await this.sendDocsQuerySnapshotToChannel(channel, ackId)
     } else {
       await this.sendNotDocsQuerySnapshotToChannel(channel, ackId)
     }
