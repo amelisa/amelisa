@@ -38,11 +38,8 @@ class ProjectedDoc extends ServerDoc {
     if (op) super.sendOp(op, channel)
   }
 
-  maybeUnattach () {
-    // TODO: add timeout
-    if (this.channels.length === 0) {
-      this.docSet.unattach(this.projectionCollectionName, this.docId)
-    }
+  destroy () {
+    this.docSet.unattach(this.projectionCollectionName, this.docId)
   }
 }
 

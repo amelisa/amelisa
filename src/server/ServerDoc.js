@@ -145,9 +145,13 @@ class ServerDoc extends Doc {
   maybeUnattach () {
     setTimeout(() => {
       if (this.channels.length === 0) {
-        this.docSet.unattach(this.collectionName, this.docId)
+        this.destroy()
       }
     }, this.store.options.unattachTimeout)
+  }
+
+  destroy () {
+    this.docSet.unattach(this.collectionName, this.docId)
   }
 
   sync (channel, version, resubscribe) {
