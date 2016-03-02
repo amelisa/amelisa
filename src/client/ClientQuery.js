@@ -24,13 +24,6 @@ class ClientQuery extends Query {
     return docs.map((doc) => this.getStateFromDocData(doc))
   }
 
-  init (docs) {
-    this.data = this.getStatesFromDocs(docs)
-    this.emit('change')
-
-    // this.attachDocsToCollection(docs)
-  }
-
   attachDocsToCollection (docs) {
     for (let docId in docs) {
       let ops = docs[docId]

@@ -1,4 +1,4 @@
-let debug = require('debug')('Collection')
+// let debug = require('debug')('Collection')
 import { EventEmitter } from 'events'
 import Doc from './Doc'
 
@@ -50,7 +50,7 @@ class Collection extends EventEmitter {
     let doc = this.getDoc(docId)
     if (!doc) doc = this.attach(docId, [])
     doc.applyOp(op)
-    debug('emit change on add')
+
     doc.emit('change')
     this.emit('change', op)
     return doc

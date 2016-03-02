@@ -6,6 +6,8 @@ class RemoteQuery extends ClientQuery {
     super(collectionName, expression, model, collection, querySet)
     this.server = false
     this.subscribed = 0
+
+    // while offline, refresh immediately from memory
     if (!model.online) this.refresh()
   }
 

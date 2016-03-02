@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react'
 import Loading from './Loading'
-import { isServer, fastEqual } from '../util'
+import { isServer, deepClone, fastEqual } from '../util'
 
 function createContainer (Component) {
   class Container extends React.Component {
@@ -165,10 +165,6 @@ function createContainer (Component) {
   }
 
   return Container
-}
-
-function deepClone (object) {
-  return JSON.parse(JSON.stringify(object))
 }
 
 export default createContainer

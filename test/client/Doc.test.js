@@ -486,23 +486,23 @@ describe('Doc', () => {
     assert.equal(version, `${source} ${date2}`)
   })
 
-  it('should versionMap from different sources', () => {
+  it('should getVersionMap from different sources', () => {
     let date1 = Date.now()
     let date2 = Date.now() + 1
 
     let doc = new Doc(docId)
-    let map = doc.versionMap(`${source} ${date1}|${source2} ${date2}`)
+    let map = doc.getVersionMap(`${source} ${date1}|${source2} ${date2}`)
 
     assert.equal(Object.keys(map).length, 2)
     assert.equal(map[source], date1)
     assert.equal(map[source2], date2)
   })
 
-  it('should versionMap from one sources', () => {
+  it('should getVersionMap from one sources', () => {
     let date1 = Date.now()
 
     let doc = new Doc(docId)
-    let map = doc.versionMap(`${source} ${date1}`)
+    let map = doc.getVersionMap(`${source} ${date1}`)
 
     assert.equal(Object.keys(map).length, 1)
     assert.equal(map[source], date1)

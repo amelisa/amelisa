@@ -217,12 +217,10 @@ class Doc extends EventEmitter {
       versions.push(source + ' ' + date)
     }
 
-    // TODO: sort version?
-    // versions.sort().reverse()
     return versions.join('|')
   }
 
-  versionMap (version) {
+  getVersionMap (version) {
     let map = {}
 
     if (!version) return map
@@ -241,10 +239,10 @@ class Doc extends EventEmitter {
 
   getOpsToSend (version) {
     let opsToSend = []
-    let map = this.versionMap(version)
+    let versionMap = this.getVersionMap(version)
 
     for (let op of this.ops) {
-      let versionDate = map[op.source]
+      let versionDate = versionMap[op.source]
       if (!versionDate || versionDate < op.date) {
         opsToSend.push(deepClone(op))
       }
@@ -262,9 +260,15 @@ class Doc extends EventEmitter {
 
 function sortByDate (op1, op2) {
   if (op1.date > op2.date) return 1
-
   if (op1.date < op2.date) return -1
 
+  // even if ops have same timestamp, we should sort them
+  // in predictable way, let's use source for this
+  if (op1.source > op2.source) return 1
+  if (op1.source < op2.source) return -1
+
+  // it should never get here in normal situations
+  // TODO: fix tests, so it never gets here
   return 0
 }
 
