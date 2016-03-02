@@ -140,7 +140,7 @@ function createContainer (Component) {
         let options = this.subscribeQueries[dataKey][2]
         let data = subscribe.get(options)
 
-        dataProps[dataKey] = data
+        dataProps[dataKey] = deepClone(data)
       }
 
       let utilProps = {
@@ -165,6 +165,10 @@ function createContainer (Component) {
   }
 
   return Container
+}
+
+function deepClone (object) {
+  return JSON.parse(JSON.stringify(object))
 }
 
 export default createContainer
