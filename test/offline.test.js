@@ -328,8 +328,7 @@ describe('offline', () => {
     assert.equal(model2.get(collectionName, docId, field), 'Vasya')
   })
 
-  // FIXME: fails sometimes
-  it.skip('should sync on online when subscribed to query and del', async () => {
+  it('should sync on online when subscribed to query and del', async () => {
     let subscribes = [[collectionName, expression]]
     await model.subscribe(subscribes)
     await model2.subscribe(subscribes)
@@ -347,10 +346,11 @@ describe('offline', () => {
     }
     model.add(collectionName, doc)
     model2.add(collectionName, doc2)
-    model.del([collectionName, '2'])
-    model2.del([collectionName, docId])
 
     await sleep(10)
+
+    model.del([collectionName, '2'])
+    model2.del([collectionName, docId])
 
     assert.equal(model.query(collectionName, expression).get().length, 1)
     assert.equal(model2.query(collectionName, expression).get().length, 1)
@@ -520,6 +520,9 @@ describe('offline', () => {
 
     model.add(collectionName, doc4)
     model2.add(collectionName, doc5)
+
+    await sleep(10)
+
     model.del([collectionName, docId])
     model2.del([collectionName, '3'])
     model.set([collectionName, '2', field], 'Petr')

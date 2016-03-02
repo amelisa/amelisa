@@ -66,8 +66,7 @@ describe('multymodel', () => {
     assert.equal(query.length, 1)
   })
 
-  // FIXME: fails sometimes
-  it.skip('should subscribe query, and get doc changes', async () => {
+  it('should subscribe query, and get doc changes', async () => {
     let subscribes = [[collectionName, expression]]
     let value2 = 'value2'
 
