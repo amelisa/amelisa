@@ -71,6 +71,15 @@ describe('subscribes doc', () => {
     assert.equal(doc.get(field), value)
   })
 
+  it('should subscribe doc if doc in same model', async () => {
+    let doc = model.doc(collectionName, docId)
+    await model.add(collectionName, getDocData())
+    await doc.subscribe()
+
+    assert(doc.get())
+    assert.equal(doc.get(field), value)
+  })
+
   it('should subscribe doc and get it as it added', async () => {
     let doc = model.doc(collectionName, docId)
     await doc.subscribe()
@@ -81,11 +90,51 @@ describe('subscribes doc', () => {
     assert.equal(doc.get(field), value)
   })
 
+  it('should subscribe doc and get it as it added in same model', async () => {
+    let doc = model.doc(collectionName, docId)
+    await doc.subscribe()
+    setTimeout(() => model.add(collectionName, getDocData()))
+    await eventToPromise(doc, 'change')
+
+    assert(doc.get())
+    assert.equal(doc.get(field), value)
+  })
+
+  it('should subscribe doc and changes it as it was changed', async () => {
+    let doc = model.doc(collectionName, docId)
+    await model2.add(collectionName, getDocData())
+    await doc.subscribe()
+    setTimeout(() => model2.set([collectionName, docId, field], value2))
+    await eventToPromise(doc, 'change')
+
+    assert(doc.get(field), value2)
+  })
+
+  it('should subscribe doc and changes it as it was changed in same model', async () => {
+    let doc = model.doc(collectionName, docId)
+    await model.add(collectionName, getDocData())
+    await doc.subscribe()
+    setTimeout(() => model.set([collectionName, docId, field], value2))
+    await eventToPromise(doc, 'change')
+
+    assert(doc.get(field), value2)
+  })
+
   it('should subscribe doc and del it as it was deleted', async () => {
     let doc = model.doc(collectionName, docId)
     await model2.add(collectionName, getDocData())
     await doc.subscribe()
     setTimeout(() => model2.del(collectionName, docId))
+    await eventToPromise(doc, 'change')
+
+    assert(!doc.get())
+  })
+
+  it('should subscribe doc and del it as it was deleted in same model', async () => {
+    let doc = model.doc(collectionName, docId)
+    await model.add(collectionName, getDocData())
+    await doc.subscribe()
+    setTimeout(() => model.del(collectionName, docId))
     await eventToPromise(doc, 'change')
 
     assert(!doc.get())

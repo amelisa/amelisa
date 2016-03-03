@@ -1,12 +1,12 @@
 import http from 'http'
-import { ServerSocketChannel } from '../../src'
+import { ServerSocketChannel } from '../../src/server'
 import { Server as WebSocketServer } from 'ws'
 import app from './app'
 import store from './store'
 
 const port = process.env.PORT || 3000
 
-async function init() {
+async function init () {
   await store.init()
 
   let server = http.createServer()

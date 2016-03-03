@@ -1,4 +1,4 @@
-import { MongoStorage, RedisChannel, Store } from '../../src'
+import { MongoStorage, RedisChannel, Store } from '../../src/server'
 
 const options = {
   version: 1,

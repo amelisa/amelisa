@@ -1,6 +1,6 @@
 import createClient from './createClient'
 
-async function init() {
+async function init () {
   let model = await createClient()
 
   let index = 0

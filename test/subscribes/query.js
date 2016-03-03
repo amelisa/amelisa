@@ -72,6 +72,15 @@ describe('subscribes query', () => {
     assert.equal(query.get()[0][field], value)
   })
 
+  it('should subscribe query if in same model', async () => {
+    let query = model.query(collectionName, expression)
+    await model.add(collectionName, getDocData())
+    await query.subscribe()
+
+    assert.equal(query.get().length, 1)
+    assert.equal(query.get()[0][field], value)
+  })
+
   it('should subscribe query and get doc as it was added', async () => {
     let query = model.query(collectionName, expression)
     await query.subscribe()
@@ -82,11 +91,53 @@ describe('subscribes query', () => {
     assert.equal(query.get()[0][field], value)
   })
 
+  it('should subscribe query and get doc as it was added in same model', async () => {
+    let query = model.query(collectionName, expression)
+    await query.subscribe()
+    setTimeout(() => model.add(collectionName, getDocData()))
+    await eventToPromise(query, 'change')
+
+    assert.equal(query.get().length, 1)
+    assert.equal(query.get()[0][field], value)
+  })
+
+  it('should subscribe query and changes it as doc was changed', async () => {
+    let query = model.query(collectionName, expression)
+    await model2.add(collectionName, getDocData())
+    await query.subscribe()
+    setTimeout(() => model2.set([collectionName, docId, field], value2))
+    await eventToPromise(query, 'change')
+
+    assert.equal(query.get().length, 1)
+    assert.equal(query.get()[0][field], value2)
+  })
+
+  it('should subscribe query and changes it as doc was changed in same model', async () => {
+    let query = model.query(collectionName, expression)
+    await model.add(collectionName, getDocData())
+    await query.subscribe()
+    setTimeout(() => model.set([collectionName, docId, field], value2))
+    await eventToPromise(query, 'change')
+
+    assert.equal(query.get().length, 1)
+    assert.equal(query.get()[0][field], value2)
+  })
+
   it('should subscribe query and empty it as doc was deleted', async () => {
     let query = model.query(collectionName, expression)
     await model2.add(collectionName, getDocData())
     await query.subscribe()
     setTimeout(() => model2.del(collectionName, docId))
+    await eventToPromise(query, 'change')
+
+    assert.equal(query.get().length, 0)
+  })
+
+  it('should subscribe query and empty it as doc was deleted in same model', async () => {
+    let query = model.query(collectionName, expression)
+    await model.add(collectionName, getDocData())
+    await query.subscribe()
+    setTimeout(() => model.del(collectionName, docId))
     await eventToPromise(query, 'change')
 
     assert.equal(query.get().length, 0)

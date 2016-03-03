@@ -1,6 +1,6 @@
 import WebSocket from 'ws'
-import Model from '../../src/Model'
-import WebSocketChannel from '../../src/WebSocketChannel'
+import Model from '../../src/client/Model'
+import WebSocketChannel from '../../src/server/WebSocketChannel'
 
 let index = 1
 let source = 'client'
