@@ -12,6 +12,14 @@ let field2 = 'firstName'
 let value = 'Ivan'
 let value2 = 'Vasya'
 
+function getDocData (data) {
+  let docData = {
+    _id: docId,
+    [field]: value
+  }
+  return Object.assign({}, docData, data)
+}
+
 function sleep (ms = 0) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
@@ -30,5 +38,6 @@ export default {
   field2,
   value,
   value2,
+  getDocData,
   sleep
 }

@@ -1,6 +1,6 @@
 import assert from 'assert'
 import { MemoryStorage, Store } from '../src/server'
-import { localCollectionName, docId, expression, field, value, sleep } from './util'
+import { localCollectionName, docId, expression, getDocData, sleep } from './util'
 
 let storage
 let store
@@ -19,41 +19,20 @@ describe('local', () => {
   })
 
   it('should not send ops for local doc', async () => {
-    let subscribes = [[localCollectionName, docId]]
-
-    await model.subscribe(subscribes)
-
-    let doc = {
-      _id: docId,
-      [field]: value
-    }
-
-    model2.add(localCollectionName, doc)
-    assert(model2.get(localCollectionName, docId))
-    assert.equal(model2.get(localCollectionName, docId, field), value)
-
+    let doc = model.doc(localCollectionName, docId)
+    await doc.subscribe()
+    await model2.add(localCollectionName, getDocData())
     await sleep(10)
 
-    assert(!model.get(localCollectionName, docId))
+    assert(!doc.get())
   })
 
   it('should not send ops for local query', async () => {
-    let subscribes = [[localCollectionName, expression]]
-
-    await model.subscribe(subscribes)
-
-    let doc = {
-      _id: docId,
-      [field]: value
-    }
-
-    model2.add(localCollectionName, doc)
-    let docs = model2.query(localCollectionName, expression).get()
-    assert.equal(docs.length, 1)
-    assert.equal(docs[0]._id, docId)
-
+    let query = model.query(localCollectionName, expression)
+    await query.subscribe()
+    await model2.add(localCollectionName, getDocData())
     await sleep(10)
 
-    assert.equal(model.query(localCollectionName, expression).get().length, 0)
+    assert.equal(query.get().length, 0)
   })
 })

@@ -293,7 +293,7 @@ class Model extends EventEmitter {
     return doc.set(field, value)
   }
 
-  async del (path) {
+  async del (...path) {
     let [collectionName, docId, field] = parsePath(path)
 
     if (!collectionName) return console.error('Model.del collectionName is required')

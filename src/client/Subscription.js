@@ -19,10 +19,11 @@ class Subscription extends EventEmitter {
   parseRawSubscribes (rawSubscribes) {
     let subscribes = []
 
-    let first = rawSubscribes[0]
-    if (!first) return []
-    if (Array.isArray(first[0])) rawSubscribes = first
-    if (typeof first === 'string' && first.indexOf('.') === -1) rawSubscribes = [rawSubscribes]
+    if (Array.isArray(rawSubscribes) &&
+      rawSubscribes.length === 1 &&
+      Array.isArray(rawSubscribes[0])) {
+      rawSubscribes = rawSubscribes[0]
+    }
 
     for (let subscribe of rawSubscribes) {
       if (subscribe instanceof MutableDoc || subscribe instanceof ClientQuery) {

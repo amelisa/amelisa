@@ -33,6 +33,8 @@ class ProjectedDoc extends ServerDoc {
 
     if (op.type === 'add' || op.type === 'set' || op.type === 'del') {
       op = this.projection.projectOp(op)
+    } else if (op.type === 'fetch' || op.type === 'sub') {
+      op.ops = op.ops.map((docOp) => this.projection.projectOp(docOp))
     }
 
     if (op) super.sendOp(op, channel)

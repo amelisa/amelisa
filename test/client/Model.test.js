@@ -65,7 +65,7 @@ describe('Model', () => {
       }
       await model.add(collectionName, doc)
 
-      model.del([collectionName, docId, field])
+      model.del(collectionName, docId, field)
 
       let name = model.get(collectionName, docId, field)
       assert.equal(name, undefined)
@@ -75,6 +75,37 @@ describe('Model', () => {
     })
 
     it('should del doc', async () => {
+      let doc = {
+        _id: docId,
+        [field]: value
+      }
+      await model.add(collectionName, doc)
+
+      model.del(collectionName, docId)
+
+      let newDoc = model.get(collectionName, docId)
+      assert.equal(newDoc, undefined)
+      let name = model.get(collectionName, docId, field)
+      assert.equal(name, undefined)
+    })
+
+    it('should del field when array', async () => {
+      let doc = {
+        _id: docId,
+        [field]: value
+      }
+      await model.add(collectionName, doc)
+
+      model.del([collectionName, docId, field])
+
+      let name = model.get(collectionName, docId, field)
+      assert.equal(name, undefined)
+      let newDoc = model.get(collectionName, docId)
+      assert.equal(newDoc._id, docId)
+      assert.equal(newDoc.name, undefined)
+    })
+
+    it('should del doc when array', async () => {
       let doc = {
         _id: docId,
         [field]: value
@@ -189,6 +220,18 @@ describe('Model', () => {
       assert.equal(op.source, model.source)
       assert.equal(op.type, opData.type)
       assert.equal(Object.keys(op).length, 4)
+    })
+
+    it('should create several sync ops with different timestamp', () => {
+      let opData = {
+        type: 'test'
+      }
+
+      let op = model.createOp(opData)
+      let op2 = model.createOp(opData)
+      let op3 = model.createOp(opData)
+
+      assert(op.date !== op2.date !== op3.date)
     })
 
     it('should return date', () => {
