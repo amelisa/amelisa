@@ -1,6 +1,6 @@
 import assert from 'assert'
 import { MemoryStorage, Store } from '../src/server'
-import { collectionName, docId, field, value } from './util'
+import { collectionName, getDocData } from './util'
 
 let store
 let model
@@ -38,10 +38,28 @@ describe('hooks', () => {
       done()
     }
 
-    let doc = {
-      _id: docId,
-      [field]: value
+    model.add(collectionName, getDocData())
+  })
+
+  it('should throw error if preHook throws error', async (done) => {
+    store.preHook = async (op, session, params) => {
+      throw new Error('hook error')
     }
-    model.add(collectionName, doc)
+
+    model
+      .add(collectionName, getDocData())
+      .catch((err) => {
+        assert(err)
+        assert.equal(err.message, 'hook error')
+        done()
+      })
+  })
+
+  it('should not throw error if afterHook throws error', async () => {
+    store.afterHook = async (op, session, params) => {
+      throw new Error('hook error')
+    }
+
+    await model.add(collectionName, getDocData())
   })
 })
