@@ -13,7 +13,7 @@ class RedisPubsub extends EventEmitter {
     const pub = new RedisChannel(this.url)
     const sub = new RedisChannel(this.url, true)
 
-    this.send = pub.send
+    this.send = pub.send.bind(pub)
     sub.on('message', (message) => {
       this.emit('message', message)
     })
