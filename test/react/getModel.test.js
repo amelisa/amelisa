@@ -33,7 +33,7 @@ describe('getModel', () => {
     let storage = new MemoryStorage()
     await storage.init()
 
-    store = new Store(storage, null, null, storeOptions)
+    store = new Store(storage, null, storeOptions)
   })
 
   afterEach(() => {

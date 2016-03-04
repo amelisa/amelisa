@@ -1,8 +1,7 @@
 import assert from 'assert'
 import eventToPromise from 'event-to-promise'
-import { MemoryStorage, Store } from '../src/server'
+import { MemoryPubsub, MemoryStorage, Store } from '../src/server'
 import { collectionName, docId, expression, field, value2, getDocData } from './util'
-import ServerChannel from '../src/server/ServerChannel'
 
 let storage
 let store
@@ -15,13 +14,10 @@ describe('multystore', () => {
     storage = new MemoryStorage()
     await storage.init()
 
-    let pub = new ServerChannel()
-    let sub = new ServerChannel()
-    pub.pipe(sub).pipe(pub)
-    pub.open()
+    let pubsub = new MemoryPubsub()
 
-    store = new Store(storage, pub, sub, {source: 'store1'})
-    store2 = new Store(storage, pub, sub, {source: 'store2'})
+    store = new Store(storage, pubsub, {source: 'store1'})
+    store2 = new Store(storage, pubsub, {source: 'store2'})
     model = store.createModel()
     model2 = store2.createModel()
   })

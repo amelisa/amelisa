@@ -1,7 +1,8 @@
 import React from 'react'
+import MemoryPubsub from '../redis/MemoryPubsub'
 import MemoryStorage from '../mongo/MemoryStorage'
 import MongoStorage from '../mongo/MongoStorage'
-import RedisChannel from './RedisChannel'
+import RedisPubsub from '../redis/RedisPubsub'
 import ServerSocketChannel from './ServerSocketChannel'
 import Store from './Store'
 import { renderToString, renderToStaticMarkup } from '../react/serverRendering'
@@ -11,9 +12,10 @@ function createElement (...args) {
 }
 
 export default {
+  MemoryPubsub,
   MemoryStorage,
   MongoStorage,
-  RedisChannel,
+  RedisPubsub,
   ServerSocketChannel,
   Store,
   renderToString,

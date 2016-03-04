@@ -16,11 +16,10 @@ const defaultOptions = {
 }
 
 class Store extends EventEmitter {
-  constructor (storage, pub, sub, options = {}) {
+  constructor (storage, pubsub, options = {}) {
     super()
     this.storage = storage
-    this.pub = pub
-    this.sub = sub
+    this.pubsub = pubsub
     this.options = Object.assign({}, defaultOptions, options)
     this.docSet = new ServerDocSet(this)
     this.querySet = new ServerQuerySet(this)
@@ -30,7 +29,7 @@ class Store extends EventEmitter {
     this.projectionHashes = {}
     this.sentOps = {}
 
-    if (sub) sub.on('message', this.onPubSubOp.bind(this))
+    if (pubsub) pubsub.on('message', this.onPubsubOp.bind(this))
 
     for (let collectionName in this.options.collections) {
       let collectionOptions = this.options.collections[collectionName]
@@ -264,10 +263,10 @@ class Store extends EventEmitter {
     this.querySet.onOp(op)
     this.docSet.onOp(op)
     this.sentOps[op.id] = true
-    if (this.pub) this.pub.send(op)
+    if (this.pubsub) this.pubsub.send(op)
   }
 
-  onPubSubOp (op) {
+  onPubsubOp (op) {
     if (this.sentOps[op.id]) {
       delete this.sentOps[op.id]
       return

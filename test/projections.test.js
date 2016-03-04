@@ -26,7 +26,7 @@ describe('projections', () => {
     storage = new MemoryStorage()
     await storage.init()
 
-    store = new Store(storage, null, null, options)
+    store = new Store(storage, null, options)
     model = store.createModel({isClient: true})
     model.source = 'model1'
     model2 = store.createModel({isClient: true})
