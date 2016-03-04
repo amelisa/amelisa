@@ -1,7 +1,7 @@
 import assert from 'assert'
 import eventToPromise from 'event-to-promise'
 import { MemoryStorage, Store } from '../../src/server'
-import { collectionName, docId, expression, field, value, value2, getDocData } from '../util'
+import { collectionName, docId, expression, field, value, value2, getDocData, sleep } from '../util'
 
 let storage
 let store
@@ -56,6 +56,17 @@ describe('subscribes query', () => {
     assert.equal(query.get().length, 0)
   })
 
+  it('should fetch query while docs are added at same model', async () => {
+    let query = model.query(collectionName, expression)
+    await model.add(collectionName, getDocData())
+    model.add(collectionName, getDocData({_id: '2'}))
+    query.fetch()
+    model.add(collectionName, getDocData({_id: '3'}))
+    await eventToPromise(query, 'change')
+
+    assert.equal(query.get().length, 1)
+  })
+
   it('should subscribe empty query if not docs', async () => {
     let query = model.query(collectionName, expression)
     await query.subscribe()
@@ -94,8 +105,8 @@ describe('subscribes query', () => {
   it('should subscribe query and get doc as it was added in same model', async () => {
     let query = model.query(collectionName, expression)
     await query.subscribe()
-    setTimeout(() => model.add(collectionName, getDocData()))
-    await eventToPromise(query, 'change')
+    model.add(collectionName, getDocData())
+    await sleep(10)
 
     assert.equal(query.get().length, 1)
     assert.equal(query.get()[0][field], value)
@@ -131,6 +142,17 @@ describe('subscribes query', () => {
     await eventToPromise(query, 'change')
 
     assert.equal(query.get().length, 0)
+  })
+
+  it('should subscribe query while docs are added at same model', async () => {
+    let query = model.query(collectionName, expression)
+    await model.add(collectionName, getDocData())
+    model.add(collectionName, getDocData({_id: '2'}))
+    query.subscribe()
+    model.add(collectionName, getDocData({_id: '3'}))
+    await sleep(10)
+
+    assert.equal(query.get().length, 3)
   })
 
   it('should subscribe query and empty it as doc was deleted in same model', async () => {

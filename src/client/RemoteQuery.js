@@ -6,33 +6,34 @@ class RemoteQuery extends ClientQuery {
     super(collectionName, expression, model, collection, querySet)
     this.server = false
     this.subscribed = 0
+    this.subscribing = false
 
     // while offline, refresh immediately from memory
     if (!model.online) this.refresh()
   }
 
   async fetch () {
+    if (this.subscribing) return this.subscribingPromise
+    this.subscribing = true
+
     let op = {
       type: 'qfetch',
       collectionName: this.collection.name,
       expression: this.expression
     }
 
-    if (this.isDocs) op.docIds = this.data
+    if (this.isDocs) {
+      if (!this.refreshed) super.refresh()
+      op.docIds = this.data
+    }
 
-    return this.model.sendOp(op)
+    this.subscribingPromise = this.model.sendOp(op)
+    return this.subscribingPromise
   }
 
   onSnapshotNotDocs (data) {
     debug('onSnapshotNotDocs', this.data, data)
     this.refreshDataFromServer(data)
-  }
-
-  onSnapshotDocs (docIds, docOps) {
-    debug('onSnapshotDocs', this.data, docIds, docOps)
-    this.attachDocsToCollection(docOps)
-
-    this.refreshDataFromServer(docIds)
   }
 
   onDiff (diffs, docOps) {
@@ -72,6 +73,7 @@ class RemoteQuery extends ClientQuery {
   refreshDataFromServer (data) {
     this.data = data
 
+    this.subscribing = false
     this.server = true
     this.emit('change')
   }
@@ -92,6 +94,8 @@ class RemoteQuery extends ClientQuery {
   async subscribe () {
     this.subscribed++
     debug('subscribe', this.subscribed)
+    if (this.subscribing) return this.subscribingPromise
+    this.subscribing = true
     if (this.subscribed !== 1) return
 
     this.collection.on('change', this.onCollectionChange)
@@ -102,9 +106,13 @@ class RemoteQuery extends ClientQuery {
       expression: this.expression
     }
 
-    if (this.isDocs) op.docIds = this.data
+    if (this.isDocs) {
+      if (!this.refreshed) super.refresh()
+      op.docIds = this.data
+    }
 
-    return this.model.sendOp(op)
+    this.subscribingPromise = this.model.sendOp(op)
+    return this.subscribingPromise
   }
 
   async unsubscribe () {

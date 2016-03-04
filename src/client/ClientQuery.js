@@ -9,6 +9,7 @@ class ClientQuery extends Query {
     this.model = model
     this.collection = collection
     this.querySet = querySet
+    this.refreshed = false
   }
 
   getStateFromDocData (doc) {
@@ -48,10 +49,11 @@ class ClientQuery extends Query {
     } else {
       this.data = docDatas
     }
+    if (!this.refreshed) this.refreshed = true
   }
 
   onCollectionChange = (op) => {
-    this.refresh(op)
+    if (!this.subscribing) this.refresh(op)
   };
 }
 

@@ -74,23 +74,6 @@ class ServerQuery extends Query {
     this.sendOp(op, channel)
   }
 
-  async sendDocsQuerySnapshotToChannel (channel, ackId) {
-    let { docIds, docOps, docVersions } = this.getDocsData()
-
-    let op = {
-      type: 'q',
-      collectionName: this.collectionName,
-      expression: this.originalExpression,
-      docIds,
-      docOps,
-      ackId
-    }
-
-    this.sendOp(op, channel)
-
-    await this.subscribeDocs(docVersions, channel)
-  }
-
   getDocsData () {
     let docIds = []
     let docOps = {}
@@ -177,9 +160,8 @@ class ServerQuery extends Query {
 
   async sendQuery (channel, docIds, ackId) {
     if (this.isDocs) {
-      // let diffs = this.getDiffs(docIds, this.data)
-      // await this.sendDiffQueryToChannel(channel, diffs, ackId)
-      await this.sendDocsQuerySnapshotToChannel(channel, ackId)
+      let diffs = this.getDiffs(docIds, this.data)
+      await this.sendDiffQueryToChannel(channel, diffs, ackId)
     } else {
       await this.sendNotDocsQuerySnapshotToChannel(channel, ackId)
     }
@@ -201,14 +183,6 @@ class ServerQuery extends Query {
 
   destroy () {
     this.querySet.unattach(this.collectionName, this.expression)
-  }
-
-  sync (channel) {
-    this.channels.push(channel)
-
-    if (this.loaded) {
-      this.sendDocsQuerySnapshotToChannel(channel)
-    }
   }
 
   sendOp (op, channel) {

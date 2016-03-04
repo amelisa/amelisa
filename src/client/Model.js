@@ -192,7 +192,7 @@ class Model extends EventEmitter {
   }
 
   async onMessage (message) {
-    let { type, collectionName, docId, expression, value, version, diffs, docIds, docOps, ops, ackId, error } = message
+    let { type, collectionName, docId, expression, value, version, diffs, docOps, ops, ackId, error } = message
     let doc
     let query
     let collection
@@ -214,11 +214,7 @@ class Model extends EventEmitter {
 
       case 'q':
         query = this.querySet.getOrCreateQuery(collectionName, expression)
-        if (query.isDocs) {
-          query.onSnapshotDocs(docIds, docOps)
-        } else {
-          query.onSnapshotNotDocs(value)
-        }
+        query.onSnapshotNotDocs(value)
         break
 
       case 'qdiff':
