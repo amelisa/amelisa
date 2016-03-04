@@ -1,7 +1,8 @@
 # Amelisa
 
-[![Join the chat at https://gitter.im/amelisa/amelisa](https://badges.gitter.im/amelisa/amelisa.svg)](https://gitter.im/amelisa/amelisa?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Data engine with offline and realtime
+
+[![Join the chat at https://gitter.im/amelisa/amelisa](https://badges.gitter.im/amelisa/amelisa.svg)](https://gitter.im/amelisa/amelisa?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [![js-standard-style](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
 
