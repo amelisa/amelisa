@@ -52,6 +52,8 @@ class MutableDoc extends Doc {
       .saveDoc(this.collection.name, this.docId, this.ops, this.serverVersion)
       .catch((err) => {
         console.error('MutableDoc.save', this.collection.name, err)
+        console.log(`Probably, you have not added collection ${this.collection.name}
+          to store options. For IndexedDB app version should be increased also`)
       })
   }
 }
