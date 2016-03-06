@@ -1,5 +1,6 @@
 // let debug = require('debug')('Doc')
 import { EventEmitter } from 'events'
+import Char from './Char'
 import { deepClone } from '../util'
 
 class Doc extends EventEmitter {
@@ -7,6 +8,7 @@ class Doc extends EventEmitter {
     super()
     this.docId = docId
     this.ops = ops
+    this.stringFieldChars = {}
     this.refreshState()
   }
 
@@ -54,22 +56,26 @@ class Doc extends EventEmitter {
     for (let op of ops) {
       // undefined op
       if (!op) continue
-      // dublicate ops
-      if (opIds[op.id]) continue
-      opIds[op.id] = true
 
-      if (op.type === 'add') {
+      let { id, type, field } = op
+
+      // dublicate ops
+      if (opIds[id]) continue
+      opIds[id] = true
+
+      if (type === 'add') {
+        if (docRewrited) continue
+
         distilledOps.push(op)
+        docRewrited = true
         continue
       }
-
-      let field = op.field
 
       if (!field) {
         if (docRewrited) continue
 
         distilledOps.push(op)
-        docRewrited = true
+        if (type === 'set' || type === 'del') docRewrited = true
         continue
       }
 
@@ -92,7 +98,7 @@ class Doc extends EventEmitter {
       if (skip) continue
 
       distilledOps.push(op)
-      fields[field] = true
+      if (type === 'set' || type === 'del') fields[field] = true
     }
 
     distilledOps.sort(sortByDate)
@@ -108,9 +114,54 @@ class Doc extends EventEmitter {
     let state
     let parts
     let current
+    let lastOpWasString = false
+    let stringField
+    let chars = []
+    this.stringFieldChars = {}
+
+    let updateStringFieldFromChars = () => {
+      let fieldChars = chars.filter((char) => !char.removed)
+      this.stringFieldChars[stringField] = fieldChars
+      if (!stringField) {
+        state = fieldChars
+          .map((char) => char.value)
+          .join('')
+      } else {
+        parts = stringField.split('.')
+        if (!state) state = {}
+        current = state
+        parts.forEach((part, index) => {
+          if (index === parts.length - 1) {
+            current[part] = fieldChars
+              .map((char) => char.value)
+              .join('')
+          } else {
+            if (typeof current[part] === 'object') {
+              current = current[part]
+            } else {
+              current[part] = {}
+              current = current[part]
+            }
+          }
+        })
+      }
+    }
 
     for (let op of ops) {
-      let { type, field, value } = op
+      let { type, field, value, charId, positionId } = op
+      let index
+
+      if ((lastOpWasString && (type !== 'stringInsert' || type !== 'stringRemove')) ||
+        (lastOpWasString && (type === 'stringInsert' || type === 'stringRemove') && stringField !== field)) {
+        updateStringFieldFromChars()
+      }
+
+      if (type === 'stringInsert' || type === 'stringRemove') {
+        stringField = field
+        lastOpWasString = true
+        index = chars.findIndex((char) => char.charId === positionId) + 1
+        if (index === 0 && positionId) continue
+      }
 
       if (state && state._del) state = undefined
 
@@ -118,6 +169,7 @@ class Doc extends EventEmitter {
         case 'add':
           state = deepClone(value)
           break
+
         case 'set':
           if (!field) {
             state = deepClone(value)
@@ -140,6 +192,7 @@ class Doc extends EventEmitter {
             }
           })
           break
+
         case 'del':
           if (!field) {
             state = {}
@@ -161,7 +214,57 @@ class Doc extends EventEmitter {
               }
             }
           })
+          break
+
+        case 'increment':
+          if (value === undefined) value = 1
+
+          if (!field) {
+            if (typeof state !== 'number') state = 0
+            state = state + value
+            break
+          }
+
+          parts = field.split('.')
+          if (!state) state = {}
+          current = state
+          parts.forEach((part, index) => {
+            if (index === parts.length - 1) {
+              if (typeof current[part] !== 'number') current[part] = 0
+              current[part] = current[part] + value
+            } else {
+              if (typeof current[part] === 'object') {
+                current = current[part]
+              } else {
+                current[part] = {}
+                current = current[part]
+              }
+            }
+          })
+          break
+
+        case 'stringInsert':
+          let char = new Char(charId, value)
+          chars.splice(index, 0, char)
+          break
+
+        case 'stringRemove':
+          let currentIndex = index
+          let removed = 0
+          while (removed < value && currentIndex < chars.length) {
+            let char = chars[currentIndex]
+            if (!char.removed) {
+              char.removed = true
+              removed++
+            }
+            currentIndex++
+          }
+          break
       }
+    }
+
+    if (lastOpWasString) {
+      updateStringFieldFromChars()
     }
 
     this.state = state

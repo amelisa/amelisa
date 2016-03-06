@@ -84,7 +84,7 @@ describe('Doc', () => {
         type: 'set',
         collectionName,
         docId,
-        field: field,
+        field,
         value: value + i
       })
       ops.push(op)
@@ -95,6 +95,394 @@ describe('Doc', () => {
 
     assert.equal(doc.ops.length, 2)
     assert.equal(doc.ops[1].value, value + 10)
+  })
+
+  it('should distillOps on doc when last set', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'add',
+      collectionName,
+      docId,
+      value: {
+        [field]: value
+      }
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'set',
+      collectionName,
+      docId,
+      value
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+    doc.distillOps()
+
+    assert.equal(doc.ops.length, 1)
+    assert.equal(doc.ops[0].value, value)
+  })
+
+  it('should distillOps on doc when last add', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'set',
+      collectionName,
+      docId,
+      value
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'add',
+      collectionName,
+      docId,
+      value: {
+        [field]: value
+      }
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+    doc.distillOps()
+
+    assert.equal(doc.ops.length, 1)
+    assert.equal(doc.ops[0].value[field], value)
+  })
+
+  it('should distillOps on doc when set after increment', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'increment',
+      collectionName,
+      docId,
+      value: 4
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'set',
+      collectionName,
+      docId,
+      value
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+    doc.distillOps()
+
+    assert.equal(doc.ops.length, 1)
+    assert.equal(doc.ops[0].value, value)
+  })
+
+  it('should distillOps on doc when set before increment', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'set',
+      collectionName,
+      docId,
+      value
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'increment',
+      collectionName,
+      docId,
+      value: 4
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+    doc.distillOps()
+
+    assert.equal(doc.ops.length, 2)
+    assert.equal(doc.ops[1].value, 4)
+  })
+
+  it('should distillOps on same field when set after increment', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'increment',
+      collectionName,
+      docId,
+      field,
+      value: 4
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'set',
+      collectionName,
+      docId,
+      field,
+      value
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+    doc.distillOps()
+
+    assert.equal(doc.ops.length, 1)
+    assert.equal(doc.ops[0].value, value)
+  })
+
+  it('should distillOps on same field when set before increment', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'set',
+      collectionName,
+      docId,
+      field,
+      value
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'increment',
+      collectionName,
+      docId,
+      field,
+      value: 4
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+    doc.distillOps()
+
+    assert.equal(doc.ops.length, 2)
+    assert.equal(doc.ops[1].value, 4)
+  })
+
+  it('should distillOps on doc when set after stringInsert', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'stringInsert',
+      collectionName,
+      docId,
+      charId: model.id(),
+      value: 'a'
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'set',
+      collectionName,
+      docId,
+      value: value
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+    doc.distillOps()
+
+    assert.equal(doc.ops.length, 1)
+    assert.equal(doc.ops[0].value, value)
+  })
+
+  it('should distillOps on doc when set before stringInsert', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'set',
+      collectionName,
+      docId,
+      value
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'stringInsert',
+      collectionName,
+      docId,
+      charId: model.id(),
+      value: 'a'
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+    doc.distillOps()
+
+    assert.equal(doc.ops.length, 2)
+    assert.equal(doc.ops[1].value, 'a')
+  })
+
+  it('should distillOps on same field when set after stringInsert', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'stringInsert',
+      collectionName,
+      docId,
+      field,
+      charId: model.id(),
+      value: 'a'
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'set',
+      collectionName,
+      docId,
+      field,
+      value
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+    doc.distillOps()
+
+    assert.equal(doc.ops.length, 1)
+    assert.equal(doc.ops[0].value, value)
+  })
+
+  it('should distillOps on same field when set before stringInsert', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'set',
+      collectionName,
+      docId,
+      field,
+      value
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'stringInsert',
+      collectionName,
+      docId,
+      field,
+      charId: model.id(),
+      value: 'a'
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+    doc.distillOps()
+
+    assert.equal(doc.ops.length, 2)
+    assert.equal(doc.ops[1].value, 'a')
+  })
+
+  it('should distillOps on doc when set after stringRemove', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'stringRemove',
+      collectionName,
+      docId,
+      charId: model.id(),
+      value: 1
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'set',
+      collectionName,
+      docId,
+      value
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+    doc.distillOps()
+
+    assert.equal(doc.ops.length, 1)
+    assert.equal(doc.ops[0].value, value)
+  })
+
+  it('should distillOps on doc when set before stringRemove', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'set',
+      collectionName,
+      docId,
+      value
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'stringRemove',
+      collectionName,
+      docId,
+      charId: model.id(),
+      value: 1
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+    doc.distillOps()
+
+    assert.equal(doc.ops.length, 2)
+    assert.equal(doc.ops[1].value, 1)
+  })
+
+  it('should distillOps on same field when set after stringRemove', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'stringRemove',
+      collectionName,
+      docId,
+      field,
+      charId: model.id(),
+      value: 1
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'set',
+      collectionName,
+      docId,
+      field,
+      value
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+    doc.distillOps()
+
+    assert.equal(doc.ops.length, 1)
+    assert.equal(doc.ops[0].value, value)
+  })
+
+  it('should distillOps on same field when set before stringRemove', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'set',
+      collectionName,
+      docId,
+      field,
+      value
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'stringRemove',
+      collectionName,
+      docId,
+      field,
+      charId: model.id(),
+      value: 1
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+    doc.distillOps()
+
+    assert.equal(doc.ops.length, 2)
+    assert.equal(doc.ops[1].value, 1)
   })
 
   it('should distillOps on same docId if no fields', () => {
@@ -115,7 +503,7 @@ describe('Doc', () => {
         type: 'set',
         collectionName,
         docId,
-        field: field,
+        field,
         value: value + i
       })
       ops.push(op)
@@ -420,6 +808,244 @@ describe('Doc', () => {
     assert.equal(Object.keys(doc.get('nested')).length, 0)
     assert.equal(doc.get('nested.' + field), undefined)
     assert.equal(Object.keys(doc.get()).length, 2)
+  })
+
+  it('should refreshState when increment', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'add',
+      collectionName,
+      docId,
+      value: 3
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'increment',
+      collectionName,
+      docId,
+      value: 4
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+
+    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get(field), undefined)
+    assert.equal(doc.get(), 7)
+  })
+
+  it('should refreshState when increment when no value', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'add',
+      collectionName,
+      docId,
+      value: 3
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'increment',
+      collectionName,
+      docId
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+
+    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get(field), undefined)
+    assert.equal(doc.get(), 4)
+  })
+
+  it('should refreshState when increment and not number', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'add',
+      collectionName,
+      docId,
+      value: {
+        [field]: value
+      }
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'increment',
+      collectionName,
+      docId,
+      value: 4
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+
+    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get(field), undefined)
+    assert.equal(doc.get(), 4)
+  })
+
+  it('should refreshState when field increment', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'add',
+      collectionName,
+      docId,
+      value: {
+        [field]: 2
+      }
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'increment',
+      collectionName,
+      docId,
+      field,
+      value: 3
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+
+    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get(field), 5)
+  })
+
+  it('should refreshState when stringInsert', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'add',
+      collectionName,
+      docId,
+      value: {
+        [field]: value
+      }
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'stringInsert',
+      collectionName,
+      docId,
+      value: 'a',
+      charId: model.id()
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+
+    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get(), 'a')
+  })
+
+  it('should refreshState when stringInsert and stringRemove', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'add',
+      collectionName,
+      docId,
+      value: {
+        [field]: value
+      }
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'stringInsert',
+      collectionName,
+      docId,
+      value: 'a',
+      charId: model.id()
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'stringRemove',
+      collectionName,
+      docId,
+      value: 1
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+
+    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get(), '')
+  })
+
+  it('should refreshState when field stringInsert', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'add',
+      collectionName,
+      docId,
+      value: {
+        [field]: value
+      }
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'stringInsert',
+      collectionName,
+      docId,
+      field,
+      value: 'a',
+      charId: model.id()
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+
+    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get(field), 'a')
+  })
+
+  it('should refreshState when field stringInsert and stringRemove', () => {
+    let ops = []
+
+    let op = model.createOp({
+      type: 'add',
+      collectionName,
+      docId,
+      value: {
+        [field]: value
+      }
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'stringInsert',
+      collectionName,
+      docId,
+      field,
+      value: 'a',
+      charId: model.id()
+    })
+    ops.push(op)
+
+    op = model.createOp({
+      type: 'stringRemove',
+      collectionName,
+      docId,
+      field,
+      value: 1
+    })
+    ops.push(op)
+
+    let doc = new Doc(docId, ops)
+
+    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get(field), '')
   })
 
   it('should getVersionFromOps from different sources', () => {

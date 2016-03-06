@@ -11,6 +11,7 @@ let field = 'name'
 let field2 = 'firstName'
 let value = 'Ivan'
 let value2 = 'Vasya'
+let numValue = 4
 
 function getDocData (data) {
   let docData = {
@@ -38,6 +39,7 @@ export default {
   field2,
   value,
   value2,
+  numValue,
   getDocData,
   sleep
 }

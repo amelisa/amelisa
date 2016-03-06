@@ -2,7 +2,7 @@ import assert from 'assert'
 import ClientQuery from '../../src/client/ClientQuery'
 import Model from '../../src/client/Model'
 import ServerChannel from '../../src/server/ServerChannel'
-import { source, collectionName, localCollectionName, docId, field, value } from '../util'
+import { source, collectionName, localCollectionName, docId, field, value, numValue, getDocData } from '../util'
 
 let channel
 let model
@@ -25,27 +25,18 @@ describe('Model', () => {
     })
 
     it('should add without docId', () => {
-      let doc = {
-        [field]: value
-      }
-
-      model.add(collectionName, doc)
+      model.add(collectionName, getDocData())
 
       let collectionData = model.get(collectionName)
       assert.equal(Object.keys(collectionData).length, 1)
       let newId = Object.keys(collectionData)[0]
       let newDoc = model.get(collectionName, newId)
       assert.equal(newDoc._id, newId)
-      assert.equal(newDoc.name, doc.name)
+      assert.equal(newDoc[field], value)
     })
 
     it('should add with docId', () => {
-      let doc = {
-        _id: docId,
-        [field]: value
-      }
-
-      model.add(collectionName, doc)
+      model.add(collectionName, getDocData())
 
       let collectionData = model.get(collectionName)
       assert.equal(Object.keys(collectionData).length, 1)
@@ -55,15 +46,11 @@ describe('Model', () => {
       assert.equal(name, value)
       let newDoc = model.get(collectionName, newId)
       assert.equal(newDoc._id, newId)
-      assert.equal(newDoc.name, doc.name)
+      assert.equal(newDoc[field], value)
     })
 
     it('should del field', async () => {
-      let doc = {
-        _id: docId,
-        [field]: value
-      }
-      await model.add(collectionName, doc)
+      await model.add(collectionName, getDocData())
 
       model.del(collectionName, docId, field)
 
@@ -75,11 +62,7 @@ describe('Model', () => {
     })
 
     it('should del doc', async () => {
-      let doc = {
-        _id: docId,
-        [field]: value
-      }
-      await model.add(collectionName, doc)
+      await model.add(collectionName, getDocData())
 
       model.del(collectionName, docId)
 
@@ -90,11 +73,7 @@ describe('Model', () => {
     })
 
     it('should del field when array', async () => {
-      let doc = {
-        _id: docId,
-        [field]: value
-      }
-      await model.add(collectionName, doc)
+      await model.add(collectionName, getDocData())
 
       model.del([collectionName, docId, field])
 
@@ -106,11 +85,7 @@ describe('Model', () => {
     })
 
     it('should del doc when array', async () => {
-      let doc = {
-        _id: docId,
-        [field]: value
-      }
-      await model.add(collectionName, doc)
+      await model.add(collectionName, getDocData())
 
       model.del([collectionName, docId])
 
@@ -121,11 +96,7 @@ describe('Model', () => {
     })
 
     it('should set when array', async () => {
-      let doc = {
-        _id: docId,
-        [field]: value
-      }
-      await model.add(collectionName, doc)
+      await model.add(collectionName, getDocData())
       let newValue = 'Vasya'
 
       model.set([collectionName, docId, field], newValue)
@@ -135,11 +106,7 @@ describe('Model', () => {
     })
 
     it('should set when path', async () => {
-      let doc = {
-        _id: docId,
-        [field]: value
-      }
-      await model.add(collectionName, doc)
+      await model.add(collectionName, getDocData())
       let newValue = 'Vasya'
 
       model.set(`${collectionName}.${docId}.${field}`, newValue)
@@ -149,11 +116,7 @@ describe('Model', () => {
     })
 
     it('should set doc', () => {
-      let doc = {
-        [field]: value
-      }
-
-      model.set([collectionName, docId], doc)
+      model.set([collectionName, docId], getDocData())
 
       let newDoc = model.get(collectionName, docId)
       assert.equal(newDoc._id, docId)
@@ -192,6 +155,233 @@ describe('Model', () => {
 
       let name = model.get(collectionName, docId, field)
       assert.equal(name, value)
+    })
+
+    it('should increment when array', async () => {
+      await model.add(collectionName, getDocData())
+
+      model.increment([collectionName, docId, field], numValue)
+
+      let name = model.get(collectionName, docId, field)
+      assert.equal(name, numValue)
+    })
+
+    it('should increment when path', async () => {
+      await model.add(collectionName, getDocData())
+
+      model.increment(`${collectionName}.${docId}.${field}`, numValue)
+
+      let name = model.get(collectionName, docId, field)
+      assert.equal(name, numValue)
+    })
+
+    it('should increment doc', () => {
+      model.increment([collectionName, docId], numValue)
+
+      let newDoc = model.get(collectionName, docId)
+      assert.equal(newDoc, numValue)
+    })
+
+    it('should increment value as doc on local collection', () => {
+      model.increment([localCollectionName, docId], numValue)
+
+      let newDoc = model.get(localCollectionName, docId)
+      assert.equal(newDoc, numValue)
+      let collectionData = model.get(localCollectionName)
+      assert.equal(collectionData[docId], numValue)
+    })
+
+    it('should increment value as doc on local collection when not array', () => {
+      model.increment(`${collectionName}.${docId}`, numValue)
+
+      let newDoc = model.get(`${collectionName}.${docId}`)
+      assert.equal(newDoc, numValue)
+      let collectionData = model.get(collectionName)
+      assert.equal(collectionData[docId], numValue)
+    })
+
+    it('should increment on empty doc', () => {
+      model.increment([collectionName, docId, field], numValue)
+
+      let name = model.get(collectionName, docId, field)
+      assert.equal(name, numValue)
+    })
+
+    it('should stringInsert when array', async () => {
+      await model.add(collectionName, getDocData())
+
+      model.stringInsert([collectionName, docId, field], 0, value)
+
+      let name = model.get(collectionName, docId, field)
+      assert.equal(name, value)
+    })
+
+    it('should stringInsert when path', async () => {
+      await model.add(collectionName, getDocData())
+
+      model.stringInsert(`${collectionName}.${docId}.${field}`, 0, value)
+
+      let name = model.get(collectionName, docId, field)
+      assert.equal(name, value)
+    })
+
+    it('should stringInsert doc', () => {
+      model.stringInsert([collectionName, docId], 0, value)
+
+      let newDoc = model.get(collectionName, docId)
+      assert.equal(newDoc, value)
+    })
+
+    it('should stringInsert value as doc on local collection', () => {
+      model.stringInsert([localCollectionName, docId], 0, value)
+
+      let newDoc = model.get(localCollectionName, docId)
+      assert.equal(newDoc, value)
+      let collectionData = model.get(localCollectionName)
+      assert.equal(collectionData[docId], value)
+    })
+
+    it('should stringInsert value as doc on local collection when not array', () => {
+      model.stringInsert(`${collectionName}.${docId}`, 0, value)
+
+      let newDoc = model.get(`${collectionName}.${docId}`)
+      assert.equal(newDoc, value)
+      let collectionData = model.get(collectionName)
+      assert.equal(collectionData[docId], value)
+    })
+
+    it('should stringInsert on empty doc', () => {
+      model.stringInsert([collectionName, docId, field], 0, value)
+
+      let name = model.get(collectionName, docId, field)
+      assert.equal(name, value)
+    })
+
+    it('should stringInsert some times', () => {
+      model.stringInsert([collectionName, docId, field], 0, 'df')
+      model.stringInsert([collectionName, docId, field], 0, 'a')
+      model.stringInsert([collectionName, docId, field], 1, 's')
+
+      let name = model.get(collectionName, docId, field)
+      assert.equal(name, 'asdf')
+    })
+
+    it('should stringRemove doc', () => {
+      model.stringInsert([collectionName, docId], 0, value)
+      model.stringRemove([collectionName, docId], 0, 2)
+
+      let newDoc = model.get(collectionName, docId)
+      assert.equal(newDoc, 'an')
+    })
+
+    it('should stringRemove value as doc on local collection', () => {
+      model.stringInsert([localCollectionName, docId], 0, value)
+      model.stringRemove([localCollectionName, docId], 0, 2)
+
+      let newDoc = model.get(localCollectionName, docId)
+      assert.equal(newDoc, 'an')
+      let collectionData = model.get(localCollectionName)
+      assert.equal(collectionData[docId], 'an')
+    })
+
+    it('should stringRemove value as doc on local collection when not array', () => {
+      model.stringInsert([collectionName, docId], 0, value)
+      model.stringRemove(`${collectionName}.${docId}`, 0, 2)
+
+      let newDoc = model.get(`${collectionName}.${docId}`)
+      assert.equal(newDoc, 'an')
+      let collectionData = model.get(collectionName)
+      assert.equal(collectionData[docId], 'an')
+    })
+
+    it('should stringRemove on empty doc', () => {
+      model.stringRemove([collectionName, docId, field], 0, 1)
+
+      let name = model.get(collectionName, docId, field)
+      assert.equal(name, '')
+    })
+
+    it('should stringRemove some times', () => {
+      model.stringInsert([collectionName, docId, field], 0, value)
+      model.stringRemove([collectionName, docId, field], 1, 1)
+      model.stringRemove([collectionName, docId, field], 2, 1)
+      model.stringRemove([collectionName, docId, field], 0, 1)
+
+      let name = model.get(collectionName, docId, field)
+      assert.equal(name, 'a')
+    })
+
+    it('should stringDiff when array', async () => {
+      await model.add(collectionName, getDocData())
+
+      model.stringDiff([collectionName, docId, field], value)
+
+      let name = model.get(collectionName, docId, field)
+      assert.equal(name, value)
+    })
+
+    it('should stringDiff when path', async () => {
+      await model.add(collectionName, getDocData())
+
+      model.stringDiff(`${collectionName}.${docId}.${field}`, value)
+
+      let name = model.get(collectionName, docId, field)
+      assert.equal(name, value)
+    })
+
+    it('should stringDiff doc', () => {
+      model.stringDiff([collectionName, docId], '1Ivan2')
+      model.stringDiff([collectionName, docId], value)
+
+      let newDoc = model.get(collectionName, docId)
+      assert.equal(newDoc, value)
+    })
+
+    it('should stringDiff value as doc', () => {
+      model.stringDiff([collectionName, docId], value)
+
+      let newDoc = model.get(collectionName, docId)
+      assert.equal(newDoc, value)
+    })
+
+    it('should stringDiff value as doc on local collection', () => {
+      model.stringDiff([localCollectionName, docId], value)
+
+      let newDoc = model.get(localCollectionName, docId)
+      assert.equal(newDoc, value)
+      let collectionData = model.get(localCollectionName)
+      assert.equal(collectionData[docId], value)
+    })
+
+    it('should stringDiff value as doc on local collection when not array', () => {
+      model.stringDiff(`${collectionName}.${docId}`, value)
+
+      let newDoc = model.get(`${collectionName}.${docId}`)
+      assert.equal(newDoc, value)
+      let collectionData = model.get(collectionName)
+      assert.equal(collectionData[docId], value)
+    })
+
+    it('should stringDiff on empty doc', () => {
+      model.stringDiff([collectionName, docId, field], value)
+
+      let name = model.get(collectionName, docId, field)
+      assert.equal(name, value)
+    })
+
+    it('should stringDiff some times', () => {
+      model.stringDiff([collectionName, docId, field], 'asdf')
+      model.stringDiff([collectionName, docId, field], 'asfd')
+      model.stringDiff([collectionName, docId, field], 'asafd')
+      model.stringDiff([collectionName, docId, field], 'asdffdasd as df asdfasdf')
+      model.stringDiff([collectionName, docId, field], 'fdassdfasdf asd fasdf a sdf')
+      model.stringDiff([collectionName, docId, field], 'a sdfa sdfasdfasdf asd f asdf')
+      model.stringDiff([collectionName, docId, field], 'asdas d fasdfasdf asd fa sdf')
+      model.stringDiff([collectionName, docId, field], 'asadfa sd fasdfasdfasd fasdfas')
+      model.stringDiff([collectionName, docId, field], 'asdf')
+
+      let name = model.get(collectionName, docId, field)
+      assert.equal(name, 'asdf')
     })
 
     it('should return query', () => {
@@ -257,11 +447,6 @@ describe('Model', () => {
     })
 
     it('should send op on add', () => {
-      let doc = {
-        _id: docId,
-        [field]: value
-      }
-
       return new Promise((resolve, reject) => {
         channel.send = (op) => {
           assert(op)
@@ -269,11 +454,23 @@ describe('Model', () => {
           resolve()
         }
 
-        model.add(collectionName, doc)
+        model.add(collectionName, getDocData())
       })
     })
 
     it('should send op on set', () => {
+      return new Promise((resolve, reject) => {
+        channel.send = (op) => {
+          assert(op)
+          assert.equal(op.type, 'set')
+          resolve()
+        }
+
+        model.set([collectionName, docId], value)
+      })
+    })
+
+    it('should send op on set field', () => {
       return new Promise((resolve, reject) => {
         channel.send = (op) => {
           assert(op)
@@ -306,6 +503,30 @@ describe('Model', () => {
         }
 
         model.del([collectionName, docId, field])
+      })
+    })
+
+    it('should send op on increment', () => {
+      return new Promise((resolve, reject) => {
+        channel.send = (op) => {
+          assert(op)
+          assert.equal(op.type, 'increment')
+          resolve()
+        }
+
+        model.increment([collectionName, docId], numValue)
+      })
+    })
+
+    it('should send op on increment field', () => {
+      return new Promise((resolve, reject) => {
+        channel.send = (op) => {
+          assert(op)
+          assert.equal(op.type, 'increment')
+          resolve()
+        }
+
+        model.increment([collectionName, docId, field], numValue)
       })
     })
   })

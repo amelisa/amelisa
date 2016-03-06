@@ -225,6 +225,9 @@ class Model extends EventEmitter {
       case 'add':
       case 'set':
       case 'del':
+      case 'increment':
+      case 'stringInsert':
+      case 'stringRemove':
         collection = this.collectionSet.getOrCreateCollection(collectionName)
         doc = collection.getDoc(docId)
 
@@ -301,6 +304,68 @@ class Model extends EventEmitter {
     let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
 
     return doc.del(field)
+  }
+
+  async increment (path, value) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    if (!collectionName) return console.error('Model.increment collectionName is required')
+    if (typeof collectionName !== 'string') return console.error('Model.increment collectionName should be a string')
+    if (!docId) return console.error('Model.increment docId is required')
+    if (typeof docId !== 'string') return console.error('Model.increment docId should be a string')
+    if (field && typeof field !== 'string') return console.error('Model.increment field should be a string')
+    if (value !== undefined && typeof value !== 'number') return console.error('Model.increment value should be a number')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.increment(field, value)
+  }
+
+  async stringInsert (path, index, value) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    if (!collectionName) return console.error('Model.stringInsert collectionName is required')
+    if (typeof collectionName !== 'string') return console.error('Model.stringInsert collectionName should be a string')
+    if (!docId) return console.error('Model.stringInsert docId is required')
+    if (typeof docId !== 'string') return console.error('Model.stringInsert docId should be a string')
+    if (field && typeof field !== 'string') return console.error('Model.stringInsert field should be a string')
+    if (typeof index !== 'number') return console.error('Model.stringInsert index should be a number')
+    if (typeof value !== 'string') return console.error('Model.stringInsert value should be a string')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.stringInsert(field, index, value)
+  }
+
+  async stringRemove (path, index, howMany) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    if (!collectionName) return console.error('Model.stringRemove collectionName is required')
+    if (typeof collectionName !== 'string') return console.error('Model.stringRemove collectionName should be a string')
+    if (!docId) return console.error('Model.stringRemove docId is required')
+    if (typeof docId !== 'string') return console.error('Model.stringRemove docId should be a string')
+    if (field && typeof field !== 'string') return console.error('Model.stringRemove field should be a string')
+    if (typeof index !== 'number') return console.error('Model.stringRemove index should be a number')
+    if (typeof howMany !== 'number') return console.error('Model.stringRemove howMany should be a number')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.stringRemove(field, index, howMany)
+  }
+
+  async stringDiff (path, value) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    if (!collectionName) return console.error('Model.stringDiff collectionName is required')
+    if (typeof collectionName !== 'string') return console.error('Model.stringDiff collectionName should be a string')
+    if (!docId) return console.error('Model.stringDiff docId is required')
+    if (typeof docId !== 'string') return console.error('Model.stringDiff docId should be a string')
+    if (field && typeof field !== 'string') return console.error('Model.stringDiff field should be a string')
+    if (typeof value !== 'string') return console.error('Model.stringDiff value should be a string')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.stringDiff(field, value)
   }
 
   doc (collectionName, docId) {
