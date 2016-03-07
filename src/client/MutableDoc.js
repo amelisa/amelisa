@@ -180,8 +180,7 @@ class MutableDoc extends Doc {
     this.applyOp(op)
     this.emit('change')
     this.collection.emit('change', op)
-    let promise = this.save()
-    return promise
+    return this.save()
   }
 
   async save () {
