@@ -263,12 +263,8 @@ class Doc extends EventEmitter {
     this.state = state
   }
 
-  applyOp (newOp) {
-    // debug('applyOp', op.type)
-    let existingOp = this.ops.find((op) => op.id === newOp.id)
-    if (existingOp) return
-
-    this.ops.push(newOp)
+  applyOp (op) {
+    this.ops.push(op)
     this.distillOps()
     this.refreshState()
   }
@@ -277,17 +273,6 @@ class Doc extends EventEmitter {
     this.ops = this.ops.concat(ops)
     this.distillOps()
     this.refreshState()
-  }
-
-  shouldEmit (newOp) {
-    for (let op of this.ops) {
-      if (op.id === newOp.id) {
-        return false
-      }
-
-      // TODO: add more or better refactor
-    }
-    return true
   }
 
   version () {

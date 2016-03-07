@@ -155,7 +155,7 @@ class Store extends EventEmitter {
               .getOrCreateDoc(collectionName, docId)
               .then((doc) => {
                 for (let op of ops) {
-                  doc.onOp(op)
+                  doc.onOp(op, channel)
                   this.onOp(op)
                 }
                 doc.subscribe(channel, version)
@@ -281,10 +281,14 @@ class Store extends EventEmitter {
   sendOp (op, channel) {
     debug('sendOp', op.type, op)
 
+    if (!channel) {
+      return console.trace('Store.sendOp no channel')
+    }
+
     try {
       channel.send(op)
     } catch (err) {
-      console.error('sendOp error', err)
+      console.trace('Store.sendOp error', err)
     }
   }
 

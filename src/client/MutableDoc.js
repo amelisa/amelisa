@@ -49,22 +49,21 @@ class MutableDoc extends Doc {
   }
 
   stringInsert (field, index, value, diff) {
-    index--
     let chars = this.stringFieldChars[field]
     let positionId
 
-    if (chars && chars[index]) {
-      positionId = chars[index].charId
+    if (chars && chars[index - 1]) {
+      positionId = chars[index - 1].charId
     }
 
-    let promises = []
     let ops = []
+    let type = 'stringInsert'
 
     for (let value of value.split('')) {
       let charId = this.model.id()
 
       let op = this.model.createOp({
-        type: 'stringInsert',
+        type,
         collectionName: this.collection.name,
         docId: this.docId,
         charId,
@@ -74,24 +73,32 @@ class MutableDoc extends Doc {
       if (field) op.field = field
       if (positionId) op.positionId = positionId
 
-      if (diff) {
-        ops.push(op)
-      } else {
-        let promise = this.onOp(op)
-        promises.push(promise)
-      }
+      ops.push(op)
       positionId = charId
     }
 
     if (diff) return ops
 
+    this.applyOps(ops)
+
+    this.emit(type, index, value.length)
+
+    this.emit('change')
+    this.collection.emit('change')
+    this.save()
+
+    let promises = []
+    for (let op of ops) {
+      let promise = this.model.send(op)
+      promises.push(promise)
+    }
     return Promise.all(promises)
   }
 
   stringRemove (field, index, howMany, diff) {
     let chars = this.stringFieldChars[field]
-    let promises = []
     let ops = []
+    let type = 'stringRemove'
 
     for (let i = index; i < index + howMany; i++) {
       let positionId
@@ -101,7 +108,7 @@ class MutableDoc extends Doc {
       if (!positionId) continue
 
       let op = this.model.createOp({
-        type: 'stringRemove',
+        type,
         collectionName: this.collection.name,
         docId: this.docId,
         value: howMany
@@ -110,30 +117,38 @@ class MutableDoc extends Doc {
       if (field) op.field = field
       if (positionId) op.positionId = positionId
 
-      if (diff) {
-        ops.push(op)
-      } else {
-        let promise = this.onOp(op)
-        promises.push(promise)
-      }
+      ops.push(op)
     }
 
     if (diff) return ops
 
+    this.applyOps(ops)
+
+    this.emit(type, index, howMany)
+
+    this.emit('change')
+    this.collection.emit('change')
+    this.save()
+
+    let promises = []
+    for (let op of ops) {
+      let promise = this.model.send(op)
+      promises.push(promise)
+    }
     return Promise.all(promises)
   }
 
-  stringDiff (field, text) {
+  stringDiff (field, value) {
     let state = this.state
-    let fieldState = ''
-    if (!field && typeof state === 'string') fieldState = state
+    let previous = ''
+    if (!field && typeof state === 'string') previous = state
     else if (field) {
       let parts = field.split('.')
       if (!state) state = {}
       let current = state
       parts.forEach((part, index) => {
         if (index === parts.length - 1) {
-          if (typeof current[part] === 'string') fieldState = current[part]
+          if (typeof current[part] === 'string') previous = current[part]
         } else {
           if (typeof current[part] === 'object') {
             current = current[part]
@@ -145,41 +160,28 @@ class MutableDoc extends Doc {
       })
     }
 
-    let diffs = arrayDiff(fieldState.split(''), text.split(''))
-
-    let index = 0
-    let ops = []
-    for (let diff of diffs) {
-      let [ operation, values ] = diff
-
-      switch (operation) {
-        case '=':
-          index = index + values.length
-          break
-        case '-':
-          let removeOps = this.stringRemove(field, index, values.length, true)
-          ops = ops.concat(removeOps)
-          index = index + values.length
-          break
-        case '+':
-          let insertOps = this.stringInsert(field, index, values.join(''), true)
-          ops = ops.concat(insertOps)
-          index = index + values.length
-          break
-      }
+    if (previous === value) return
+    let start = 0
+    while (previous.charAt(start) === value.charAt(start)) {
+      start++
+    }
+    let end = 0
+    while (
+      previous.charAt(previous.length - 1 - end) === value.charAt(value.length - 1 - end) &&
+      end + start < previous.length &&
+      end + start < value.length
+    ) {
+      end++
     }
 
-    this.applyOps(ops)
-    this.emit('change')
-    this.collection.emit('change')
-    this.save()
-
-    let promises = []
-    for (let op of ops) {
-      let promise = this.model.send(op)
-      promises.push(promise)
+    if (previous.length !== start + end) {
+      let howMany = previous.length - start - end
+      this.stringRemove(field, start, howMany)
     }
-    return Promise.all(promises)
+    if (value.length !== start + end) {
+      let inserted = value.slice(start, value.length - end)
+      this.stringInsert(field, start, inserted)
+    }
   }
 
   refresh () {
