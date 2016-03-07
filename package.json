@@ -17,7 +17,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "array-diff": "0.0.1",
     "arraydiff": "^0.1.1",
     "babel-runtime": "^6.3.19",
     "debug": "^2.2.0",
