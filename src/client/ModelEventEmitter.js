@@ -1,7 +1,9 @@
 import { EventEmitter } from 'events'
 
 const mutateEvents = {
-  change: true
+  change: true,
+  stringinsert: true,
+  stringremove: true
 }
 
 class ModelEventEmitter extends EventEmitter {

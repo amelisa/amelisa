@@ -4,7 +4,7 @@ import { source, source2, collectionName, docId, field, field2, value, value2 } 
 
 let emitter
 
-describe.only('ModelEventEmitter', () => {
+describe('ModelEventEmitter', () => {
   beforeEach(() => {
     emitter = new ModelEventEmitter()
   })

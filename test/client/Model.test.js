@@ -298,7 +298,7 @@ describe('Model', () => {
       model.stringRemove([collectionName, docId, field], 0, 1)
 
       let name = model.get(collectionName, docId, field)
-      assert.equal(name, '')
+      assert.equal(name, undefined)
     })
 
     it('should stringRemove some times', () => {

@@ -54,7 +54,7 @@ class MutableDoc extends Doc {
     let positionId
 
     if (chars && chars[index]) {
-      positionId = this.stringFieldChars[field][index].charId
+      positionId = chars[index].charId
     }
 
     let promises = []
@@ -89,26 +89,38 @@ class MutableDoc extends Doc {
   }
 
   stringRemove (field, index, howMany, diff) {
-    index--
     let chars = this.stringFieldChars[field]
-    let positionId
-    if (chars && chars[index]) {
-      positionId = this.stringFieldChars[field][index].charId
+    let promises = []
+    let ops = []
+
+    for (let i = index; i < index + howMany; i++) {
+      let positionId
+      if (chars && chars[i]) {
+        positionId = chars[i].charId
+      }
+      if (!positionId) continue
+
+      let op = this.model.createOp({
+        type: 'stringRemove',
+        collectionName: this.collection.name,
+        docId: this.docId,
+        value: howMany
+      })
+
+      if (field) op.field = field
+      if (positionId) op.positionId = positionId
+
+      if (diff) {
+        ops.push(op)
+      } else {
+        let promise = this.onOp(op)
+        promises.push(promise)
+      }
     }
 
-    let op = this.model.createOp({
-      type: 'stringRemove',
-      collectionName: this.collection.name,
-      docId: this.docId,
-      value: howMany
-    })
+    if (diff) return ops
 
-    if (field) op.field = field
-    if (positionId) op.positionId = positionId
-
-    if (diff) return op
-
-    return this.onOp(op)
+    return Promise.all(promises)
   }
 
   stringDiff (field, text) {
@@ -145,8 +157,8 @@ class MutableDoc extends Doc {
           index = index + values.length
           break
         case '-':
-          let op = this.stringRemove(field, index, values.length, true)
-          ops.push(op)
+          let removeOps = this.stringRemove(field, index, values.length, true)
+          ops = ops.concat(removeOps)
           index = index + values.length
           break
         case '+':

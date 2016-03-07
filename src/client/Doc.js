@@ -150,6 +150,7 @@ class Doc extends EventEmitter {
     for (let op of ops) {
       let { type, field, value, charId, positionId } = op
       let index
+      let char
 
       if ((lastOpWasString && (type !== 'stringInsert' || type !== 'stringRemove')) ||
         (lastOpWasString && (type === 'stringInsert' || type === 'stringRemove') && stringField !== field)) {
@@ -159,8 +160,8 @@ class Doc extends EventEmitter {
       if (type === 'stringInsert' || type === 'stringRemove') {
         stringField = field
         lastOpWasString = true
-        index = chars.findIndex((char) => char.charId === positionId) + 1
-        if (index === 0 && positionId) continue
+        index = chars.findIndex((char) => char.charId === positionId)
+        if (index === -1 && positionId) continue
       }
 
       if (state && state._del) state = undefined
@@ -244,21 +245,13 @@ class Doc extends EventEmitter {
           break
 
         case 'stringInsert':
-          let char = new Char(charId, value)
-          chars.splice(index, 0, char)
+          char = new Char(charId, value)
+          chars.splice(index + 1, 0, char)
           break
 
         case 'stringRemove':
-          let currentIndex = index
-          let removed = 0
-          while (removed < value && currentIndex < chars.length) {
-            let char = chars[currentIndex]
-            if (!char.removed) {
-              char.removed = true
-              removed++
-            }
-            currentIndex++
-          }
+          char = chars[index]
+          char.removed = true
           break
       }
     }

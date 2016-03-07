@@ -380,8 +380,7 @@ describe('Doc', () => {
       type: 'stringRemove',
       collectionName,
       docId,
-      charId: model.id(),
-      value: 1
+      positionId: model.id()
     })
     ops.push(op)
 
@@ -415,8 +414,7 @@ describe('Doc', () => {
       type: 'stringRemove',
       collectionName,
       docId,
-      charId: model.id(),
-      value: 1
+      positionId: model.id()
     })
     ops.push(op)
 
@@ -424,7 +422,7 @@ describe('Doc', () => {
     doc.distillOps()
 
     assert.equal(doc.ops.length, 2)
-    assert.equal(doc.ops[1].value, 1)
+    assert.equal(doc.ops[1].type, 'stringRemove')
   })
 
   it('should distillOps on same field when set after stringRemove', () => {
@@ -435,8 +433,7 @@ describe('Doc', () => {
       collectionName,
       docId,
       field,
-      charId: model.id(),
-      value: 1
+      positionId: model.id()
     })
     ops.push(op)
 
@@ -473,8 +470,7 @@ describe('Doc', () => {
       collectionName,
       docId,
       field,
-      charId: model.id(),
-      value: 1
+      positionId: model.id()
     })
     ops.push(op)
 
@@ -482,7 +478,7 @@ describe('Doc', () => {
     doc.distillOps()
 
     assert.equal(doc.ops.length, 2)
-    assert.equal(doc.ops[1].value, 1)
+    assert.equal(doc.ops[1].type, 'stringRemove')
   })
 
   it('should distillOps on same docId if no fields', () => {
@@ -958,12 +954,13 @@ describe('Doc', () => {
     })
     ops.push(op)
 
+    let charId = model.id()
     op = model.createOp({
       type: 'stringInsert',
       collectionName,
       docId,
       value: 'a',
-      charId: model.id()
+      charId
     })
     ops.push(op)
 
@@ -971,7 +968,7 @@ describe('Doc', () => {
       type: 'stringRemove',
       collectionName,
       docId,
-      value: 1
+      positionId: charId
     })
     ops.push(op)
 
@@ -1023,13 +1020,14 @@ describe('Doc', () => {
     })
     ops.push(op)
 
+    let charId = model.id()
     op = model.createOp({
       type: 'stringInsert',
       collectionName,
       docId,
       field,
       value: 'a',
-      charId: model.id()
+      charId
     })
     ops.push(op)
 
@@ -1038,7 +1036,7 @@ describe('Doc', () => {
       collectionName,
       docId,
       field,
-      value: 1
+      positionId: charId
     })
     ops.push(op)
 
