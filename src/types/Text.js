@@ -35,7 +35,7 @@ class Text {
   }
 
   getInsertPositionIdByIndex (index) {
-    let char = this.chars[index - 1]
+    let char = this.chars.filter((char) => !char.removed)[index - 1]
     if (char) return char.charId
   }
 

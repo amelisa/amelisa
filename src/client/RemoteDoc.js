@@ -87,8 +87,8 @@ class RemoteDoc extends MutableDoc {
 
     let index
     if (type === 'stringInsert' || type === 'stringRemove') {
-      let chars = this.stringFieldChars[field] || []
-      index = chars.findIndex((char) => char.charId === positionId)
+      let text = this.getInternalAsText(field)
+      index = text.getIndexByPositionId(positionId)
     }
 
     this.applyOp(newOp)

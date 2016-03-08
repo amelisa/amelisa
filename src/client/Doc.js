@@ -6,13 +6,17 @@ import { deepClone } from '../util'
 class Doc extends EventEmitter {
   constructor (docId, ops = []) {
     super()
+
     this.docId = docId
     this.ops = ops
-    this.stringFieldChars = {}
     this.refreshState()
   }
 
   get (field) {
+    if (this.state && this.state._del) return
+
+    if (field === '_id') return this.docId
+
     let value = this.getInternal(field)
 
     value = this.getValue(value)
@@ -28,37 +32,37 @@ class Doc extends EventEmitter {
     if (value instanceof Text) return value.get()
 
     if (typeof value === 'object') {
+      let object = {}
       for (let key in value) {
-        value[key] = this.getValue(value[key])
+        object[key] = this.getValue(value[key])
       }
+      return object
     }
 
     return value
   }
 
   getInternal (field) {
-    if (this.state && this.state._del) return
+    if (!field) return this.state
 
-    if (field) {
-      if (field === '_id') return this.docId
-      let parts = field.split('.')
-      let value = this.state
+    let parts = field.split('.')
+    let value = this.state
 
-      for (let part of parts) {
-        if (!value) return
-        value = value[part]
-      }
-
-      return value
-    } else {
-      return this.state
+    for (let part of parts) {
+      if (!value) return
+      value = value[part]
     }
+
+    return value
   }
 
   getInternalAsText (field) {
     let text = this.getInternal(field)
 
-    if (!(text instanceof Text)) text = new Text()
+    if (!(text instanceof Text)) {
+      text = new Text()
+      this.setValueToField(field, text)
+    }
 
     return text
   }
@@ -198,6 +202,15 @@ class Doc extends EventEmitter {
     }
 
     this.state = state
+  }
+
+  setValueToField (field, value) {
+    if (field) {
+      if (!this.state || typeof this.state !== 'object') this.state = {}
+      this.applyFnToStateField(this.state, field, (part, current) => current[part] = value)
+    } else {
+      this.state = value
+    }
   }
 
   applyFnToStateField (state, field, fn) {
