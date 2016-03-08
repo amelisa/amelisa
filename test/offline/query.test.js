@@ -13,7 +13,7 @@ describe('offline query', () => {
     storage = new MemoryStorage()
     await storage.init()
 
-    store = new Store(storage)
+    store = new Store(storage, null, {saveDebounceTimeout: 0})
     model = store.createModel({isClient: true})
     model.source = 'model1'
     model2 = store.createModel({isClient: true})
@@ -26,6 +26,7 @@ describe('offline query', () => {
     let query = model.query(collectionName, expression)
     await query.subscribe()
     model2.close()
+
     await model2.add(collectionName, getDocData())
 
     assert.equal(query.get().length, 0)
@@ -61,7 +62,7 @@ describe('offline query', () => {
 
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(10)
+    await sleep(20)
 
     assert.equal(query.get().length, 1)
   })
@@ -75,7 +76,7 @@ describe('offline query', () => {
     assert.equal(query.get().length, 1)
 
     store.connectModel(model)
-    await eventToPromise(query, 'change')
+    await sleep(10)
 
     assert.equal(query.get().length, 1)
   })
@@ -205,7 +206,7 @@ describe('offline query', () => {
     await model2.set([collectionName, '2', field], 'Vasya')
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(10)
+    await sleep(20)
 
     assert.equal(query.get().length, 2)
     assert.equal(query2.get().length, 2)

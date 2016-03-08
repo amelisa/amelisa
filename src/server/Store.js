@@ -12,7 +12,8 @@ const defaultOptions = {
   collections: {},
   projections: {},
   source: 'server',
-  unattachTimeout: 5000
+  unattachTimeout: 5000,
+  saveDebounceTimeout: 1000
 }
 
 class Store extends EventEmitter {
@@ -156,7 +157,10 @@ class Store extends EventEmitter {
               .then((doc) => {
                 for (let op of ops) {
                   doc.onOp(op, channel)
-                  this.onOp(op)
+
+                  doc.once('saved', () => {
+                    this.onOp(op)
+                  })
                 }
                 doc.subscribe(channel, version)
               })

@@ -112,54 +112,24 @@ class Doc extends EventEmitter {
     ops.sort(sortByDate)
 
     let state
-    let parts
-    let current
-    let lastOpWasString = false
-    let stringField
-    let chars = []
+    this.stringDocChars = null
     this.stringFieldChars = {}
-
-    let updateStringFieldFromChars = () => {
-      let fieldChars = chars.filter((char) => !char.removed)
-      this.stringFieldChars[stringField] = fieldChars
-      if (!stringField) {
-        state = fieldChars
-          .map((char) => char.value)
-          .join('')
-      } else {
-        parts = stringField.split('.')
-        if (!state) state = {}
-        current = state
-        parts.forEach((part, index) => {
-          if (index === parts.length - 1) {
-            current[part] = fieldChars
-              .map((char) => char.value)
-              .join('')
-          } else {
-            if (typeof current[part] === 'object') {
-              current = current[part]
-            } else {
-              current[part] = {}
-              current = current[part]
-            }
-          }
-        })
-      }
-    }
 
     for (let op of ops) {
       let { type, field, value, charId, positionId } = op
       let index
       let char
-
-      if ((lastOpWasString && (type !== 'stringInsert' || type !== 'stringRemove')) ||
-        (lastOpWasString && (type === 'stringInsert' || type === 'stringRemove') && stringField !== field)) {
-        updateStringFieldFromChars()
-      }
+      let chars
 
       if (type === 'stringInsert' || type === 'stringRemove') {
-        stringField = field
-        lastOpWasString = true
+        if (field) {
+          chars = this.stringFieldChars[field]
+          if (!chars) chars = this.stringFieldChars[field] = []
+        } else {
+          chars = this.stringDocChars
+          if (!chars) chars = this.stringDocChars = []
+        }
+
         index = chars.findIndex((char) => char.charId === positionId)
         if (index === -1 && positionId) continue
       }
@@ -177,21 +147,8 @@ class Doc extends EventEmitter {
             break
           }
 
-          parts = field.split('.')
-          if (!state) state = {}
-          current = state
-          parts.forEach((part, index) => {
-            if (index === parts.length - 1) {
-              current[part] = value
-            } else {
-              if (typeof current[part] === 'object') {
-                current = current[part]
-              } else {
-                current[part] = {}
-                current = current[part]
-              }
-            }
-          })
+          if (!state || typeof state !== 'object') state = {}
+          this.applyFnToStateField(state, field, (part, current) => current[part] = value)
           break
 
         case 'del':
@@ -201,20 +158,8 @@ class Doc extends EventEmitter {
             break
           }
 
-          parts = field.split('.')
-          if (!state) state = {}
-          current = state
-          parts.forEach((part, index) => {
-            if (index === parts.length - 1) {
-              delete current[part]
-            } else {
-              if (current[part] === undefined) {
-                return
-              } else {
-                current = current[part]
-              }
-            }
-          })
+          if (!state || typeof state !== 'object') state = {}
+          this.applyFnToStateField(state, field, (part, current) => delete current[part])
           break
 
         case 'increment':
@@ -226,21 +171,10 @@ class Doc extends EventEmitter {
             break
           }
 
-          parts = field.split('.')
-          if (!state) state = {}
-          current = state
-          parts.forEach((part, index) => {
-            if (index === parts.length - 1) {
-              if (typeof current[part] !== 'number') current[part] = 0
-              current[part] = current[part] + value
-            } else {
-              if (typeof current[part] === 'object') {
-                current = current[part]
-              } else {
-                current[part] = {}
-                current = current[part]
-              }
-            }
+          if (!state || typeof state !== 'object') state = {}
+          this.applyFnToStateField(state, field, (part, current) => {
+            if (typeof current[part] !== 'number') current[part] = 0
+            current[part] = current[part] + value
           })
           break
 
@@ -256,11 +190,48 @@ class Doc extends EventEmitter {
       }
     }
 
-    if (lastOpWasString) {
-      updateStringFieldFromChars()
+    for (let field in this.stringFieldChars) {
+      let chars = this.getFieldChars(field)
+      let value = chars.map((char) => char.value).join('')
+
+      if (!state || typeof state !== 'object') state = {}
+      this.applyFnToStateField(state, field, (part, current) => current[part] = value)
+    }
+
+    if (this.stringDocChars) {
+      let chars = this.getFieldChars()
+      state = chars.map((char) => char.value).join('')
     }
 
     this.state = state
+  }
+
+  getFieldChars (field) {
+    let chars
+    if (field) {
+      chars = this.stringFieldChars[field]
+    } else {
+      chars = this.stringDocChars
+    }
+    if (chars) chars = chars.filter((char) => !char.removed)
+    return chars
+  }
+
+  applyFnToStateField (state, field, fn) {
+    let parts = field.split('.')
+    let current = state
+    parts.forEach((part, index) => {
+      if (index === parts.length - 1) {
+        fn(part, current)
+      } else {
+        if (typeof current[part] === 'object') {
+          current = current[part]
+        } else {
+          current[part] = {}
+          current = current[part]
+        }
+      }
+    })
   }
 
   applyOp (op) {
@@ -325,7 +296,7 @@ class Doc extends EventEmitter {
     for (let op of this.ops) {
       let versionDate = versionMap[op.source]
       if (!versionDate || versionDate < op.date) {
-        opsToSend.push(deepClone(op))
+        opsToSend.push(op)
       }
     }
 

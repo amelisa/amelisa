@@ -24,7 +24,7 @@ class ServerDoc extends Doc {
     if (this.loading) return
     this.loading = true
 
-    // debug('load', this.collectionName, this.docId)
+    debug('load', this.collectionName, this.docId)
 
     this.store.storage
       .getDocById(this.collectionName, this.docId)
@@ -47,16 +47,13 @@ class ServerDoc extends Doc {
   onOp (op) {
     // debug('onOp')
     this.ops.push(op)
-    // this.applyOp(op)
-    // if (this.timeout) clearTimeout(this.timeout)
-    // this.timeout = setTimeout(() => this.save(), 10)
-    this.save()
+    if (this.timeout) clearTimeout(this.timeout)
+    this.timeout = setTimeout(() => this.save(), this.store.options.saveDebounceTimeout)
     this.broadcastOp(op)
   }
 
   onPubSubOp (op) {
     this.ops.push(op)
-    // this.applyOp(op)
     this.broadcastOp(op)
   }
 
@@ -93,9 +90,11 @@ class ServerDoc extends Doc {
 
   broadcast () {
     debug('broadcast', this.projectionCollectionName, this.collectionName, this.docId, this.channels.length)
+    // let start = Date.now()
     for (let channel of this.channels) {
       this.sendOpsToChannel(channel)
     }
+    // console.log('broadcast', this.collectionName, this.docId, this.channels.length, Date.now() - start)
   }
 
   broadcastOp (op) {

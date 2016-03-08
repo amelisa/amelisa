@@ -95,6 +95,15 @@ describe('Model', () => {
       assert.equal(name, undefined)
     })
 
+    it('should del value on field when doc is value', () => {
+      model.set([collectionName, docId], value)
+      model.del(collectionName, docId, field)
+
+      let newDoc = model.get(collectionName, docId)
+      assert(typeof newDoc === 'object')
+      assert.equal(Object.keys(newDoc).length, 1)
+    })
+
     it('should set when array', async () => {
       await model.add(collectionName, getDocData())
       let newValue = 'Vasya'
@@ -148,6 +157,14 @@ describe('Model', () => {
       assert.equal(newDoc, value)
       let collectionData = model.get(collectionName)
       assert.equal(collectionData[docId], value)
+    })
+
+    it('should set value on field when doc is value', () => {
+      model.set([collectionName, docId], value)
+      model.set([collectionName, docId, field], value)
+
+      let newDoc = model.get(collectionName, docId)
+      assert.equal(newDoc[field], value)
     })
 
     it('should set on empty doc', () => {
@@ -205,6 +222,14 @@ describe('Model', () => {
 
       let name = model.get(collectionName, docId, field)
       assert.equal(name, numValue)
+    })
+
+    it('should increment value on field when doc is value', () => {
+      model.set([collectionName, docId], value)
+      model.increment([collectionName, docId, field], numValue)
+
+      let newDoc = model.get(collectionName, docId)
+      assert.equal(newDoc[field], numValue)
     })
 
     it('should stringInsert when array', async () => {
@@ -266,6 +291,14 @@ describe('Model', () => {
       assert.equal(name, 'asdf')
     })
 
+    it('should stringInsert value on field when doc is value', () => {
+      model.set([collectionName, docId], value)
+      model.stringInsert([collectionName, docId, field], 0, 'a')
+
+      let newDoc = model.get(collectionName, docId)
+      assert.equal(newDoc[field], 'a')
+    })
+
     it('should stringRemove doc', () => {
       model.stringInsert([collectionName, docId], 0, value)
       model.stringRemove([collectionName, docId], 0, 2)
@@ -309,6 +342,15 @@ describe('Model', () => {
 
       let name = model.get(collectionName, docId, field)
       assert.equal(name, 'a')
+    })
+
+    it('should stringRemove value on field when doc is value', () => {
+      model.set([collectionName, docId], value)
+      model.stringRemove([collectionName, docId, field], 0, 1)
+
+      let newDoc = model.get(collectionName, docId)
+      // stringRemove does not create op
+      assert.equal(newDoc[field], undefined)
     })
 
     it('should stringDiff when array', async () => {
@@ -367,6 +409,14 @@ describe('Model', () => {
 
       let name = model.get(collectionName, docId, field)
       assert.equal(name, value)
+    })
+
+    it('should stringDiff value on field when doc is value', () => {
+      model.set([collectionName, docId], value)
+      model.stringDiff([collectionName, docId, field], value)
+
+      let newDoc = model.get(collectionName, docId)
+      assert.equal(newDoc[field], value)
     })
 
     it('should stringDiff some times', () => {

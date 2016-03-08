@@ -18,7 +18,8 @@ let options = {
         complex: true
       }
     }
-  }
+  },
+  saveDebounceTimeout: 0
 }
 
 describe('projections', () => {

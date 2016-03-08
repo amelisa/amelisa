@@ -13,7 +13,7 @@ describe('subscribes doc', () => {
     storage = new MemoryStorage()
     await storage.init()
 
-    store = new Store(storage)
+    store = new Store(storage, null, {saveDebounceTimeout: 0})
     model = store.createModel()
     model.source = 'model1'
     model2 = store.createModel()

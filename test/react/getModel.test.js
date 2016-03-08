@@ -5,7 +5,7 @@ import jsdom from 'node-jsdom'
 import getModel from '../../src/react/getModel'
 import { MemoryStorage, Store } from '../../src/server'
 import ServerChannel from '../../src/server/ServerChannel'
-import { value } from '../util'
+import { value, sleep } from '../util'
 
 global.document = jsdom.jsdom('<!doctype html><html><body></body></html>')
 global.window = document.parentWindow
@@ -18,7 +18,8 @@ const storeOptions = {
 }
 const options = {
   model: {
-    isClient: true
+    isClient: true,
+    clientSaveDebounceTimeout: 0
   }
 }
 let store
@@ -78,6 +79,7 @@ describe('getModel', () => {
     await model.onReady()
 
     await model.set('_session.userId', value)
+    await sleep(10)
     model.close()
 
     channel = new ServerChannel()

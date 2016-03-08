@@ -7,8 +7,9 @@ import { collectionName, docId } from '../util'
 let storage
 let store
 let channel
+let model
 
-describe('Store', () => {
+describe('permormance store', () => {
   beforeEach(async () => {
     storage = new MemoryStorage()
     await storage.init()
@@ -19,10 +20,25 @@ describe('Store', () => {
     channel.pipe(channel2).pipe(channel)
     store.onChannel(channel2)
     channel.open()
+    model = store.createModel()
   })
 
-  it('should sub to empty doc', async () => {
-    let op = {
+  it('should broadcast fast', async () => {
+    let ops = []
+    let op
+    for (let i = 0; i < 10000; i++) {
+      op = model.createOp({
+        type: 'stringInsert',
+        collectionName,
+        docId,
+        value: 'a'
+      })
+      ops.push(op)
+    }
+
+    await storage.saveDoc(collectionName, docId, {}, undefined, '1', ops)
+
+    op = {
       id: 'id',
       type: 'sub',
       collectionName,
@@ -30,35 +46,15 @@ describe('Store', () => {
       version: '1'
     }
 
+    let start = Date.now()
     channel.send(op)
 
     let message = await eventToPromise(channel, 'message')
+    let time = Date.now() - start
+    console.log('broadcast', time)
+    if (time > 200) throw new Error('broadcast takes too long ' + time)
 
     assert.equal(message.type, op.type)
     assert.equal(message.ackId, op.id)
-  })
-
-  it('should sub to doc', async () => {
-    let op = {
-      type: 'sub',
-      collectionName,
-      docId,
-      version: '1'
-    }
-
-    let prevVersion = null
-    let version = '2'
-    let state = {
-      name: 'name'
-    }
-    let ops = []
-
-    await storage.saveDoc(collectionName, docId, state, prevVersion, version, ops)
-
-    channel.send(op)
-
-    let message = await eventToPromise(channel, 'message')
-
-    assert.equal(message.type, op.type)
   })
 })

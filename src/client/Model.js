@@ -6,6 +6,10 @@ import ClientQuerySet from './ClientQuerySet'
 import Subscription from './Subscription'
 import { deepClone, isLocalCollection, isServer, parseArguments, parsePath } from '../util'
 
+const defaultOptions = {
+  clientSaveDebounceTimeout: 1000
+}
+
 class Model extends EventEmitter {
   constructor (channel, source, options = {}, projectionHashes = {}) {
     super()
@@ -15,7 +19,7 @@ class Model extends EventEmitter {
     this.ready = false
     this.online = false
     this.source = source
-    this.options = options
+    this.options = Object.assign({}, defaultOptions, options)
     this.projectionHashes = projectionHashes
     this.collectionSet = new CollectionSet(this)
     this.querySet = new ClientQuerySet(this)

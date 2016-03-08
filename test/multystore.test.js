@@ -16,8 +16,8 @@ describe('multystore', () => {
 
     let pubsub = new MemoryPubsub()
 
-    store = new Store(storage, pubsub, {source: 'store1'})
-    store2 = new Store(storage, pubsub, {source: 'store2'})
+    store = new Store(storage, pubsub, {source: 'store1', saveDebounceTimeout: 0})
+    store2 = new Store(storage, pubsub, {source: 'store2', saveDebounceTimeout: 0})
     model = store.createModel()
     model2 = store2.createModel()
   })

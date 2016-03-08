@@ -46,7 +46,7 @@ class MutableDoc extends Doc {
   }
 
   stringInsert (field, index, value, diff) {
-    let chars = this.stringFieldChars[field]
+    let chars = this.getFieldChars(field)
     let positionId
 
     if (chars && chars[index - 1]) {
@@ -93,7 +93,7 @@ class MutableDoc extends Doc {
   }
 
   stringRemove (field, index, howMany, diff) {
-    let chars = this.stringFieldChars[field]
+    let chars = this.getFieldChars(field)
     let ops = []
     let type = 'stringRemove'
 
@@ -140,20 +140,9 @@ class MutableDoc extends Doc {
     let previous = ''
     if (!field && typeof state === 'string') previous = state
     else if (field) {
-      let parts = field.split('.')
-      if (!state) state = {}
-      let current = state
-      parts.forEach((part, index) => {
-        if (index === parts.length - 1) {
-          if (typeof current[part] === 'string') previous = current[part]
-        } else {
-          if (typeof current[part] === 'object') {
-            current = current[part]
-          } else {
-            current[part] = {}
-            current = current[part]
-          }
-        }
+      if (!state || typeof state !== 'object') state = {}
+      this.applyFnToStateField(state, field, (part, current) => {
+        if (typeof current[part] === 'string') previous = current[part]
       })
     }
 
@@ -197,7 +186,11 @@ class MutableDoc extends Doc {
   async save () {
     if (!this.model.storage || !this.ops.length) return
     debug('save', this.state, this.ops)
+    if (this.timeout) clearTimeout(this.timeout)
+    this.timeout = setTimeout(() => this.saveToStorage(), this.model.options.clientSaveDebounceTimeout)
+  }
 
+  async saveToStorage () {
     return this.model.storage
       .saveDoc(this.collection.name, this.docId, this.ops, this.serverVersion)
       .catch((err) => {
