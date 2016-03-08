@@ -45,7 +45,7 @@ class ServerDoc extends Doc {
   }
 
   onOp (op, channel) {
-    // debug('onOp')
+    channel._session.updateDocVersion(this.collectionName, this.docId, op.source, op.date)
     this.ops.push(op)
     this.save()
     this.broadcastOp(op, channel)
@@ -98,6 +98,7 @@ class ServerDoc extends Doc {
 
   broadcastOp (op, fromChannel) {
     for (let channel of this.channels) {
+      channel._session.updateDocVersion(this.collectionName, this.docId, op.source, op.date)
       if (fromChannel && channel === fromChannel) continue
       this.sendOp(op, channel)
     }
