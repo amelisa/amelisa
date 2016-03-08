@@ -44,12 +44,11 @@ class ServerDoc extends Doc {
       })
   }
 
-  onOp (op) {
+  onOp (op, channel) {
     // debug('onOp')
     this.ops.push(op)
-    if (this.timeout) clearTimeout(this.timeout)
-    this.timeout = setTimeout(() => this.save(), this.store.options.saveDebounceTimeout)
-    this.broadcastOp(op)
+    this.save()
+    this.broadcastOp(op, channel)
   }
 
   onPubSubOp (op) {
@@ -59,11 +58,13 @@ class ServerDoc extends Doc {
 
   save () {
     if (!this.loaded) return
-
-    // debug('save', this.ops.length)
-
     if (this.ops.length === 0) return
 
+    if (this.timeout) clearTimeout(this.timeout)
+    this.timeout = setTimeout(() => this.saveToStorage(), this.store.options.saveDebounceTimeout)
+  }
+
+  saveToStorage () {
     this.distillOps()
     this.refreshState()
 
@@ -90,15 +91,14 @@ class ServerDoc extends Doc {
 
   broadcast () {
     debug('broadcast', this.projectionCollectionName, this.collectionName, this.docId, this.channels.length)
-    // let start = Date.now()
     for (let channel of this.channels) {
       this.sendOpsToChannel(channel)
     }
-    // console.log('broadcast', this.collectionName, this.docId, this.channels.length, Date.now() - start)
   }
 
-  broadcastOp (op) {
+  broadcastOp (op, fromChannel) {
     for (let channel of this.channels) {
+      if (fromChannel && channel === fromChannel) continue
       this.sendOp(op, channel)
     }
   }
@@ -128,13 +128,13 @@ class ServerDoc extends Doc {
 
   subscribeWithoutSending (channel, version) {
     channel._session.saveDocVersion(this.collectionName, this.docId, version)
-    this.channels.push(channel)
+    this.addChannel(channel)
   }
 
   subscribe (channel, version, ackId) {
     debug('subscribe')
     channel._session.saveDocVersion(this.collectionName, this.docId, version)
-    this.channels.push(channel)
+    this.addChannel(channel)
 
     let op = {
       type: 'sub',
@@ -169,7 +169,7 @@ class ServerDoc extends Doc {
   sync (channel, version, resubscribe) {
     if (resubscribe) {
       channel._session.saveDocVersion(this.collectionName, this.docId, version)
-      this.channels.push(channel)
+      this.addChannel(channel)
     }
     this.sendOpsToChannel(channel)
 
@@ -180,6 +180,10 @@ class ServerDoc extends Doc {
       version: this.version()
     }
     this.sendOp(op, channel)
+  }
+
+  addChannel (channel) {
+    if (this.channels.indexOf(channel) === -1) this.channels.push(channel)
   }
 
   sendOp (op, channel) {

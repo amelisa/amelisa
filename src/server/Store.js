@@ -124,7 +124,7 @@ class Store extends EventEmitter {
   }
 
   async onMessage (message, channel) {
-    let { type, id, collectionName, docId, expression, value, version, docIds } = message
+    let { type, id, collectionName, docId, expression, value, version, docIds, ops } = message
     let doc
     let query
     let op
@@ -218,6 +218,23 @@ class Store extends EventEmitter {
       case 'qunsub':
         query = await this.querySet.getOrCreateQuery(collectionName, expression)
         query.unsubscribe(channel)
+        break
+
+      case 'ops':
+        doc = await this.docSet.getOrCreateDoc(collectionName, docId)
+        for (let op of ops) {
+          doc.ops.push(op)
+        }
+        doc.save()
+        doc.broadcastOp(message, channel)
+
+        doc.once('saved', () => {
+          op = {
+            ackId: id
+          }
+          this.sendOp(op, channel)
+          this.onOp(message)
+        })
         break
 
       case 'add':

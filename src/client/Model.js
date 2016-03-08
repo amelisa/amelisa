@@ -226,6 +226,13 @@ class Model extends EventEmitter {
         query.onDiff(diffs, docOps)
         break
 
+      case 'ops':
+        doc = this.collectionSet.getDoc(collectionName, docId)
+        if (doc) {
+          doc.receiveOps(ops, message.index, message.howMany)
+        }
+        break
+
       case 'add':
       case 'set':
       case 'del':

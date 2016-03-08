@@ -46,6 +46,7 @@ class MutableDoc extends Doc {
   }
 
   stringInsert (field, index, value, diff) {
+    let howMany = value.length
     let chars = this.getFieldChars(field)
     let positionId
 
@@ -78,18 +79,23 @@ class MutableDoc extends Doc {
 
     this.applyOps(ops)
 
-    this.emit(type, index, value.length)
+    this.emit(type, index, howMany)
 
     this.emit('change')
     this.collection.emit('change')
     this.save()
 
-    let promises = []
-    for (let op of ops) {
-      let promise = this.model.send(op)
-      promises.push(promise)
-    }
-    return Promise.all(promises)
+    let op = this.model.createOp({
+      type: 'ops',
+      collectionName: this.collection.name,
+      docId: this.docId,
+      field,
+      ops,
+      index,
+      howMany
+    })
+
+    return this.model.send(op)
   }
 
   stringRemove (field, index, howMany, diff) {
@@ -107,8 +113,7 @@ class MutableDoc extends Doc {
       let op = this.model.createOp({
         type,
         collectionName: this.collection.name,
-        docId: this.docId,
-        value: howMany
+        docId: this.docId
       })
 
       if (field) op.field = field
@@ -127,12 +132,17 @@ class MutableDoc extends Doc {
     this.collection.emit('change')
     this.save()
 
-    let promises = []
-    for (let op of ops) {
-      let promise = this.model.send(op)
-      promises.push(promise)
-    }
-    return Promise.all(promises)
+    let op = this.model.createOp({
+      type: 'ops',
+      collectionName: this.collection.name,
+      docId: this.docId,
+      field,
+      ops,
+      index,
+      howMany
+    })
+
+    return this.model.send(op)
   }
 
   stringDiff (field, value) {
