@@ -45,14 +45,10 @@ class MutableDoc extends Doc {
     return this.onOp(op)
   }
 
-  stringInsert (field, index, value, diff) {
+  stringInsert (field, index, value) {
     let howMany = value.length
-    let chars = this.getFieldChars(field)
-    let positionId
-
-    if (chars && chars[index - 1]) {
-      positionId = chars[index - 1].charId
-    }
+    let text = this.getInternalAsText(field)
+    let positionId = text.getInsertPositionIdByIndex(index)
 
     let ops = []
     let type = 'stringInsert'
@@ -75,8 +71,6 @@ class MutableDoc extends Doc {
       positionId = charId
     }
 
-    if (diff) return ops
-
     this.applyOps(ops)
 
     this.emit(type, index, howMany)
@@ -98,16 +92,13 @@ class MutableDoc extends Doc {
     return this.model.send(op)
   }
 
-  stringRemove (field, index, howMany, diff) {
-    let chars = this.getFieldChars(field)
+  stringRemove (field, index, howMany) {
+    let text = this.getInternalAsText(field)
     let ops = []
     let type = 'stringRemove'
 
     for (let i = index; i < index + howMany; i++) {
-      let positionId
-      if (chars && chars[i]) {
-        positionId = chars[i].charId
-      }
+      let positionId = text.getRemovePositionIdByIndex(i)
       if (!positionId) continue
 
       let op = this.model.createOp({
@@ -121,8 +112,6 @@ class MutableDoc extends Doc {
 
       ops.push(op)
     }
-
-    if (diff) return ops
 
     this.applyOps(ops)
 
@@ -146,15 +135,8 @@ class MutableDoc extends Doc {
   }
 
   stringDiff (field, value) {
-    let state = this.state
-    let previous = ''
-    if (!field && typeof state === 'string') previous = state
-    else if (field) {
-      if (!state || typeof state !== 'object') state = {}
-      this.applyFnToStateField(state, field, (part, current) => {
-        if (typeof current[part] === 'string') previous = current[part]
-      })
-    }
+    let previous = this.get(field)
+    if (typeof previous !== 'string') previous = ''
 
     if (previous === value) return
     let start = 0

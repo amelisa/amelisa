@@ -1,6 +1,6 @@
 // let debug = require('debug')('Doc')
 import { EventEmitter } from 'events'
-import Char from './Char'
+import { Text } from '../types'
 import { deepClone } from '../util'
 
 class Doc extends EventEmitter {
@@ -13,6 +13,30 @@ class Doc extends EventEmitter {
   }
 
   get (field) {
+    let value = this.getInternal(field)
+
+    value = this.getValue(value)
+
+    if (!field && typeof value === 'object') {
+      value._id = this.docId
+    }
+
+    return value
+  }
+
+  getValue (value) {
+    if (value instanceof Text) return value.get()
+
+    if (typeof value === 'object') {
+      for (let key in value) {
+        value[key] = this.getValue(value[key])
+      }
+    }
+
+    return value
+  }
+
+  getInternal (field) {
     if (this.state && this.state._del) return
 
     if (field) {
@@ -27,20 +51,16 @@ class Doc extends EventEmitter {
 
       return value
     } else {
-      if (typeof this.state !== 'object' || Array.isArray(this.state)) {
-        return this.state
-      }
-
-      let doc = {
-        _id: this.docId
-      }
-
-      for (let field in this.state) {
-        doc[field] = this.state[field]
-      }
-
-      return doc
+      return this.state
     }
+  }
+
+  getInternalAsText (field) {
+    let text = this.getInternal(field)
+
+    if (!(text instanceof Text)) text = new Text()
+
+    return text
   }
 
   distillOps () {
@@ -112,109 +132,72 @@ class Doc extends EventEmitter {
     ops.sort(sortByDate)
 
     let state
-    this.stringDocChars = null
-    this.stringFieldChars = {}
 
     for (let op of ops) {
       let { type, field, value, charId, positionId } = op
-      let index
-      let char
-      let chars
 
-      if (type === 'stringInsert' || type === 'stringRemove') {
-        if (field) {
-          chars = this.stringFieldChars[field]
-          if (!chars) chars = this.stringFieldChars[field] = []
-        } else {
-          chars = this.stringDocChars
-          if (!chars) chars = this.stringDocChars = []
+      let fieldState = state
+
+      if (field) {
+        let parts = field.split('.')
+
+        for (let part of parts) {
+          if (fieldState) fieldState = fieldState[part]
         }
-
-        index = chars.findIndex((char) => char.charId === positionId)
-        if (index === -1 && positionId) continue
       }
 
       if (state && state._del) state = undefined
 
       switch (type) {
         case 'add':
-          state = deepClone(value)
+          fieldState = deepClone(value)
           break
 
         case 'set':
-          if (!field) {
-            state = deepClone(value)
-            break
-          }
+          fieldState = deepClone(value)
 
-          if (!state || typeof state !== 'object') state = {}
-          this.applyFnToStateField(state, field, (part, current) => current[part] = value)
           break
 
         case 'del':
           if (!field) {
-            state = {}
-            state._del = true
-            break
+            fieldState = {
+              _del: true
+            }
           }
-
-          if (!state || typeof state !== 'object') state = {}
-          this.applyFnToStateField(state, field, (part, current) => delete current[part])
           break
 
         case 'increment':
+          if (typeof fieldState !== 'number') fieldState = 0
           if (value === undefined) value = 1
-
-          if (!field) {
-            if (typeof state !== 'number') state = 0
-            state = state + value
-            break
-          }
-
-          if (!state || typeof state !== 'object') state = {}
-          this.applyFnToStateField(state, field, (part, current) => {
-            if (typeof current[part] !== 'number') current[part] = 0
-            current[part] = current[part] + value
-          })
+          fieldState = fieldState + value
           break
 
         case 'stringInsert':
-          char = new Char(charId, value)
-          chars.splice(index + 1, 0, char)
+          if (!(fieldState instanceof Text)) fieldState = new Text()
+
+          fieldState.insertChar(positionId, charId, value)
           break
 
         case 'stringRemove':
-          char = chars[index]
-          char.removed = true
+          if (!(fieldState instanceof Text)) fieldState = new Text()
+
+          fieldState.removeChar(positionId)
           break
+      }
+
+      if (field) {
+        if (!state || typeof state !== 'object') state = {}
+        if (type === 'del') {
+          this.applyFnToStateField(state, field, (part, current) => delete current[part])
+        } else {
+          this.applyFnToStateField(state, field, (part, current) => current[part] = fieldState)
+        }
+      } else {
+        state = fieldState
       }
     }
 
-    for (let field in this.stringFieldChars) {
-      let chars = this.getFieldChars(field)
-      let value = chars.map((char) => char.value).join('')
-
-      if (!state || typeof state !== 'object') state = {}
-      this.applyFnToStateField(state, field, (part, current) => current[part] = value)
-    }
-
-    if (this.stringDocChars) {
-      let chars = this.getFieldChars()
-      state = chars.map((char) => char.value).join('')
-    }
-
     this.state = state
-  }
-
-  getFieldChars (field) {
-    let chars
-    if (field) {
-      chars = this.stringFieldChars[field]
-    } else {
-      chars = this.stringDocChars
-    }
-    if (chars) chars = chars.filter((char) => !char.removed)
-    return chars
   }
 
   applyFnToStateField (state, field, fn) {
