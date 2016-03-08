@@ -46,14 +46,18 @@ class ServerDoc extends Doc {
 
   onOp (op) {
     // debug('onOp')
-    this.applyOp(op)
+    this.ops.push(op)
+    // this.applyOp(op)
+    // if (this.timeout) clearTimeout(this.timeout)
+    // this.timeout = setTimeout(() => this.save(), 10)
     this.save()
-    this.broadcast()
+    this.broadcastOp(op)
   }
 
   onPubSubOp (op) {
-    this.applyOp(op)
-    this.broadcast()
+    this.ops.push(op)
+    // this.applyOp(op)
+    this.broadcastOp(op)
   }
 
   save () {
@@ -62,6 +66,9 @@ class ServerDoc extends Doc {
     // debug('save', this.ops.length)
 
     if (this.ops.length === 0) return
+
+    this.distillOps()
+    this.refreshState()
 
     let version = this.version()
 
@@ -88,6 +95,12 @@ class ServerDoc extends Doc {
     debug('broadcast', this.projectionCollectionName, this.collectionName, this.docId, this.channels.length)
     for (let channel of this.channels) {
       this.sendOpsToChannel(channel)
+    }
+  }
+
+  broadcastOp (op) {
+    for (let channel of this.channels) {
+      this.sendOp(op, channel)
     }
   }
 

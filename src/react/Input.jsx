@@ -6,7 +6,7 @@ class Input extends Component {
     super()
 
     let { collectionName, docId, field } = props
-    let value = context.model.doc(collectionName, docId, field)
+    let value = context.model.get(collectionName, docId, field)
 
     this.state = {
       value
@@ -55,9 +55,9 @@ class Input extends Component {
   }
 
   onChange = (event) => {
-    let { collectionName, docId } = this.props
+    let { collectionName, docId, field } = this.props
     let { value } = event.nativeEvent.target
-    this.context.model.stringDiff([collectionName, docId, 'name'], value)
+    this.context.model.stringDiff([collectionName, docId, field], value)
   }
 
   render () {

@@ -1,8 +1,5 @@
 let debug = require('debug')('MutableDoc')
-import ArrayDiff from 'array-diff'
 import Doc from './Doc'
-
-let arrayDiff = ArrayDiff({compress: true})
 
 class MutableDoc extends Doc {
   constructor (docId, ops, collection, model) {
