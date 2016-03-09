@@ -17,6 +17,9 @@ class ServerQuery extends Query {
     this.on('loaded', () => {
       this.broadcast()
     })
+
+    // Set max listeners to unlimited
+    this.setMaxListeners(0)
   }
 
   load () {

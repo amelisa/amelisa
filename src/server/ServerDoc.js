@@ -18,6 +18,9 @@ class ServerDoc extends Doc {
     this.on('loaded', () => {
       this.broadcast()
     })
+
+    // Set max listeners to unlimited
+    this.setMaxListeners(0)
   }
 
   load () {
