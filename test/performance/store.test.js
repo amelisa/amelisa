@@ -23,7 +23,7 @@ describe('permormance store', () => {
     model = store.createModel()
   })
 
-  it('should broadcast fast', async () => {
+  it.skip('should broadcast fast', async () => {
     let ops = []
     let op
     for (let i = 0; i < 10000; i++) {

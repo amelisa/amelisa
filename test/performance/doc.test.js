@@ -14,7 +14,7 @@ describe('performance doc', () => {
 
   it('should refreshState fast', () => {
     let ops = []
-    for (let i = 0; i < 10000; i++) {
+    for (let i = 0; i < 1000; i++) {
       let op = model.createOp({
         type: 'stringInsert',
         collectionName,
@@ -31,6 +31,6 @@ describe('performance doc', () => {
     doc.refreshState()
     let time = Date.now() - start
     console.log('refreshState', time)
-    if (time > 100) throw new Error('refreshState takes too long ' + time)
+    if (time > 10) throw new Error('refreshState takes too long ' + time)
   })
 })

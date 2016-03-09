@@ -152,7 +152,7 @@ class Root extends RootComponent {
   }
 }
 
-describe('serverRendering', () => {
+describe.skip('serverRendering', () => {
   beforeEach(async () => {
     storage = new MemoryStorage()
 

@@ -258,7 +258,7 @@ class Store extends EventEmitter {
           try {
             await this.afterHook(message, session, params)
           } catch (err) {
-            console.error('afterHook', err, err.stack)
+            this.onAfterHookError(err, message, session, params)
             return
           }
         }
@@ -266,6 +266,10 @@ class Store extends EventEmitter {
 
       default:
     }
+  }
+
+  onAfterHookError (err) {
+    console.error('afterHook', err, err.stack)
   }
 
   getHookParams (channel) {

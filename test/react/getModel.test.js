@@ -39,6 +39,7 @@ describe('getModel', () => {
 
   afterEach(() => {
     model.close()
+    delete model.storage
     fakeIndexedDb.deleteDatabase('amelisa')
   })
 
@@ -81,6 +82,7 @@ describe('getModel', () => {
     await model.set('_session.userId', value)
     await sleep(10)
     model.close()
+    delete model.storage
 
     channel = new ServerChannel()
     model = getModel(channel, options)
