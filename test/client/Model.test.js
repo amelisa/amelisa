@@ -331,7 +331,7 @@ describe('Model', () => {
       model.stringRemove([collectionName, docId, field], 0, 1)
 
       let name = model.get(collectionName, docId, field)
-      assert.equal(name, undefined)
+      assert.equal(name, '')
     })
 
     it('should stringRemove some times', () => {
@@ -350,7 +350,7 @@ describe('Model', () => {
 
       let newDoc = model.get(collectionName, docId)
       // stringRemove does not create op
-      assert.equal(newDoc[field], undefined)
+      assert.equal(newDoc[field], '')
     })
 
     it('should stringDiff when array', async () => {

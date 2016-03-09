@@ -135,73 +135,80 @@ class Doc extends EventEmitter {
 
     ops.sort(sortByDate)
 
-    let state
+    this.state = undefined
 
     for (let op of ops) {
-      let { type, field, value, charId, positionId } = op
+      this.applyOpToState(op)
+    }
+  }
 
-      let fieldState = state
+  applyOpToState (op) {
+    let state = this.state
 
-      if (field) {
-        let parts = field.split('.')
+    let { type, field, value, charId, positionId } = op
 
-        for (let part of parts) {
-          if (fieldState) fieldState = fieldState[part]
-        }
-      }
+    let fieldState = state
 
-      if (state && state._del) state = undefined
+    if (field) {
+      let parts = field.split('.')
 
-      switch (type) {
-        case 'add':
-          fieldState = deepClone(value)
-          break
-
-        case 'set':
-          fieldState = deepClone(value)
-
-          break
-
-        case 'del':
-          if (!field) {
-            fieldState = {
-              _del: true
-            }
-          }
-          break
-
-        case 'increment':
-          if (typeof fieldState !== 'number') fieldState = 0
-          if (value === undefined) value = 1
-          fieldState = fieldState + value
-          break
-
-        case 'stringInsert':
-          if (!(fieldState instanceof Text)) fieldState = new Text()
-
-          fieldState.insertChar(positionId, charId, value)
-          break
-
-        case 'stringRemove':
-          if (!(fieldState instanceof Text)) fieldState = new Text()
-
-          fieldState.removeChar(positionId)
-          break
-      }
-
-      if (field) {
-        if (!state || typeof state !== 'object') state = {}
-        if (type === 'del') {
-          this.applyFnToStateField(state, field, (part, current) => delete current[part])
-        } else {
-          this.applyFnToStateField(state, field, (part, current) => current[part] = fieldState)
-        }
-      } else {
-        state = fieldState
+      for (let part of parts) {
+        if (fieldState) fieldState = fieldState[part]
       }
     }
 
+    if (state && state._del) state = undefined
+
+    switch (type) {
+      case 'add':
+        fieldState = deepClone(value)
+        break
+
+      case 'set':
+        fieldState = deepClone(value)
+
+        break
+
+      case 'del':
+        if (!field) {
+          fieldState = {
+            _del: true
+          }
+        }
+        break
+
+      case 'increment':
+        if (typeof fieldState !== 'number') fieldState = 0
+        if (value === undefined) value = 1
+        fieldState = fieldState + value
+        break
+
+      case 'stringInsert':
+        if (!(fieldState instanceof Text)) fieldState = new Text()
+
+        fieldState.insertChar(positionId, charId, value)
+        break
+
+      case 'stringRemove':
+        if (!(fieldState instanceof Text)) fieldState = new Text()
+
+        fieldState.removeChar(positionId)
+        break
+    }
+
+    if (field) {
+      if (!state || typeof state !== 'object') state = {}
+      if (type === 'del') {
+        this.applyFnToStateField(state, field, (part, current) => delete current[part])
+      } else {
+        this.applyFnToStateField(state, field, (part, current) => current[part] = fieldState)
+      }
+    } else {
+      state = fieldState
+    }
+
     this.state = state
+    this.stateDate = op.date
   }
 
   setValueToField (field, value) {
@@ -232,14 +239,27 @@ class Doc extends EventEmitter {
 
   applyOp (op) {
     this.ops.push(op)
-    this.distillOps()
-    this.refreshState()
+    if (this.stateDate && op.date > this.stateDate) {
+      this.applyOpToState(op)
+    } else {
+      this.distillOps()
+      this.refreshState()
+    }
   }
 
   applyOps (ops) {
+    if (!ops.length) return
+    ops.sort(sortByDate)
     this.ops = this.ops.concat(ops)
-    this.distillOps()
-    this.refreshState()
+    let firstOp = ops[0]
+    if (this.stateDate && firstOp.date > this.stateDate) {
+      for (let op of ops) {
+        this.applyOpToState(op)
+      }
+    } else {
+      this.distillOps()
+      this.refreshState()
+    }
   }
 
   version () {

@@ -49,13 +49,13 @@ class ServerDoc extends Doc {
 
   onOp (op, channel) {
     channel._session.updateDocVersion(this.collectionName, this.docId, op.source, op.date)
-    this.ops.push(op)
+    this.applyOp(op)
     this.save()
     this.broadcastOp(op, channel)
   }
 
   onPubSubOp (op) {
-    this.ops.push(op)
+    this.applyOp(op)
     this.broadcastOp(op)
   }
 
@@ -68,9 +68,6 @@ class ServerDoc extends Doc {
   }
 
   saveToStorage () {
-    this.distillOps()
-    this.refreshState()
-
     let version = this.version()
 
     this.store.storage
@@ -78,7 +75,6 @@ class ServerDoc extends Doc {
       .then(() => {
         this.emit('saved')
         this.prevVersion = version
-        // debug('saved', this.collectionName, this.docId)
       })
       .catch((err) => {
         if (err === 'version changed') {

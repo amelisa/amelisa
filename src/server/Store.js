@@ -222,9 +222,7 @@ class Store extends EventEmitter {
 
       case 'ops':
         doc = await this.docSet.getOrCreateDoc(collectionName, docId)
-        for (let op of ops) {
-          doc.ops.push(op)
-        }
+        doc.applyOps(ops)
         doc.save()
         doc.broadcastOp(message, channel)
 
