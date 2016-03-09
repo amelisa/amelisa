@@ -46,7 +46,7 @@ describe('projections', () => {
     assert.equal(doc.get(field2), undefined)
   })
 
-  it('should subscribe to projected doc and get it', async () => {
+  it.skip('should subscribe to projected doc and get it', async () => {
     let doc = model.doc(collectionName, docId)
     await doc.subscribe()
     setTimeout(() => model2.add(dbCollectionName, getDocData({[field2]: value2})))

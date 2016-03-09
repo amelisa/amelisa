@@ -22,7 +22,7 @@ describe('multystore', () => {
     model2 = store2.createModel()
   })
 
-  it('should subscribe doc and get it', async () => {
+  it.skip('should subscribe doc and get it', async () => {
     let doc = model.doc(collectionName, docId)
     await doc.subscribe()
     setTimeout(() => model2.add(collectionName, getDocData()), 0)
@@ -31,7 +31,7 @@ describe('multystore', () => {
     assert(doc.get())
   })
 
-  it('should subscribe doc and get it and send ops', async () => {
+  it.skip('should subscribe doc and get it and send ops', async () => {
     let doc = model.doc(collectionName, docId)
     await doc.subscribe()
     let doc2 = model2.doc(collectionName, docId)

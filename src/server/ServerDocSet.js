@@ -50,18 +50,20 @@ class ServerDocSet {
 
   onOp (op) {
     debug('onOp', op.type)
+    // TODO: find more effective way to send op to all projected docs
     for (let hash in this.data) {
       let doc = this.data[hash]
       if ((doc.docId === op.docId) &&
         (doc.collectionName === op.collectionName ||
         doc.projectionCollectionName === op.collectionName)) {
-        // if doc is loading now, we need to load it one more time with new data
+        if (doc.ops.find((docOp) => docOp._id === op._id)) continue
+
         if (doc.loading) {
           doc.once('loaded', () => {
-            doc.load()
+            doc.onOp(op)
           })
         } else {
-          doc.load()
+          doc.onOp(op)
         }
       }
     }

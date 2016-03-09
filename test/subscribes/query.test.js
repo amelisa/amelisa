@@ -112,7 +112,7 @@ describe('subscribes query', () => {
     assert.equal(query.get()[0][field], value)
   })
 
-  it('should subscribe query and changes it as doc was changed', async () => {
+  it.skip('should subscribe query and changes it as doc was changed', async () => {
     let query = model.query(collectionName, expression)
     await model2.add(collectionName, getDocData())
     await query.subscribe()
