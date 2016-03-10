@@ -1,4 +1,5 @@
 let debug = require('debug')('Model')
+import invariant from 'invariant'
 import uuid from 'uuid'
 import { EventEmitter } from 'events'
 import CollectionSet from './CollectionSet'
@@ -236,6 +237,15 @@ class Model extends EventEmitter {
       case 'add':
       case 'set':
       case 'del':
+      case 'push':
+      case 'unshift':
+      case 'pop':
+      case 'shift':
+      case 'insert':
+      case 'remove':
+      case 'move':
+      case 'arraySet':
+      case 'invert':
       case 'increment':
       case 'stringInsert':
       case 'stringRemove':
@@ -276,10 +286,8 @@ class Model extends EventEmitter {
   }
 
   async add (collectionName, docData) {
-    if (!collectionName) return console.error('Model.add collectionName is required')
-    if (typeof collectionName !== 'string') return console.error('Model.add collectionName should be a string')
-    if (!docData) return console.error('Model.add docData is required')
-    if (typeof docData !== 'object') return console.error('Model.add docData should be an object')
+    invariant(collectionName && typeof collectionName === 'string', 'Model.add collectionName is required and should be a string')
+    invariant(docData && typeof docData === 'object', 'Model.add docData is required and should be an object')
 
     docData = deepClone(docData)
     let docId = docData._id
@@ -293,11 +301,9 @@ class Model extends EventEmitter {
   async set (path, value) {
     let [collectionName, docId, field] = parsePath(path)
 
-    if (!collectionName) return console.error('Model.set collectionName is required')
-    if (typeof collectionName !== 'string') return console.error('Model.set collectionName should be a string')
-    if (!docId) return console.error('Model.set docId is required')
-    if (typeof docId !== 'string') return console.error('Model.set docId should be a string')
-    if (field && typeof field !== 'string') return console.error('Model.set field should be a string')
+    invariant(collectionName && typeof collectionName === 'string', 'Model.set collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.set docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.set field should be a string')
 
     let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
 
@@ -307,26 +313,34 @@ class Model extends EventEmitter {
   async del (...path) {
     let [collectionName, docId, field] = parsePath(path)
 
-    if (!collectionName) return console.error('Model.del collectionName is required')
-    if (typeof collectionName !== 'string') return console.error('Model.del collectionName should be a string')
-    if (!docId) return console.error('Model.del docId is required')
-    if (typeof docId !== 'string') return console.error('Model.del docId should be a string')
-    if (field && typeof field !== 'string') return console.error('Model.del field should be a string')
+    invariant(collectionName && typeof collectionName === 'string', 'Model.del collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.del docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.del field should be a string')
 
     let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
 
     return doc.del(field)
   }
 
+  async invert (path) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    invariant(collectionName && typeof collectionName === 'string', 'Model.invert collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.invert docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.invert field should be a string')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.invert(field)
+  }
+
   async increment (path, value) {
     let [collectionName, docId, field] = parsePath(path)
 
-    if (!collectionName) return console.error('Model.increment collectionName is required')
-    if (typeof collectionName !== 'string') return console.error('Model.increment collectionName should be a string')
-    if (!docId) return console.error('Model.increment docId is required')
-    if (typeof docId !== 'string') return console.error('Model.increment docId should be a string')
-    if (field && typeof field !== 'string') return console.error('Model.increment field should be a string')
-    if (value !== undefined && typeof value !== 'number') return console.error('Model.increment value should be a number')
+    invariant(collectionName && typeof collectionName === 'string', 'Model.increment collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.increment docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.increment field should be a string')
+    invariant(value === undefined || typeof value === 'number', 'Model.increment value should be a number')
 
     let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
 
@@ -336,13 +350,11 @@ class Model extends EventEmitter {
   async stringInsert (path, index, value) {
     let [collectionName, docId, field] = parsePath(path)
 
-    if (!collectionName) return console.error('Model.stringInsert collectionName is required')
-    if (typeof collectionName !== 'string') return console.error('Model.stringInsert collectionName should be a string')
-    if (!docId) return console.error('Model.stringInsert docId is required')
-    if (typeof docId !== 'string') return console.error('Model.stringInsert docId should be a string')
-    if (field && typeof field !== 'string') return console.error('Model.stringInsert field should be a string')
-    if (typeof index !== 'number') return console.error('Model.stringInsert index should be a number')
-    if (typeof value !== 'string') return console.error('Model.stringInsert value should be a string')
+    invariant(collectionName && typeof collectionName === 'string', 'Model.stringInsert collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.stringInsert docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.stringInsert field should be a string')
+    invariant(typeof index === 'number', 'Model.stringInsert index should be a number')
+    invariant(typeof value === 'string', 'Model.stringInsert value should be a string')
 
     let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
 
@@ -352,13 +364,11 @@ class Model extends EventEmitter {
   async stringRemove (path, index, howMany) {
     let [collectionName, docId, field] = parsePath(path)
 
-    if (!collectionName) return console.error('Model.stringRemove collectionName is required')
-    if (typeof collectionName !== 'string') return console.error('Model.stringRemove collectionName should be a string')
-    if (!docId) return console.error('Model.stringRemove docId is required')
-    if (typeof docId !== 'string') return console.error('Model.stringRemove docId should be a string')
-    if (field && typeof field !== 'string') return console.error('Model.stringRemove field should be a string')
-    if (typeof index !== 'number') return console.error('Model.stringRemove index should be a number')
-    if (typeof howMany !== 'number') return console.error('Model.stringRemove howMany should be a number')
+    invariant(collectionName && typeof collectionName === 'string', 'Model.stringRemove collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.stringRemove docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.stringRemove field should be a string')
+    invariant(typeof index === 'number', 'Model.stringRemove index should be a number')
+    invariant(typeof howMany === 'number', 'Model.stringRemove howMany should be a number')
 
     let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
 
@@ -368,12 +378,10 @@ class Model extends EventEmitter {
   async stringDiff (path, value) {
     let [collectionName, docId, field] = parsePath(path)
 
-    if (!collectionName) return console.error('Model.stringDiff collectionName is required')
-    if (typeof collectionName !== 'string') return console.error('Model.stringDiff collectionName should be a string')
-    if (!docId) return console.error('Model.stringDiff docId is required')
-    if (typeof docId !== 'string') return console.error('Model.stringDiff docId should be a string')
-    if (field && typeof field !== 'string') return console.error('Model.stringDiff field should be a string')
-    if (typeof value !== 'string') return console.error('Model.stringDiff value should be a string')
+    invariant(collectionName && typeof collectionName === 'string', 'Model.stringDiff collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.stringDiff docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.stringDiff field should be a string')
+    invariant(typeof value === 'string', 'Model.stringDiff value should be a string')
 
     let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
 

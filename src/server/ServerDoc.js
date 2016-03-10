@@ -1,7 +1,7 @@
 let debug = require('debug')('ServerDoc')
 import Doc from '../client/Doc'
 import Model from '../client/Model'
-import { Text } from '../types'
+import { StringType } from '../types'
 import { arrayRemove } from '../util'
 
 class ServerDoc extends Doc {
@@ -121,7 +121,7 @@ class ServerDoc extends Doc {
   getTextFields (field, value) {
     let textFields = []
 
-    if (value instanceof Text) return [{field, value}]
+    if (value instanceof StringType) return [{field, value}]
 
     if (value && typeof value === 'object') {
       for (let key in value) {

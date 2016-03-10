@@ -1,6 +1,6 @@
 import Char from './Char'
 
-class Text {
+class StringType {
   constructor (chars = []) {
     this.chars = chars
   }
@@ -12,7 +12,7 @@ class Text {
       .join('')
   }
 
-  insertChar (positionId, charId, value) {
+  insert (positionId, charId, value) {
     let index = 0
     if (positionId) {
       index = this.getIndexByPositionId(positionId)
@@ -23,7 +23,7 @@ class Text {
     this.chars.splice(index, 0, char)
   }
 
-  removeChar (positionId) {
+  remove (positionId) {
     let index = this.getIndexByPositionId(positionId)
     if (index === -1) return
     let char = this.chars[index]
@@ -55,4 +55,4 @@ class Text {
   }
 }
 
-export default Text
+export default StringType

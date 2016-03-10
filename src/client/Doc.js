@@ -1,6 +1,6 @@
 // let debug = require('debug')('Doc')
 import { EventEmitter } from 'events'
-import { Text } from '../types'
+import { ArrayType, BooleanType, NumberType, StringType } from '../types'
 import { deepClone } from '../util'
 
 class Doc extends EventEmitter {
@@ -29,7 +29,10 @@ class Doc extends EventEmitter {
   }
 
   getValue (value) {
-    if (value instanceof Text) return value.get()
+    if (value instanceof ArrayType) return value.get()
+    if (value instanceof BooleanType) return value.get()
+    if (value instanceof NumberType) return value.get()
+    if (value instanceof StringType) return value.get()
 
     if (typeof value === 'object') {
       let object = {}
@@ -67,15 +70,15 @@ class Doc extends EventEmitter {
     return value
   }
 
-  getInternalAsText (field) {
-    let text = this.getInternal(field)
+  getInternalAsStringType (field) {
+    let string = this.getInternal(field)
 
-    if (!(text instanceof Text)) {
-      text = new Text()
-      this.setValueToField(field, text)
+    if (!(string instanceof StringType)) {
+      string = new StringType()
+      this.setValueToField(field, string)
     }
 
-    return text
+    return string
   }
 
   distillOps () {
@@ -110,7 +113,8 @@ class Doc extends EventEmitter {
         if (docRewrited) continue
 
         distilledOps.push(op)
-        if (type === 'set' || type === 'del' || type === 'stringSet') docRewrited = true
+        if (type === 'set' || type === 'del' ||
+          type === 'arraySet' || type === 'stringSet') docRewrited = true
         continue
       }
 
@@ -133,7 +137,8 @@ class Doc extends EventEmitter {
       if (skip) continue
 
       distilledOps.push(op)
-      if (type === 'set' || type === 'del' || type === 'stringSet') fields[field] = true
+      if (type === 'set' || type === 'del' ||
+        type === 'arraySet' || type === 'stringSet') fields[field] = true
     }
 
     distilledOps.sort(sortByDate)
@@ -156,7 +161,7 @@ class Doc extends EventEmitter {
   applyOpToState (op) {
     let state = this.state
 
-    let { type, field, value, charId, positionId } = op
+    let { type, field, value, charId, itemId, positionId } = op
 
     let fieldState = state
 
@@ -188,26 +193,80 @@ class Doc extends EventEmitter {
         }
         break
 
+      case 'push':
+        if (!(fieldState instanceof ArrayType)) fieldState = new ArrayType()
+
+        fieldState.push(itemId, value)
+        break
+
+      case 'unshift':
+        if (!(fieldState instanceof ArrayType)) fieldState = new ArrayType()
+
+        fieldState.unshift(itemId, value)
+        break
+
+      case 'pop':
+        if (!(fieldState instanceof ArrayType)) fieldState = new ArrayType()
+
+        fieldState.pop()
+        break
+
+      case 'shift':
+        if (!(fieldState instanceof ArrayType)) fieldState = new ArrayType()
+
+        fieldState.shift()
+        break
+
+      case 'insert':
+        if (!(fieldState instanceof ArrayType)) fieldState = new ArrayType()
+
+        fieldState.insert(positionId, itemId, value)
+        break
+
+      case 'remove':
+        if (!(fieldState instanceof ArrayType)) fieldState = new ArrayType()
+
+        fieldState.remove(positionId)
+        break
+
+      case 'move':
+        if (!(fieldState instanceof ArrayType)) fieldState = new ArrayType()
+
+        fieldState.move(positionId, itemId)
+        break
+
+      case 'arraySet':
+        if (!(fieldState instanceof ArrayType)) fieldState = new ArrayType()
+
+        fieldState.setArraySetValue(value)
+        break
+
+      case 'invert':
+        if (!(fieldState instanceof BooleanType)) fieldState = new BooleanType(fieldState)
+
+        fieldState.invert(value)
+        break
+
       case 'increment':
-        if (typeof fieldState !== 'number') fieldState = 0
-        if (value === undefined) value = 1
-        fieldState = fieldState + value
+        if (!(fieldState instanceof NumberType)) fieldState = new NumberType(fieldState)
+
+        fieldState.increment(value)
         break
 
       case 'stringInsert':
-        if (!(fieldState instanceof Text)) fieldState = new Text()
+        if (!(fieldState instanceof StringType)) fieldState = new StringType()
 
-        fieldState.insertChar(positionId, charId, value)
+        fieldState.insert(positionId, charId, value)
         break
 
       case 'stringRemove':
-        if (!(fieldState instanceof Text)) fieldState = new Text()
+        if (!(fieldState instanceof StringType)) fieldState = new StringType()
 
-        fieldState.removeChar(positionId)
+        fieldState.remove(positionId)
         break
 
       case 'stringSet':
-        if (!(fieldState instanceof Text)) fieldState = new Text()
+        if (!(fieldState instanceof StringType)) fieldState = new StringType()
 
         fieldState.setStringSetValue(value)
         break

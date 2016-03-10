@@ -32,6 +32,64 @@ class MutableDoc extends Doc {
     return this.onOp(op)
   }
 
+  async push (field, value) {
+    let op = this.model.createOp({
+      type: 'push',
+      collectionName: this.collection.name,
+      docId: this.docId,
+      field,
+      value
+    })
+
+    return this.onOp(op)
+  }
+
+  async unshift (field, value) {
+    let op = this.model.createOp({
+      type: 'unshift',
+      collectionName: this.collection.name,
+      docId: this.docId,
+      field,
+      value
+    })
+
+    return this.onOp(op)
+  }
+
+  async pop (field) {
+    let op = this.model.createOp({
+      type: 'pop',
+      collectionName: this.collection.name,
+      docId: this.docId,
+      field
+    })
+
+    return this.onOp(op)
+  }
+
+  async shift (field) {
+    let op = this.model.createOp({
+      type: 'shift',
+      collectionName: this.collection.name,
+      docId: this.docId,
+      field
+    })
+
+    return this.onOp(op)
+  }
+
+  async invert (field) {
+    let op = this.model.createOp({
+      type: 'invert',
+      collectionName: this.collection.name,
+      docId: this.docId
+    })
+
+    if (field) op.field = field
+
+    return this.onOp(op)
+  }
+
   async increment (field, value) {
     let op = this.model.createOp({
       type: 'increment',
@@ -47,8 +105,8 @@ class MutableDoc extends Doc {
 
   stringInsert (field, index, value) {
     let howMany = value.length
-    let text = this.getInternalAsText(field)
-    let positionId = text.getInsertPositionIdByIndex(index)
+    let string = this.getInternalAsStringType(field)
+    let positionId = string.getInsertPositionIdByIndex(index)
 
     let ops = []
     let type = 'stringInsert'
@@ -94,12 +152,12 @@ class MutableDoc extends Doc {
   }
 
   stringRemove (field, index, howMany) {
-    let text = this.getInternalAsText(field)
+    let string = this.getInternalAsStringType(field)
     let ops = []
     let type = 'stringRemove'
 
     for (let i = index; i < index + howMany; i++) {
-      let positionId = text.getRemovePositionIdByIndex(i)
+      let positionId = string.getRemovePositionIdByIndex(i)
       if (!positionId) continue
 
       let op = this.model.createOp({
