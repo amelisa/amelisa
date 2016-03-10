@@ -78,7 +78,7 @@ class ServerDoc extends Doc {
     }
 
     this.store.storage
-      .saveDoc(this.collectionName, this.docId, this.state, this.prevVersion, version, this.ops)
+      .saveDoc(this.collectionName, this.docId, this.getForSave(), this.prevVersion, version, this.ops)
       .then(() => {
         this.emit('saved')
         this.prevVersion = version

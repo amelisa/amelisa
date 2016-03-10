@@ -42,6 +42,17 @@ class Doc extends EventEmitter {
     return value
   }
 
+  getForSave () {
+    if (this.state && this.state._del) {
+      return {
+        _id: this.docId,
+        _del: true
+      }
+    }
+
+    return this.get()
+  }
+
   getInternal (field) {
     if (!field) return this.state
 
