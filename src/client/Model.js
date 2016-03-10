@@ -229,7 +229,7 @@ class Model extends EventEmitter {
       case 'ops':
         doc = this.collectionSet.getDoc(collectionName, docId)
         if (doc) {
-          doc.receiveOps(ops, message.index, message.howMany)
+          doc.receiveOps(ops, message.opsType, message.index, message.howMany)
         }
         break
 
@@ -239,6 +239,7 @@ class Model extends EventEmitter {
       case 'increment':
       case 'stringInsert':
       case 'stringRemove':
+      case 'stringSet':
         collection = this.collectionSet.getOrCreateCollection(collectionName)
         doc = collection.getDoc(docId)
 

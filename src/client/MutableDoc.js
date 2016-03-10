@@ -81,6 +81,7 @@ class MutableDoc extends Doc {
 
     let op = this.model.createOp({
       type: 'ops',
+      opsType: type,
       collectionName: this.collection.name,
       docId: this.docId,
       field,
@@ -123,6 +124,7 @@ class MutableDoc extends Doc {
 
     let op = this.model.createOp({
       type: 'ops',
+      opsType: type,
       collectionName: this.collection.name,
       docId: this.docId,
       field,

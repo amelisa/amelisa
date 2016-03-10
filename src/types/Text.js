@@ -43,6 +43,16 @@ class Text {
     let char = this.chars.filter((char) => !char.removed)[index]
     if (char) return char.charId
   }
+
+  getStringSetValue () {
+    return this.chars
+      .filter((char) => !char.removed)
+      .map((char) => [char.charId, char.value])
+  }
+
+  setStringSetValue (setValue) {
+    this.chars = setValue.map(([charId, value]) => new Char(charId, value))
+  }
 }
 
 export default Text

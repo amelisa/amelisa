@@ -99,7 +99,7 @@ class Doc extends EventEmitter {
         if (docRewrited) continue
 
         distilledOps.push(op)
-        if (type === 'set' || type === 'del') docRewrited = true
+        if (type === 'set' || type === 'del' || type === 'stringSet') docRewrited = true
         continue
       }
 
@@ -122,7 +122,7 @@ class Doc extends EventEmitter {
       if (skip) continue
 
       distilledOps.push(op)
-      if (type === 'set' || type === 'del') fields[field] = true
+      if (type === 'set' || type === 'del' || type === 'stringSet') fields[field] = true
     }
 
     distilledOps.sort(sortByDate)
@@ -194,6 +194,12 @@ class Doc extends EventEmitter {
 
         fieldState.removeChar(positionId)
         break
+
+      case 'stringSet':
+        if (!(fieldState instanceof Text)) fieldState = new Text()
+
+        fieldState.setStringSetValue(value)
+        break
     }
 
     if (field) {
@@ -239,7 +245,8 @@ class Doc extends EventEmitter {
 
   applyOp (op) {
     this.ops.push(op)
-    if (this.stateDate && op.date > this.stateDate) {
+    if ((op.type === 'stringInsert' || op.type === 'stringRemove') &&
+      this.stateDate && op.date > this.stateDate) {
       this.applyOpToState(op)
     } else {
       this.distillOps()
@@ -247,12 +254,13 @@ class Doc extends EventEmitter {
     }
   }
 
-  applyOps (ops) {
+  applyOps (ops, opsType) {
     if (!ops.length) return
     ops.sort(sortByDate)
     this.ops = this.ops.concat(ops)
     let firstOp = ops[0]
-    if (this.stateDate && firstOp.date > this.stateDate) {
+    if ((opsType === 'stringInsert' || opsType === 'stringRemove') &&
+      this.stateDate && firstOp.date > this.stateDate) {
       for (let op of ops) {
         this.applyOpToState(op)
       }

@@ -1,5 +1,7 @@
 let debug = require('debug')('ServerDoc')
 import Doc from '../client/Doc'
+import Model from '../client/Model'
+import { Text } from '../types'
 import { arrayRemove } from '../util'
 
 class ServerDoc extends Doc {
@@ -70,6 +72,11 @@ class ServerDoc extends Doc {
   saveToStorage () {
     let version = this.version()
 
+    if (this.ops.length > 50) {
+      this.cutOplog()
+      this.distillOps()
+    }
+
     this.store.storage
       .saveDoc(this.collectionName, this.docId, this.state, this.prevVersion, version, this.ops)
       .then(() => {
@@ -86,6 +93,43 @@ class ServerDoc extends Doc {
           console.error('ServerDoc.save', err)
         }
       })
+  }
+
+  cutOplog () {
+    // TODO: make it smarter to create stirngSet with some gap in time to
+    // avoid race conditions
+    let textFields = this.getTextFields(null, this.state)
+
+    for (let textField of textFields) {
+      let { field, value } = textField
+
+      let op = {
+        id: Model.prototype.id(),
+        source: this.store.options.source,
+        date: Date.now(),
+        type: 'stringSet',
+        collectionName: this.collectionName,
+        docId: this.docId,
+        value: value.getStringSetValue()
+      }
+      if (field) op.field = field
+      this.ops.push(op)
+      this.broadcastOp(op)
+    }
+  }
+
+  getTextFields (field, value) {
+    let textFields = []
+
+    if (value instanceof Text) return [{field, value}]
+
+    if (value && typeof value === 'object') {
+      for (let key in value) {
+        let subField = field ? `${field}.${key}` : key
+        textFields = textFields.concat(this.getTextFields(subField, value[key]))
+      }
+    }
+    return textFields
   }
 
   broadcast () {

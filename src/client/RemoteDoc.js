@@ -102,14 +102,13 @@ class RemoteDoc extends MutableDoc {
     this.save()
   }
 
-  receiveOps (ops, index, howMany) {
+  receiveOps (ops, opsType, index, howMany) {
     if (!ops.length) return
 
-    this.applyOps(ops)
+    this.applyOps(ops, opsType)
 
-    let { type } = ops[0]
-    if (type === 'stringInsert' || type === 'stringRemove') {
-      this.emit(type, index, howMany)
+    if (opsType === 'stringInsert' || opsType === 'stringRemove') {
+      this.emit(opsType, index, howMany)
     }
 
     this.emit('change')
