@@ -92,6 +92,10 @@ class SqliteStorage {
     }
 
     let data = JSON.stringify(doc)
+
+    // escape single quote character in SQL by doubling it
+    data = data.replace(/'/g, "''")
+
     await this.db.executeSql(`INSERT OR REPLACE INTO ${collectionName} (_id, data) VALUES ('${docId}', '${data}')`)
   }
 }
