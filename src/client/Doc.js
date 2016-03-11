@@ -70,6 +70,17 @@ class Doc extends EventEmitter {
     return value
   }
 
+  getInternalAsArrayType (field) {
+    let array = this.getInternal(field)
+
+    if (!(array instanceof ArrayType)) {
+      array = new ArrayType()
+      this.setValueToField(field, array)
+    }
+
+    return array
+  }
+
   getInternalAsStringType (field) {
     let string = this.getInternal(field)
 

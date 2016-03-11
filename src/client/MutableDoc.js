@@ -78,6 +78,134 @@ class MutableDoc extends Doc {
     return this.onOp(op)
   }
 
+  insert (field, index, values) {
+    if (!Array.isArray(values)) values = [values]
+    let array = this.getInternalAsArrayType(field)
+    let positionId = array.getInsertPositionIdByIndex(index)
+
+    let ops = []
+    let type = 'insert'
+
+    for (let value of values) {
+      let itemId = this.model.id()
+
+      let op = this.model.createOp({
+        type,
+        collectionName: this.collection.name,
+        docId: this.docId,
+        itemId,
+        value
+      })
+
+      if (field) op.field = field
+      if (positionId) op.positionId = positionId
+
+      ops.push(op)
+      positionId = itemId
+    }
+
+    this.applyOps(ops)
+
+    this.emit('change')
+    this.collection.emit('change')
+    this.save()
+
+    let op = this.model.createOp({
+      type: 'ops',
+      opsType: type,
+      collectionName: this.collection.name,
+      docId: this.docId,
+      field,
+      ops
+    })
+
+    return this.model.send(op)
+  }
+
+  remove (field, index, howMany = 1) {
+    let array = this.getInternalAsArrayType(field)
+    let ops = []
+    let type = 'remove'
+
+    for (let i = index; i < index + howMany; i++) {
+      let positionId = array.getRemovePositionIdByIndex(i)
+      if (!positionId) continue
+
+      let op = this.model.createOp({
+        type,
+        collectionName: this.collection.name,
+        docId: this.docId
+      })
+
+      if (field) op.field = field
+      if (positionId) op.positionId = positionId
+
+      ops.push(op)
+    }
+
+    this.applyOps(ops)
+
+    this.emit('change')
+    this.collection.emit('change')
+    this.save()
+
+    let op = this.model.createOp({
+      type: 'ops',
+      opsType: type,
+      collectionName: this.collection.name,
+      docId: this.docId,
+      field,
+      ops
+    })
+
+    return this.model.send(op)
+  }
+
+  move (field, from, to, howMany = 1) {
+    let array = this.getInternalAsArrayType(field)
+
+    let ops = []
+    let type = 'move'
+
+    for (let i = 0; i < howMany; i++) {
+      let fromIndex = from + i
+      let toIndex = to + i
+      let positionId = array.getRemovePositionIdByIndex(fromIndex)
+      if (!positionId) continue
+      let itemId = array.getInsertPositionIdByIndex(toIndex)
+      if (!itemId) continue
+
+      let op = this.model.createOp({
+        type,
+        collectionName: this.collection.name,
+        docId: this.docId,
+        positionId,
+        itemId
+      })
+
+      if (field) op.field = field
+
+      ops.push(op)
+    }
+
+    this.applyOps(ops)
+
+    this.emit('change')
+    this.collection.emit('change')
+    this.save()
+
+    let op = this.model.createOp({
+      type: 'ops',
+      opsType: type,
+      collectionName: this.collection.name,
+      docId: this.docId,
+      field,
+      ops
+    })
+
+    return this.model.send(op)
+  }
+
   async invert (field) {
     let op = this.model.createOp({
       type: 'invert',
@@ -151,7 +279,7 @@ class MutableDoc extends Doc {
     return this.model.send(op)
   }
 
-  stringRemove (field, index, howMany) {
+  stringRemove (field, index, howMany = 1) {
     let string = this.getInternalAsStringType(field)
     let ops = []
     let type = 'stringRemove'

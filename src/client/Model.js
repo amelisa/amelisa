@@ -322,6 +322,96 @@ class Model extends EventEmitter {
     return doc.del(field)
   }
 
+  async push (path, value) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    invariant(collectionName && typeof collectionName === 'string', 'Model.push collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.push docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.push field should be a string')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.push(field, value)
+  }
+
+  async unshift (path, value) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    invariant(collectionName && typeof collectionName === 'string', 'Model.unshift collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.unshift docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.unshift field should be a string')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.unshift(field, value)
+  }
+
+  async pop (path) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    invariant(collectionName && typeof collectionName === 'string', 'Model.pop collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.pop docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.pop field should be a string')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.pop(field)
+  }
+
+  async shift (path) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    invariant(collectionName && typeof collectionName === 'string', 'Model.shift collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.shift docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.shift field should be a string')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.shift(field)
+  }
+
+  async insert (path, index, values) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    invariant(collectionName && typeof collectionName === 'string', 'Model.insert collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.insert docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.insert field should be a string')
+    invariant(typeof index === 'number', 'Model.insert index should be a number')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.insert(field, index, values)
+  }
+
+  async remove (path, index, howMany) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    invariant(collectionName && typeof collectionName === 'string', 'Model.remove collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.remove docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.remove field should be a string')
+    invariant(typeof index === 'number', 'Model.remove index should be a number')
+    invariant(typeof howMany === 'number', 'Model.remove howMany should be a number')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.remove(field, index, howMany)
+  }
+
+  async move (path, from, to, howMany) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    invariant(collectionName && typeof collectionName === 'string', 'Model.move collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.move docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.move field should be a string')
+    invariant(typeof from === 'number', 'Model.move from should be a number')
+    invariant(typeof to === 'number', 'Model.move to should be a number')
+    invariant(!howMany || typeof howMany === 'number', 'Model.move howMany should be a number')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.move(field, from, to, howMany)
+  }
+
   async invert (path) {
     let [collectionName, docId, field] = parsePath(path)
 
