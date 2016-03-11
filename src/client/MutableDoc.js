@@ -1,5 +1,6 @@
 let debug = require('debug')('MutableDoc')
 import Doc from './Doc'
+import { ArrayType, StringType } from '../types'
 
 class MutableDoc extends Doc {
   constructor (docId, ops, collection, model) {
@@ -233,7 +234,17 @@ class MutableDoc extends Doc {
 
   stringInsert (field, index, value) {
     let howMany = value.length
-    let string = this.getInternalAsStringType(field)
+    let string = this.getInternal(field)
+    if (!(string instanceof StringType)) {
+      if (typeof string === 'string') {
+        this.stringSet(field, string)
+        string = this.getInternal(field)
+      } else {
+        this.stringSet(field, '')
+        string = this.getInternal(field)
+      }
+    }
+
     let positionId = string.getInsertPositionIdByIndex(index)
 
     let ops = []
@@ -280,7 +291,17 @@ class MutableDoc extends Doc {
   }
 
   stringRemove (field, index, howMany = 1) {
-    let string = this.getInternalAsStringType(field)
+    let string = this.getInternal(field)
+    if (!(string instanceof StringType)) {
+      if (typeof string === 'string') {
+        this.stringSet(field, string)
+        string = this.getInternal(field)
+      } else {
+        this.stringSet(field, '')
+        string = this.getInternal(field)
+      }
+    }
+
     let ops = []
     let type = 'stringRemove'
 
@@ -320,6 +341,22 @@ class MutableDoc extends Doc {
     })
 
     return this.model.send(op)
+  }
+
+  stringSet (field, value) {
+    let string = new StringType()
+    string.setValue(value, this.model.id)
+
+    let op = this.model.createOp({
+      type: 'stringSet',
+      collectionName: this.collection.name,
+      docId: this.docId,
+      value: string.getStringSetValue()
+    })
+
+    if (field) op.field = field
+
+    return this.onOp(op)
   }
 
   stringDiff (field, value) {

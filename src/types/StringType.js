@@ -53,6 +53,18 @@ class StringType {
   setStringSetValue (setValue) {
     this.chars = setValue.map(([charId, value]) => new Char(charId, value))
   }
+
+  setValue (values, generateCharId) {
+    let chars = []
+
+    for (let value of values) {
+      let charId = generateCharId()
+      let char = new Char(charId, value)
+      chars.push(char)
+    }
+
+    this.chars = chars
+  }
 }
 
 export default StringType

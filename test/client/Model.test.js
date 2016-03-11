@@ -238,7 +238,7 @@ describe('Model', () => {
       model.stringInsert([collectionName, docId, field], 0, value)
 
       let name = model.get(collectionName, docId, field)
-      assert.equal(name, value)
+      assert.equal(name, value + value)
     })
 
     it('should stringInsert when path', async () => {
@@ -247,7 +247,7 @@ describe('Model', () => {
       model.stringInsert(`${collectionName}.${docId}.${field}`, 0, value)
 
       let name = model.get(collectionName, docId, field)
-      assert.equal(name, value)
+      assert.equal(name, value + value)
     })
 
     it('should stringInsert doc', () => {
