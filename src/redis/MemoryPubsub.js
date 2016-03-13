@@ -1,11 +1,15 @@
 import { EventEmitter } from 'events'
+import { deepClone } from '../util'
 
 class MemoryPubsub extends EventEmitter {
 
   async init () {}
 
   send (message) {
-    this.emit('message', message)
+    // make it intentionally async
+    process.nextTick(() => {
+      this.emit('message', deepClone(message))
+    })
   }
 }
 

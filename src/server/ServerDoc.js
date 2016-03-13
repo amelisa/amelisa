@@ -50,19 +50,15 @@ class ServerDoc extends Doc {
   }
 
   onOp (op, channel) {
-    channel._session.updateDocVersion(this.collectionName, this.docId, op.source, op.date)
+    if (channel) channel._session.updateDocVersion(this.collectionName, this.docId, op.source, op.date)
     this.applyOp(op)
     this.save()
     this.broadcastOp(op, channel)
   }
 
-  onPubSubOp (op) {
+  receiveOp (op) {
     this.applyOp(op)
     this.broadcastOp(op)
-  }
-
-  receiveOp (op) {
-    this.onOp(op)
   }
 
   save () {
@@ -94,7 +90,7 @@ class ServerDoc extends Doc {
         } else if (err.code === 11000) {
           // E11000 duplicate key error collection
         } else {
-          console.error('ServerDoc.save', err)
+          console.trace('ServerDoc.saveToStorage', err)
         }
       })
   }

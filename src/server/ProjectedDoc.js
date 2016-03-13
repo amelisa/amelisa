@@ -28,8 +28,7 @@ class ProjectedDoc extends ServerDoc {
 
   receiveOp (op) {
     op = this.projection.projectOp(op)
-    this.applyOp(op)
-    this.broadcastOp(op)
+    super.receiveOp(op)
   }
 
   sendOp (op, channel) {
