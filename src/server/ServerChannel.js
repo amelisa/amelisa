@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events'
+import { deepClone } from '../util'
 
 class ServerChannel extends EventEmitter {
   constructor () {
@@ -45,7 +46,7 @@ class ServerChannel extends EventEmitter {
       if (!channel.opened) return console.error('ServerChannel is closed', message)
       // make it intentionally async
       process.nextTick(() => {
-        this.emit('message', message)
+        this.emit('message', deepClone(message))
       })
     }
 

@@ -150,4 +150,12 @@ describe('subscribes doc', () => {
     doc.on('change', done)
     doc.subscribe()
   })
+
+  it('should emit only one change when subscribed and on doc and set field', async (done) => {
+    let doc = model.doc(collectionName, docId)
+    await doc.subscribe()
+
+    doc.on('change', done)
+    doc.set(field, value)
+  })
 })

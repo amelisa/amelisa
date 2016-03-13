@@ -61,6 +61,10 @@ class ServerDoc extends Doc {
     this.broadcastOp(op)
   }
 
+  receiveOp (op) {
+    this.onOp(op)
+  }
+
   save () {
     if (!this.loaded) return
     if (this.ops.length === 0) return

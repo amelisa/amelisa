@@ -60,10 +60,10 @@ class ServerDocSet {
 
         if (doc.loading) {
           doc.once('loaded', () => {
-            doc.onOp(op)
+            doc.receiveOp(op)
           })
         } else {
-          doc.onOp(op)
+          doc.receiveOp(op)
         }
       }
     }

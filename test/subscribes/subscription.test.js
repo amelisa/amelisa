@@ -38,7 +38,7 @@ describe('subscribes subscription', () => {
     assert.equal(subscription.get()[0].length, 1)
   })
 
-  it.skip('should subscribe query, and get doc changes', async () => {
+  it('should subscribe query, and get doc changes', async () => {
     let query = model.query(collectionName, expression)
     let subscription = await model.subscribe([query])
     setTimeout(() => model2.add(collectionName, getDocData()), 0)
