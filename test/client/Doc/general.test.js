@@ -94,6 +94,22 @@ describe('Doc general', () => {
     assert.equal(doc.get(`nested.${field}`), value)
   })
 
+  it('should get field that is array', () => {
+    let op = model.createOp({
+      type: 'add',
+      collectionName,
+      docId,
+      value: {
+        [field]: [value]
+      }
+    })
+
+    let doc = new Doc(docId, [op])
+
+    assert.deepEqual(doc.get(field), [value])
+    assert(Array.isArray(doc.get(field)))
+  })
+
   it('should getVersionFromOps from different sources', () => {
     let ops = []
 

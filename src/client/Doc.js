@@ -35,6 +35,10 @@ class Doc extends EventEmitter {
     if (value instanceof StringType) return value.get()
 
     if (typeof value === 'object') {
+      if (Array.isArray(value)) {
+        return value.map((item) => this.getValue(item))
+      }
+
       let object = {}
       for (let key in value) {
         object[key] = this.getValue(value[key])
