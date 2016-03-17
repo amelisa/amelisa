@@ -1,4 +1,5 @@
 let debug = require('debug')('MutableDoc')
+import arraydiff from 'arraydiff'
 import Doc from './Doc'
 import { ArrayType, StringType } from '../types'
 
@@ -34,6 +35,8 @@ class MutableDoc extends Doc {
   }
 
   async push (field, value) {
+    this.arraySetIfValueIsArray(field)
+
     let op = this.model.createOp({
       type: 'push',
       collectionName: this.collection.name,
@@ -46,6 +49,8 @@ class MutableDoc extends Doc {
   }
 
   async unshift (field, value) {
+    this.arraySetIfValueIsArray(field)
+
     let op = this.model.createOp({
       type: 'unshift',
       collectionName: this.collection.name,
@@ -58,6 +63,8 @@ class MutableDoc extends Doc {
   }
 
   async pop (field) {
+    this.arraySetIfValueIsArray(field)
+
     let op = this.model.createOp({
       type: 'pop',
       collectionName: this.collection.name,
@@ -69,6 +76,8 @@ class MutableDoc extends Doc {
   }
 
   async shift (field) {
+    this.arraySetIfValueIsArray(field)
+
     let op = this.model.createOp({
       type: 'shift',
       collectionName: this.collection.name,
@@ -79,7 +88,9 @@ class MutableDoc extends Doc {
     return this.onOp(op)
   }
 
-  insert (field, index, values) {
+  async insert (field, index, values) {
+    this.arraySetIfValueIsArray(field)
+
     if (!Array.isArray(values)) values = [values]
     let array = this.getInternalAsArrayType(field)
     let positionId = array.getInsertPositionIdByIndex(index)
@@ -123,7 +134,9 @@ class MutableDoc extends Doc {
     return this.model.send(op)
   }
 
-  remove (field, index, howMany = 1) {
+  async remove (field, index, howMany = 1) {
+    this.arraySetIfValueIsArray(field)
+
     let array = this.getInternalAsArrayType(field)
     let ops = []
     let type = 'remove'
@@ -162,7 +175,9 @@ class MutableDoc extends Doc {
     return this.model.send(op)
   }
 
-  move (field, from, to, howMany = 1) {
+  async move (field, from, to, howMany = 1) {
+    this.arraySetIfValueIsArray(field)
+
     let array = this.getInternalAsArrayType(field)
 
     let ops = []
@@ -174,16 +189,15 @@ class MutableDoc extends Doc {
       let positionId = array.getRemovePositionIdByIndex(fromIndex)
       if (!positionId) continue
       let itemId = array.getInsertPositionIdByIndex(toIndex)
-      if (!itemId) continue
 
       let op = this.model.createOp({
         type,
         collectionName: this.collection.name,
         docId: this.docId,
-        positionId,
-        itemId
+        positionId
       })
 
+      if (itemId) op.itemId = itemId
       if (field) op.field = field
 
       ops.push(op)
@@ -205,6 +219,43 @@ class MutableDoc extends Doc {
     })
 
     return this.model.send(op)
+  }
+
+  async arraySet (field, value) {
+    let array = new ArrayType()
+    array.setValue(value, this.model.id)
+
+    let op = this.model.createOp({
+      type: 'arraySet',
+      collectionName: this.collection.name,
+      docId: this.docId,
+      value: array.getArraySetValue()
+    })
+
+    if (field) op.field = field
+
+    return this.onOp(op)
+  }
+
+  arrayDiff (field, value) {
+    let previous = this.get(field)
+    if (!Array.isArray(previous)) previous = []
+
+    let diffs = arraydiff(previous, value)
+
+    for (let diff of diffs) {
+      switch (diff.type) {
+        case 'insert':
+          this.insert(field, diff.index, diff.values)
+          break
+        case 'remove':
+          this.remove(field, diff.index, diff.howMany)
+          break
+        case 'move':
+          this.move(field, diff.from, diff.to, diff.howMany)
+          break
+      }
+    }
   }
 
   async invert (field) {
@@ -232,7 +283,7 @@ class MutableDoc extends Doc {
     return this.onOp(op)
   }
 
-  stringInsert (field, index, value) {
+  async stringInsert (field, index, value) {
     let howMany = value.length
     let string = this.getInternal(field)
     if (!(string instanceof StringType)) {
@@ -290,7 +341,7 @@ class MutableDoc extends Doc {
     return this.model.send(op)
   }
 
-  stringRemove (field, index, howMany = 1) {
+  async stringRemove (field, index, howMany = 1) {
     let string = this.getInternal(field)
     if (!(string instanceof StringType)) {
       if (typeof string === 'string') {
@@ -343,7 +394,7 @@ class MutableDoc extends Doc {
     return this.model.send(op)
   }
 
-  stringSet (field, value) {
+  async stringSet (field, value) {
     let string = new StringType()
     string.setValue(value, this.model.id)
 
@@ -384,6 +435,22 @@ class MutableDoc extends Doc {
     if (value.length !== start + end) {
       let inserted = value.slice(start, value.length - end)
       this.stringInsert(field, start, inserted)
+    }
+  }
+
+  richDiff (field, value) {
+    let previous = this.get(field)
+    if (!Array.isArray(previous)) previous = []
+
+    // TODO: implement
+  }
+
+  arraySetIfValueIsArray (field) {
+    let previous = this.getInternal(field)
+    if (!(previous instanceof ArrayType)) {
+      if (Array.isArray(previous)) {
+        this.arraySet(field, previous)
+      }
     }
   }
 

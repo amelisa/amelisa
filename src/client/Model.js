@@ -412,6 +412,19 @@ class Model extends EventEmitter {
     return doc.move(field, from, to, howMany)
   }
 
+  async arrayDiff (path, value) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    invariant(collectionName && typeof collectionName === 'string', 'Model.arrayDiff collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.arrayDiff docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.arrayDiff field should be a string')
+    invariant(Array.isArray(value), 'Model.arrayDiff value should be a array')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.arrayDiff(field, value)
+  }
+
   async invert (path) {
     let [collectionName, docId, field] = parsePath(path)
 

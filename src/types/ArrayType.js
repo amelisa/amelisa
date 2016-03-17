@@ -54,9 +54,15 @@ class ArrayType {
   move (positionId, itemId) {
     let fromIndex = this.getIndexByPositionId(positionId)
     if (fromIndex === -1) return
-    let toIndex = this.getIndexByPositionId(itemId)
-    if (toIndex === -1) return
-    this.items.splice(toIndex, 0, this.items.splice(fromIndex, 1)[0])
+    let toIndex = 0
+    if (itemId) {
+      toIndex = this.getIndexByPositionId(itemId)
+      if (toIndex === -1) return
+      toIndex++
+    }
+    if (fromIndex === toIndex) toIndex--
+    let value = this.items.splice(fromIndex, 1)[0]
+    this.items.splice(toIndex, 0, value)
   }
 
   getIndexByPositionId (positionId) {
@@ -81,6 +87,18 @@ class ArrayType {
 
   setArraySetValue (setValue) {
     this.items = setValue.map(([itemId, value]) => new Item(itemId, value))
+  }
+
+  setValue (values, generateCharId) {
+    let items = []
+
+    for (let value of values) {
+      let itemId = generateCharId()
+      let item = new Item(itemId, value)
+      items.push(item)
+    }
+
+    this.items = items
   }
 }
 

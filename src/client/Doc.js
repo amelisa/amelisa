@@ -21,7 +21,7 @@ class Doc extends EventEmitter {
 
     value = this.getValue(value)
 
-    if (!field && typeof value === 'object') {
+    if (!field && typeof value === 'object' && !Array.isArray(value)) {
       value._id = this.docId
     }
 
