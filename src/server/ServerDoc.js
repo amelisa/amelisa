@@ -1,7 +1,7 @@
 let debug = require('debug')('ServerDoc')
 import Doc from '../client/Doc'
 import Model from '../client/Model'
-import { StringType } from '../types'
+import { ArrayType, StringType } from '../types'
 import { arrayRemove } from '../util'
 
 class ServerDoc extends Doc {
@@ -98,38 +98,63 @@ class ServerDoc extends Doc {
   cutOplog () {
     // TODO: make it smarter to create stirngSet with some gap in time to
     // avoid race conditions
-    let textFields = this.getTextFields(null, this.state)
+    let cuttableFields = this.getCuttableFields(null, this.state)
 
-    for (let textField of textFields) {
-      let { field, value } = textField
+    for (let cuttableField of cuttableFields) {
+      let { type, field, value } = cuttableField
 
-      let op = {
-        id: Model.prototype.id(),
-        source: this.store.options.source,
-        date: Date.now(),
-        type: 'stringSet',
-        collectionName: this.collectionName,
-        docId: this.docId,
-        value: value.getStringSetValue()
+      if (type === 'array') {
+        // let op = {
+        //   id: Model.prototype.id(),
+        //   source: this.store.options.source,
+        //   date: Date.now(),
+        //   type: 'arraySet',
+        //   collectionName: this.collectionName,
+        //   docId: this.docId,
+        //   value: value.getArraySetValue()
+        // }
+        let op = {
+          id: Model.prototype.id(),
+          source: this.store.options.source,
+          date: Date.now(),
+          type: 'set',
+          collectionName: this.collectionName,
+          docId: this.docId,
+          value: this.get(field)
+        }
+        if (field) op.field = field
+        this.ops.push(op)
+        this.broadcastOp(op)
+      } else if (type === 'string') {
+        let op = {
+          id: Model.prototype.id(),
+          source: this.store.options.source,
+          date: Date.now(),
+          type: 'stringSet',
+          collectionName: this.collectionName,
+          docId: this.docId,
+          value: value.getStringSetValue()
+        }
+        if (field) op.field = field
+        this.ops.push(op)
+        this.broadcastOp(op)
       }
-      if (field) op.field = field
-      this.ops.push(op)
-      this.broadcastOp(op)
     }
   }
 
-  getTextFields (field, value) {
-    let textFields = []
+  getCuttableFields (field, value) {
+    let cuttableFields = []
 
-    if (value instanceof StringType) return [{field, value}]
+    if (value instanceof ArrayType) return [{type: 'array', field, value}]
+    if (value instanceof StringType) return [{type: 'string', field, value}]
 
     if (value && typeof value === 'object') {
       for (let key in value) {
         let subField = field ? `${field}.${key}` : key
-        textFields = textFields.concat(this.getTextFields(subField, value[key]))
+        cuttableFields = cuttableFields.concat(this.getCuttableFields(subField, value[key]))
       }
     }
-    return textFields
+    return cuttableFields
   }
 
   broadcast () {
