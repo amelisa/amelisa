@@ -489,7 +489,62 @@ class MutableDoc extends Doc {
     let previous = this.get(field)
     if (!Array.isArray(previous)) previous = []
 
-    // TODO: implement
+    let prevKeys = previous.map((block) => block.key)
+    let keys = value.map((block) => block.key)
+
+    let diffs = arraydiff(prevKeys, keys)
+    let insertKeys = []
+
+    for (let diff of diffs) {
+      switch (diff.type) {
+        case 'insert':
+          let values = diff.values.map((key) => {
+            insertKeys.push(key)
+            return value.find((block) => block.key === key)
+          })
+          this.insert(field, diff.index, values)
+          break
+        case 'remove':
+          this.remove(field, diff.index, diff.howMany)
+          break
+        case 'move':
+          this.move(field, diff.from, diff.to, diff.howMany)
+          break
+      }
+    }
+
+    previous = this.get(field)
+
+    for (let i = 0; i < previous.length; i++) {
+      let prevBlock = previous[i]
+      let block = value[i]
+      if (insertKeys.indexOf(block.key) !== -1) continue
+
+      this.stringDiff(`${field}.${i}.text`, block.text)
+
+      let prevChatacterList = prevBlock.characterList
+      let characterList = block.characterList
+
+      let charDiffs = arraydiff(prevChatacterList.map((char) => JSON.stringify(char)), characterList.map((char) => JSON.stringify(char)))
+
+      for (let diff of charDiffs) {
+        switch (diff.type) {
+          case 'insert':
+            let values = []
+            for (let k = diff.index; k < diff.index + diff.values.length; k++) {
+              values.push(characterList[k])
+            }
+            this.insert(`${field}.${i}.characterList`, diff.index, values)
+            break
+          case 'remove':
+            this.remove(`${field}.${i}.characterList`, diff.index, diff.howMany)
+            break
+          case 'move':
+            this.move(`${field}.${i}.characterList`, diff.from, diff.to, diff.howMany)
+            break
+        }
+      }
+    }
   }
 
   arraySetIfValueIsArray (field) {

@@ -491,6 +491,19 @@ class Model extends EventEmitter {
     return doc.stringDiff(field, value)
   }
 
+  async richDiff (path, value) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    invariant(collectionName && typeof collectionName === 'string', 'Model.richDiff collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.richDiff docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.richDiff field should be a string')
+    invariant(Array.isArray(value), 'Model.richDiff value should be a array')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.richDiff(field, value)
+  }
+
   doc (collectionName, docId) {
     return this.collectionSet.getOrCreateDoc(collectionName, docId)
   }
