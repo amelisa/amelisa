@@ -29,7 +29,7 @@ class Doc extends EventEmitter {
   }
 
   getValue (value) {
-    if (value instanceof ArrayType) return value.get()
+    if (value instanceof ArrayType) return this.getValue(value.get())
     if (value instanceof BooleanType) return value.get()
     if (value instanceof NumberType) return value.get()
     if (value instanceof StringType) return value.get()
@@ -68,7 +68,11 @@ class Doc extends EventEmitter {
 
     for (let part of parts) {
       if (!value) return
-      value = value[part]
+      if (value instanceof ArrayType) {
+        value = value.getByIndex(part)
+      } else {
+        value = value[part]
+      }
     }
 
     return value
@@ -184,7 +188,13 @@ class Doc extends EventEmitter {
       let parts = field.split('.')
 
       for (let part of parts) {
-        if (fieldState) fieldState = fieldState[part]
+        if (fieldState) {
+          if (fieldState instanceof ArrayType) {
+            fieldState = fieldState.getByPositionId(part)
+          } else {
+            fieldState = fieldState[part]
+          }
+        }
       }
     }
 
@@ -290,9 +300,21 @@ class Doc extends EventEmitter {
     if (field) {
       if (!state || typeof state !== 'object') state = {}
       if (type === 'del') {
-        this.applyFnToStateField(state, field, (part, current) => delete current[part])
+        this.applyFnToStateField(state, field, (part, current) => {
+          if (current instanceof ArrayType) {
+            current.del(part)
+          } else {
+            delete current[part]
+          }
+        })
       } else {
-        this.applyFnToStateField(state, field, (part, current) => current[part] = fieldState)
+        this.applyFnToStateField(state, field, (part, current) => {
+          if (current instanceof ArrayType) {
+            current.set(part, fieldState)
+          } else {
+            current[part] = fieldState
+          }
+        })
       }
     } else {
       state = fieldState
@@ -318,11 +340,22 @@ class Doc extends EventEmitter {
       if (index === parts.length - 1) {
         fn(part, current)
       } else {
-        if (typeof current[part] === 'object') {
-          current = current[part]
+        if (current instanceof ArrayType) {
+          let value = current.getByPositionId(part)
+          if (typeof value === 'object') {
+            current = value
+          } else {
+            let value = {}
+            current.set(part, value)
+            current = value
+          }
         } else {
-          current[part] = {}
-          current = current[part]
+          if (typeof current[part] === 'object') {
+            current = current[part]
+          } else {
+            current[part] = {}
+            current = current[part]
+          }
         }
       }
     })

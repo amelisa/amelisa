@@ -10,7 +10,33 @@ class MutableDoc extends Doc {
     this.model = model
   }
 
+  getFieldConsideringArrays (field) {
+    if (field) {
+      let parts = field.split('.')
+      let currentField = ''
+      let currentState
+      let newParts = []
+
+      for (let part of parts) {
+        if (currentState instanceof ArrayType) {
+          let positionId = currentState.getSetPositionIdByIndex(part)
+          if (!positionId) throw new Error(`No item on index while mutating field: ${field}`)
+          newParts.push(positionId)
+        } else {
+          newParts.push(part)
+        }
+        if (currentField) currentField = currentField + '.' + part
+        else currentField = part
+        currentState = this.getInternal(currentField)
+      }
+      field = newParts.join('.')
+    }
+    return field
+  }
+
   async set (field, value) {
+    field = this.getFieldConsideringArrays(field)
+
     let op = this.model.createOp({
       type: 'set',
       collectionName: this.collection.name,
@@ -23,6 +49,8 @@ class MutableDoc extends Doc {
   }
 
   async del (field) {
+    field = this.getFieldConsideringArrays(field)
+
     let op = this.model.createOp({
       type: 'del',
       collectionName: this.collection.name,
@@ -36,12 +64,15 @@ class MutableDoc extends Doc {
 
   async push (field, value) {
     this.arraySetIfValueIsArray(field)
+    field = this.getFieldConsideringArrays(field)
 
+    let itemId = this.model.id()
     let op = this.model.createOp({
       type: 'push',
       collectionName: this.collection.name,
       docId: this.docId,
       field,
+      itemId,
       value
     })
 
@@ -50,12 +81,15 @@ class MutableDoc extends Doc {
 
   async unshift (field, value) {
     this.arraySetIfValueIsArray(field)
+    field = this.getFieldConsideringArrays(field)
 
+    let itemId = this.model.id()
     let op = this.model.createOp({
       type: 'unshift',
       collectionName: this.collection.name,
       docId: this.docId,
       field,
+      itemId,
       value
     })
 
@@ -64,6 +98,7 @@ class MutableDoc extends Doc {
 
   async pop (field) {
     this.arraySetIfValueIsArray(field)
+    field = this.getFieldConsideringArrays(field)
 
     let op = this.model.createOp({
       type: 'pop',
@@ -77,6 +112,7 @@ class MutableDoc extends Doc {
 
   async shift (field) {
     this.arraySetIfValueIsArray(field)
+    field = this.getFieldConsideringArrays(field)
 
     let op = this.model.createOp({
       type: 'shift',
@@ -97,6 +133,7 @@ class MutableDoc extends Doc {
 
     let ops = []
     let type = 'insert'
+    field = this.getFieldConsideringArrays(field)
 
     for (let value of values) {
       let itemId = this.model.id()
@@ -140,6 +177,7 @@ class MutableDoc extends Doc {
     let array = this.getInternalAsArrayType(field)
     let ops = []
     let type = 'remove'
+    field = this.getFieldConsideringArrays(field)
 
     for (let i = index; i < index + howMany; i++) {
       let positionId = array.getRemovePositionIdByIndex(i)
@@ -182,6 +220,7 @@ class MutableDoc extends Doc {
 
     let ops = []
     let type = 'move'
+    field = this.getFieldConsideringArrays(field)
 
     for (let i = 0; i < howMany; i++) {
       let fromIndex = from + i
@@ -224,6 +263,7 @@ class MutableDoc extends Doc {
   async arraySet (field, value) {
     let array = new ArrayType()
     array.setValue(value, this.model.id)
+    field = this.getFieldConsideringArrays(field)
 
     let op = this.model.createOp({
       type: 'arraySet',
@@ -259,6 +299,8 @@ class MutableDoc extends Doc {
   }
 
   async invert (field) {
+    field = this.getFieldConsideringArrays(field)
+
     let op = this.model.createOp({
       type: 'invert',
       collectionName: this.collection.name,
@@ -271,6 +313,8 @@ class MutableDoc extends Doc {
   }
 
   async increment (field, value) {
+    field = this.getFieldConsideringArrays(field)
+
     let op = this.model.createOp({
       type: 'increment',
       collectionName: this.collection.name,
@@ -300,6 +344,7 @@ class MutableDoc extends Doc {
 
     let ops = []
     let type = 'stringInsert'
+    field = this.getFieldConsideringArrays(field)
 
     for (let value of value.split('')) {
       let charId = this.model.id()
@@ -355,6 +400,7 @@ class MutableDoc extends Doc {
 
     let ops = []
     let type = 'stringRemove'
+    field = this.getFieldConsideringArrays(field)
 
     for (let i = index; i < index + howMany; i++) {
       let positionId = string.getRemovePositionIdByIndex(i)
@@ -397,6 +443,7 @@ class MutableDoc extends Doc {
   async stringSet (field, value) {
     let string = new StringType()
     string.setValue(value, this.model.id)
+    field = this.getFieldConsideringArrays(field)
 
     let op = this.model.createOp({
       type: 'stringSet',

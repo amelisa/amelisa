@@ -6,13 +6,40 @@ class ArrayType {
   }
 
   get () {
-    return this.getNotRemoved()
+    return this
+      .getNotRemoved()
       .map((item) => item.value)
   }
 
   getNotRemoved () {
     return this.items
       .filter((item) => !item.removed)
+  }
+
+  getByIndex (index) {
+    let item = this.getNotRemoved()[index]
+    if (item) return item.value
+  }
+
+  getByPositionId (positionId) {
+    let item = this
+      .getNotRemoved()
+      .find((item) => item.itemId === positionId)
+    if (item) return item.value
+  }
+
+  set (positionId, value) {
+    let index = this.getNotRemovedIndexByPositionId(positionId)
+    if (index === -1) return
+    let item = this.items[index]
+    item.value = value
+  }
+
+  del (positionId) {
+    let index = this.getNotRemovedIndexByPositionId(positionId)
+    if (index === -1) return
+    let item = this.items[index]
+    item.removed = true
   }
 
   push (itemId, value) {
@@ -66,7 +93,14 @@ class ArrayType {
   }
 
   getIndexByPositionId (positionId) {
-    return this.items.findIndex((item) => item.itemId === positionId)
+    return this.items
+      .findIndex((item) => item.itemId === positionId)
+  }
+
+  getNotRemovedIndexByPositionId (positionId) {
+    return this
+      .getNotRemoved()
+      .findIndex((item) => item.itemId === positionId)
   }
 
   getInsertPositionIdByIndex (index) {
@@ -75,6 +109,11 @@ class ArrayType {
   }
 
   getRemovePositionIdByIndex (index) {
+    let item = this.getNotRemoved()[index]
+    if (item) return item.itemId
+  }
+
+  getSetPositionIdByIndex (index) {
     let item = this.getNotRemoved()[index]
     if (item) return item.itemId
   }
