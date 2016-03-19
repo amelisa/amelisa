@@ -6,7 +6,7 @@ import { source, collectionName, docId, field } from '../../../util'
 let channel
 let model
 
-describe.only('Model mutators rich', () => {
+describe('Model mutators rich', () => {
   beforeEach(() => {
     channel = new ServerChannel()
     model = new Model(channel, source)
