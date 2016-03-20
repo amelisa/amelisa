@@ -84,7 +84,8 @@ class RemoteQuery extends ClientQuery {
     // Refresh queries from local data when offline
     if (this.server && !this.model.online) this.server = false
 
-    if (!this.server) {
+    // TODO: implement instant refreshing
+    if (!this.server /* || this.isServerOnly*/) {
       super.refresh()
     }
     // TODO: emit only if there were changes
