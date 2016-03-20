@@ -525,24 +525,22 @@ class MutableDoc extends Doc {
       let prevChatacterList = prevBlock.characterList
       let characterList = block.characterList
 
-      let charDiffs = arraydiff(prevChatacterList.map((char) => JSON.stringify(char)), characterList.map((char) => JSON.stringify(char)))
+      for (let k = 0; k < characterList.length; k++) {
+        let prevChar = prevChatacterList[k]
+        let char = characterList[k]
 
-      for (let diff of charDiffs) {
-        switch (diff.type) {
-          case 'insert':
-            let values = []
-            for (let k = diff.index; k < diff.index + diff.values.length; k++) {
-              values.push(characterList[k])
-            }
-            this.insert(`${field}.${i}.characterList`, diff.index, values)
-            break
-          case 'remove':
-            this.remove(`${field}.${i}.characterList`, diff.index, diff.howMany)
-            break
-          case 'move':
-            this.move(`${field}.${i}.characterList`, diff.from, diff.to, diff.howMany)
-            break
+        if (!prevChar) {
+          this.set(`${field}.${i}.characterList.${k}`, char)
+          continue
         }
+
+        if (prevChar.style.length === 0 && char.style.length === 0) continue
+        if (prevChar.style.length === 1 && char.style.length === 1 && prevChar.style[0] === char.style[0]) continue
+        if (prevChar.style.length === 2 && char.style.length === 2 &&
+          prevChar.style[0] === char.style[0] && prevChar.style[1] === char.style[1]) continue
+        if (JSON.stringify(prevChar.style) === JSON.stringify(char.style)) continue
+
+        this.set(`${field}.${i}.characterList.${k}.style`, char.style)
       }
     }
   }
