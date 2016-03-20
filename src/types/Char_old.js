@@ -1,10 +1,8 @@
 class Char {
-  constructor (charId, value, previousId, nextId) {
+  constructor (charId, value) {
     this.charId = charId
     this.value = value
     this.removed = false
-    this.previousId = previousId
-    this.nextId = nextId
   }
 }
 

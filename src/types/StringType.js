@@ -1,66 +1,137 @@
 import Char from './Char'
 
+// StringType is doubly linked list data structure with O(1) inserts
+
 class StringType {
-  constructor (chars = []) {
+  constructor (chars = {}) {
     this.chars = chars
+    this.firstCharId = null
   }
 
   get () {
-    return this.chars
-      .filter((char) => !char.removed)
-      .map((char) => char.value)
-      .join('')
+    let values = []
+    let charId = this.firstCharId
+
+    while (charId) {
+      let char = this.chars[charId]
+      if (!char) break
+      charId = char.nextId
+      if (char.removed) continue
+      values.push(char.value)
+    }
+
+    return values.join('')
   }
 
   insert (positionId, charId, value) {
-    let index = 0
+    let nextId
     if (positionId) {
-      index = this.getIndexByPositionId(positionId)
-      if (index === -1) return
-      index++
+      let prevChar = this.chars[positionId]
+      if (!prevChar) return
+      nextId = prevChar.nextId
+      prevChar.nextId = charId
+    } else {
+      if (this.firstCharId) {
+        let firstChar = this.chars[this.firstCharId]
+        firstChar.previousId = charId
+        nextId = firstChar.charId
+      }
+      this.firstCharId = charId
     }
-    let char = new Char(charId, value)
-    this.chars.splice(index, 0, char)
+    let char = new Char(charId, value, positionId, nextId)
+    this.chars[charId] = char
+    if (!nextId) return
+    let nextChar = this.chars[nextId]
+    nextChar.previousId = charId
   }
 
   remove (positionId) {
-    let index = this.getIndexByPositionId(positionId)
-    if (index === -1) return
-    let char = this.chars[index]
+    let char = this.chars[positionId]
+    if (!char) return
     char.removed = true
   }
 
   getIndexByPositionId (positionId) {
-    return this.chars.findIndex((char) => char.charId === positionId)
+    let index = 0
+    let charId = this.firstCharId
+    while (charId) {
+      if (charId === positionId) return index
+      let char = this.chars[charId]
+      charId = char && char.nextId
+    }
+    return -1
   }
 
   getInsertPositionIdByIndex (index) {
-    let char = this.chars.filter((char) => !char.removed)[index - 1]
-    if (char) return char.charId
+    let currentIndex = 0
+    let charId = this.firstCharId
+    while (charId) {
+      let char = this.chars[charId]
+      if (index === currentIndex) return char.previousId
+      charId = char && char.nextId
+      if (char && !char.removed) currentIndex++
+    }
   }
 
   getRemovePositionIdByIndex (index) {
-    let char = this.chars.filter((char) => !char.removed)[index]
-    if (char) return char.charId
+    let currentIndex = 0
+    let charId = this.firstCharId
+    while (charId) {
+      let char = this.chars[charId]
+      if (!char) break
+      if (char.removed) {
+        charId = char.nextId
+        continue
+      }
+      if (index === currentIndex) return charId
+      charId = char.nextId
+      currentIndex++
+    }
   }
 
   getStringSetValue () {
-    return this.chars
-      .filter((char) => !char.removed)
-      .map((char) => [char.charId, char.value])
+    let index = 0
+    let charId = this.firstCharId
+    let setValue = []
+    while (charId) {
+      let char = this.chars[charId]
+      charId = char && char.nextId
+      if (char && !char.removed) {
+        setValue.push([char.charId, char.value])
+        index++
+      }
+    }
+    return setValue
   }
 
   setStringSetValue (setValue) {
-    this.chars = setValue.map(([charId, value]) => new Char(charId, value))
+    this.firstCharId = null
+    let chars = {}
+    let previousId
+
+    for (let [charId, value] of setValue) {
+      if (!this.firstCharId) this.firstCharId = charId
+      let char = new Char(charId, value, previousId)
+      chars[charId] = char
+      if (previousId) chars[previousId].nextId = charId
+      previousId = charId
+    }
+
+    this.chars = chars
   }
 
   setValue (values, generateCharId) {
-    let chars = []
+    this.firstCharId = null
+    let chars = {}
+    let previousId
 
     for (let value of values) {
       let charId = generateCharId()
-      let char = new Char(charId, value)
-      chars.push(char)
+      if (!this.firstCharId) this.firstCharId = charId
+      let char = new Char(charId, value, previousId)
+      chars[charId] = char
+      if (previousId) chars[previousId].nextId = charId
+      previousId = charId
     }
 
     this.chars = chars
