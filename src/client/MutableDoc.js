@@ -179,9 +179,11 @@ class MutableDoc extends Doc {
     let type = 'remove'
     field = this.getFieldConsideringArrays(field)
 
+    let positionId = array.getRemovePositionIdByIndex(index)
+    if (!positionId) return
+
     for (let i = index; i < index + howMany; i++) {
-      let positionId = array.getRemovePositionIdByIndex(i)
-      if (!positionId) continue
+      if (i !== index) positionId = array.getNextRemovePositionId(positionId)
 
       let op = this.model.createOp({
         type,
@@ -222,12 +224,15 @@ class MutableDoc extends Doc {
     let type = 'move'
     field = this.getFieldConsideringArrays(field)
 
+    let positionId = array.getRemovePositionIdByIndex(from)
+    if (!positionId) return
+    let itemId = array.getSetPositionIdByIndex(to)
+
     for (let i = 0; i < howMany; i++) {
-      let fromIndex = from + i
-      let toIndex = to + i
-      let positionId = array.getRemovePositionIdByIndex(fromIndex)
-      if (!positionId) continue
-      let itemId = array.getInsertPositionIdByIndex(toIndex)
+      if (i !== 0) {
+        positionId = array.getNextRemovePositionId(positionId)
+        itemId = array.getNextSetPositionId(itemId)
+      }
 
       let op = this.model.createOp({
         type,

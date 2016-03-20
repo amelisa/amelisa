@@ -28,25 +28,33 @@ class StringType {
   }
 
   insert (positionId, charId, value) {
-    let nextId
-    if (positionId) {
-      let prevChar = this.chars[positionId]
-      if (!prevChar) return
-      nextId = prevChar.nextId
-      prevChar.nextId = charId
-    } else {
-      if (this.firstCharId) {
-        let firstChar = this.chars[this.firstCharId]
-        firstChar.previousId = charId
-        nextId = firstChar.charId
-      }
-      this.firstCharId = charId
-    }
-    let char = new Char(charId, value, positionId, nextId)
+    if (!this.firstCharId && positionId) return
+    let char = new Char(charId, value, positionId)
     this.chars[charId] = char
-    if (!nextId) return
-    let nextChar = this.chars[nextId]
-    nextChar.previousId = charId
+    if (!this.firstCharId) {
+      this.firstCharId = charId
+      return
+    }
+
+    if (!positionId) {
+      let firstChar = this.chars[this.firstCharId]
+      firstChar.previousId = charId
+      char.nextId = firstChar.charId
+      this.firstCharId = charId
+    } else {
+      let prevChar = this.chars[positionId]
+      if (!prevChar) {
+        delete this.chars[charId]
+        return
+      }
+      let nextId = prevChar.nextId
+      prevChar.nextId = charId
+      char.nextId = nextId
+      if (nextId) {
+        let nextItem = this.chars[nextId]
+        nextItem.previousId = charId
+      }
+    }
   }
 
   remove (positionId) {
@@ -66,8 +74,11 @@ class StringType {
 
       if (charId === positionId) return index
       let char = this.chars[charId]
-      charId = char && char.nextId
+      if (!char) break
+      charId = char.nextId
+      index++
     }
+
     return -1
   }
 
@@ -151,40 +162,37 @@ class StringType {
       charId = char.nextId
       index++
     }
+
     return setValue
   }
 
   setStringSetValue (setValue) {
     this.firstCharId = null
-    let chars = {}
+    this.chars = {}
     let previousId
 
     for (let [charId, value] of setValue) {
       if (!this.firstCharId) this.firstCharId = charId
       let char = new Char(charId, value, previousId)
-      chars[charId] = char
-      if (previousId) chars[previousId].nextId = charId
+      this.chars[charId] = char
+      if (previousId) this.chars[previousId].nextId = charId
       previousId = charId
     }
-
-    this.chars = chars
   }
 
   setValue (values, generateCharId) {
     this.firstCharId = null
-    let chars = {}
+    this.chars = {}
     let previousId
 
     for (let value of values) {
       let charId = generateCharId()
       if (!this.firstCharId) this.firstCharId = charId
       let char = new Char(charId, value, previousId)
-      chars[charId] = char
-      if (previousId) chars[previousId].nextId = charId
+      this.chars[charId] = char
+      if (previousId) this.chars[previousId].nextId = charId
       previousId = charId
     }
-
-    this.chars = chars
   }
 }
 

@@ -194,6 +194,13 @@ describe('Model mutators array', () => {
     assert.deepEqual(model.get(collectionName, docId, field), [2, 1, 3])
   })
 
+  it('should move some values', () => {
+    model.set([collectionName, docId, field], [1, 2, 3])
+    model.move([collectionName, docId, field], 1, 0, 2)
+
+    assert.deepEqual(model.get(collectionName, docId, field), [2, 3, 1])
+  })
+
   it('should move from zero index', () => {
     model.set([collectionName, docId, field], [1, 2, 3])
     model.move([collectionName, docId, field], 0, 2)

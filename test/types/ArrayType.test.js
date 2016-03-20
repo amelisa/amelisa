@@ -19,6 +19,8 @@ describe('ArrayType', () => {
     assert.equal(array.get().length, 2)
     assert.equal(array.get()[0], 1)
     assert.equal(array.get()[1], 2)
+    assert.equal(array.firstItemId, '1')
+    assert.equal(array.lastItemId, '2')
   })
 
   it('should unshift', () => {
@@ -29,6 +31,8 @@ describe('ArrayType', () => {
     assert.equal(array.get().length, 2)
     assert.equal(array.get()[0], 2)
     assert.equal(array.get()[1], 1)
+    assert.equal(array.firstItemId, '2')
+    assert.equal(array.lastItemId, '1')
   })
 
   it('should pop', () => {
@@ -39,6 +43,18 @@ describe('ArrayType', () => {
 
     assert.equal(array.get().length, 1)
     assert.equal(array.get()[0], 1)
+    assert.equal(array.firstItemId, '1')
+    assert.equal(array.lastItemId, '1')
+  })
+
+  it('should pop till empty', () => {
+    array = new ArrayType()
+    array.push('1', 1)
+    array.pop()
+
+    assert.equal(array.get().length, 0)
+    assert.equal(array.firstItemId, null)
+    assert.equal(array.lastItemId, null)
   })
 
   it('should shift', () => {
@@ -49,6 +65,18 @@ describe('ArrayType', () => {
 
     assert.equal(array.get().length, 1)
     assert.equal(array.get()[0], 2)
+    assert.equal(array.firstItemId, '2')
+    assert.equal(array.lastItemId, '2')
+  })
+
+  it('should shift till empty', () => {
+    array = new ArrayType()
+    array.push('1', 1)
+    array.shift()
+
+    assert.equal(array.get().length, 0)
+    assert.equal(array.firstItemId, null)
+    assert.equal(array.lastItemId, null)
   })
 
   it('should insert at empty array', () => {
@@ -57,6 +85,8 @@ describe('ArrayType', () => {
 
     assert.equal(array.get().length, 1)
     assert.equal(array.get()[0], 1)
+    assert.equal(array.firstItemId, '1')
+    assert.equal(array.lastItemId, '1')
   })
 
   it('should insert by positionId', () => {
@@ -67,6 +97,8 @@ describe('ArrayType', () => {
     assert.equal(array.get().length, 2)
     assert.equal(array.get()[0], 1)
     assert.equal(array.get()[1], 2)
+    assert.equal(array.firstItemId, '1')
+    assert.equal(array.lastItemId, '2')
   })
 
   it('should insert without positionId', () => {
@@ -77,6 +109,8 @@ describe('ArrayType', () => {
     assert.equal(array.get().length, 2)
     assert.equal(array.get()[0], 2)
     assert.equal(array.get()[1], 1)
+    assert.equal(array.firstItemId, '2')
+    assert.equal(array.lastItemId, '1')
   })
 
   it('should remove', () => {
@@ -87,9 +121,67 @@ describe('ArrayType', () => {
 
     assert.equal(array.get().length, 1)
     assert.equal(array.get()[0], 1)
+    assert.equal(array.firstItemId, '1')
+    assert.equal(array.lastItemId, '2')
   })
 
   it('should move', () => {
+    array = new ArrayType()
+    array.push('1', 1)
+    array.push('2', 2)
+    array.move('1', '2')
+
+    assert.equal(array.get().length, 2)
+    assert.equal(array.get()[0], 2)
+    assert.equal(array.get()[1], 1)
+    assert.equal(array.firstItemId, '2')
+    assert.equal(array.lastItemId, '1')
+  })
+
+  it('should move when to begining', () => {
+    array = new ArrayType()
+    array.push('1', 1)
+    array.push('2', 2)
+    array.move('2', null)
+
+    assert.equal(array.get().length, 2)
+    assert.equal(array.get()[0], 2)
+    assert.equal(array.get()[1], 1)
+    assert.equal(array.firstItemId, '2')
+    assert.equal(array.lastItemId, '1')
+  })
+
+  it('should move when to between', () => {
+    array = new ArrayType()
+    array.push('1', 1)
+    array.push('2', 2)
+    array.push('3', 3)
+    array.move('3', '1')
+
+    assert.equal(array.get().length, 3)
+    assert.equal(array.get()[0], 1)
+    assert.equal(array.get()[1], 3)
+    assert.equal(array.get()[2], 2)
+    assert.equal(array.firstItemId, '1')
+    assert.equal(array.lastItemId, '2')
+  })
+
+  it('should move when from between', () => {
+    array = new ArrayType()
+    array.push('1', 1)
+    array.push('2', 2)
+    array.push('3', 3)
+    array.move('2', '3')
+
+    assert.equal(array.get().length, 3)
+    assert.equal(array.get()[0], 1)
+    assert.equal(array.get()[1], 3)
+    assert.equal(array.get()[2], 2)
+    assert.equal(array.firstItemId, '1')
+    assert.equal(array.lastItemId, '2')
+  })
+
+  it('should move when previous place', () => {
     array = new ArrayType()
     array.push('1', 1)
     array.push('2', 2)
@@ -98,5 +190,20 @@ describe('ArrayType', () => {
     assert.equal(array.get().length, 2)
     assert.equal(array.get()[0], 2)
     assert.equal(array.get()[1], 1)
+    assert.equal(array.firstItemId, '2')
+    assert.equal(array.lastItemId, '1')
+  })
+
+  it('should not move when same place', () => {
+    array = new ArrayType()
+    array.push('1', 1)
+    array.push('2', 2)
+    array.move('2', '2')
+
+    assert.equal(array.get().length, 2)
+    assert.equal(array.get()[0], 1)
+    assert.equal(array.get()[1], 2)
+    assert.equal(array.firstItemId, '1')
+    assert.equal(array.lastItemId, '2')
   })
 })
