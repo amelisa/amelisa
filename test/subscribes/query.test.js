@@ -150,7 +150,7 @@ describe('subscribes query', () => {
     model.add(collectionName, getDocData({_id: '2'}))
     query.subscribe()
     model.add(collectionName, getDocData({_id: '3'}))
-    await sleep(10)
+    await sleep(20)
 
     assert.equal(query.get().length, 3)
   })
