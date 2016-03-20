@@ -41,4 +41,13 @@ describe('StringType', () => {
 
     assert.equal(string.get(), 'a')
   })
+
+  it('should get insert positionId when insert to the end', () => {
+    string = new StringType()
+    string.insert(null, '1', 'a')
+    string.insert('1', '2', 'b')
+    let positionId = string.getInsertPositionIdByIndex(2)
+
+    assert.equal(positionId, '2')
+  })
 })

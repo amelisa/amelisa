@@ -67,9 +67,14 @@ class StringType {
     let charId = this.firstCharId
     while (charId) {
       let char = this.chars[charId]
-      if (index === currentIndex) return char.previousId
-      charId = char && char.nextId
-      if (char && !char.removed) currentIndex++
+      if (!char) break
+      if (char.removed) {
+        charId = char.nextId
+        continue
+      }
+      if (currentIndex === index - 1) return charId
+      charId = char.nextId
+      currentIndex++
     }
   }
 
@@ -83,7 +88,7 @@ class StringType {
         charId = char.nextId
         continue
       }
-      if (index === currentIndex) return charId
+      if (currentIndex === index) return charId
       charId = char.nextId
       currentIndex++
     }
