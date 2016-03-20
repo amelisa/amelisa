@@ -72,19 +72,19 @@ describe('Model mutators rich', () => {
         characterList: [
           {
             entity: {},
-            styles: ['BOLD']
+            style: ['BOLD']
           },
           {
             entity: {},
-            styles: ['BOLD']
+            style: ['BOLD']
           },
           {
             entity: {},
-            styles: []
+            style: []
           },
           {
             entity: {},
-            styles: ['BOLD']
+            style: ['BOLD']
           }
         ]
       }
@@ -98,19 +98,19 @@ describe('Model mutators rich', () => {
         characterList: [
           {
             entity: {},
-            styles: []
+            style: []
           },
           {
             entity: {},
-            styles: []
+            style: []
           },
           {
             entity: {},
-            styles: ['BOLD']
+            style: ['BOLD']
           },
           {
             entity: {},
-            styles: ['BOLD']
+            style: ['BOLD']
           }
         ]
       }
