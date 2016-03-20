@@ -11,7 +11,7 @@ class ClientQuerySet {
 
   getOrCreateQuery (collectionName, expression) {
     expression = Object.assign({}, expression)
-    let hash = queryHash(collectionName, expression)
+    let hash = this.getQueryHash(collectionName, expression)
     let query = this.data[hash]
 
     if (!query) {
@@ -28,7 +28,7 @@ class ClientQuerySet {
   }
 
   unattach (collectionName, expression) {
-    let hash = queryHash(collectionName, expression)
+    let hash = this.getQueryHash(collectionName, expression)
     let query = this.data[hash]
     query.collection.removeListener('change', query.listener)
     delete this.data[hash]
@@ -46,11 +46,11 @@ class ClientQuerySet {
 
     return data
   }
-}
 
-function queryHash (collectionName, expression) {
-  let args = [collectionName, expression]
-  return JSON.stringify(args).replace(/\./g, '|')
+  getQueryHash (collectionName, expression) {
+    let args = [collectionName, expression]
+    return JSON.stringify(args).replace(/\./g, '|')
+  }
 }
 
 export default ClientQuerySet

@@ -124,7 +124,7 @@ class Store extends EventEmitter {
   }
 
   async onMessage (message, channel) {
-    let { type, id, collectionName, docId, expression, value, version, docIds, ops } = message
+    let { type, id, collectionName, docId, expression, value, version, docIds, ops, opsType } = message
     let doc
     let query
     let op
@@ -222,7 +222,7 @@ class Store extends EventEmitter {
 
       case 'ops':
         doc = await this.docSet.getOrCreateDoc(collectionName, docId)
-        doc.applyOps(ops)
+        doc.applyOps(ops, opsType)
         doc.save()
         doc.broadcastOp(message, channel)
 
@@ -298,11 +298,12 @@ class Store extends EventEmitter {
       return
     }
     this.querySet.onOp(op)
-    this.docSet.onOp(op)
+    this.docSet.onPubsubOp(op)
   }
 
   sendOp (op, channel) {
     debug('sendOp', op.type, op)
+    // console.trace('sendOp', op.type)
 
     if (!channel) {
       return console.trace('Store.sendOp no channel')

@@ -9,13 +9,9 @@ class ServerDocSet {
     this.data = {}
   }
 
-  getDocPath (collectionName, docId) {
-    return collectionName + '_' + docId
-  }
-
   async getOrCreateDoc (collectionName, docId) {
-    let docPath = this.getDocPath(collectionName, docId)
-    let doc = this.data[docPath]
+    let hash = this.getDocHash(collectionName, docId)
+    let doc = this.data[hash]
 
     if (!doc) {
       let projection = this.store.projections[collectionName]
@@ -24,7 +20,7 @@ class ServerDocSet {
       } else {
         doc = new ServerDoc(collectionName, docId, [], this.store, this)
       }
-      this.data[docPath] = doc
+      this.data[hash] = doc
     }
 
     if (doc.loaded) return doc
@@ -36,13 +32,13 @@ class ServerDocSet {
 
   unattach (collectionName, docId) {
     // debug('unattach', collectionName, docId)
-    let docPath = this.getDocPath(collectionName, docId)
-    delete this.data[docPath]
+    let hash = this.getDocHash(collectionName, docId)
+    delete this.data[hash]
   }
 
   channelClose (channel) {
-    for (let docPath in this.data) {
-      let doc = this.data[docPath]
+    for (let hash in this.data) {
+      let doc = this.data[hash]
 
       doc.unsubscribe(channel)
     }
@@ -50,23 +46,81 @@ class ServerDocSet {
 
   onOp (op) {
     debug('onOp')
-    // TODO: find more effective way to send op to all projected docs
-    for (let hash in this.data) {
-      let doc = this.data[hash]
-      if ((doc.docId === op.docId) &&
-        (doc.collectionName === op.collectionName ||
-        doc.projectionCollectionName === op.collectionName)) {
-        if (doc.ops.find((docOp) => docOp._id === op.id)) continue
+    let { collectionName, docId } = op
 
-        if (doc.loading) {
-          doc.once('loaded', () => {
-            doc.receiveOp(op)
-          })
-        } else {
-          doc.receiveOp(op)
-        }
+    let dbCollectionName
+    let collectionNames = []
+
+    let projection = this.store.projections[collectionName]
+    if (projection) {
+      dbCollectionName = projection.dbCollectionName
+    }
+
+    for (let projectionCollectionName in this.store.projections) {
+      let projection = this.store.projections[projectionCollectionName]
+      // op is on db collection
+      if (!dbCollectionName && projection.dbCollectionName === collectionName) {
+        collectionNames.push(projectionCollectionName)
+      }
+      // op is on projected collection
+      if (dbCollectionName && projection.dbCollectionName === dbCollectionName) {
+        if (projectionCollectionName === collectionName) continue
+        collectionNames.push(projectionCollectionName)
       }
     }
+
+    this.receiveOpToCollectionNames(op, collectionNames, docId)
+  }
+
+  onPubsubOp (op) {
+    debug('onPubsubOp')
+    let { collectionName, docId } = op
+
+    let dbCollectionName
+    let collectionNames = []
+
+    let projection = this.store.projections[collectionName]
+    if (projection) {
+      dbCollectionName = projection.dbCollectionName
+    }
+
+    for (let projectionCollectionName in this.store.projections) {
+      let projection = this.store.projections[projectionCollectionName]
+      // op is on db collection
+      if (!dbCollectionName && projection.dbCollectionName === collectionName) {
+        collectionNames.push(projectionCollectionName)
+      }
+      // op is on projected collection
+      if (dbCollectionName && projection.dbCollectionName === dbCollectionName) {
+        collectionNames.push(projectionCollectionName)
+      }
+    }
+
+    if (collectionNames.indexOf(collectionName) === -1) collectionNames.push(collectionName)
+
+    this.receiveOpToCollectionNames(op, collectionNames, docId)
+  }
+
+  receiveOpToCollectionNames (op, collectionNames, docId) {
+    for (let collectionName of collectionNames) {
+      let hash = this.getDocHash(collectionName, docId)
+      let doc = this.data[hash]
+      if (!doc) continue
+
+      // if (doc.ops.find((docOp) => docOp._id === op.id)) continue
+
+      if (doc.loading) {
+        doc.once('loaded', () => {
+          doc.receiveOp(op)
+        })
+      } else {
+        doc.receiveOp(op)
+      }
+    }
+  }
+
+  getDocHash (collectionName, docId) {
+    return collectionName + '_' + docId
   }
 }
 

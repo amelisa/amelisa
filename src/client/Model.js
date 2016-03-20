@@ -230,7 +230,7 @@ class Model extends EventEmitter {
       case 'ops':
         doc = this.collectionSet.getDoc(collectionName, docId)
         if (doc) {
-          doc.receiveOps(ops, message.opsType, message.index, message.howMany)
+          doc.receiveOps(ops, message.opsType, message.field, message.index, message.howMany)
         }
         break
 

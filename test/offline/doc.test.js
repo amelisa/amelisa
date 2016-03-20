@@ -58,7 +58,7 @@ describe('offline doc', () => {
     await model2.add(collectionName, getDocData())
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(10)
+    await sleep(20)
 
     assert(doc.get())
   })

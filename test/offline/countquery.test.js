@@ -61,7 +61,7 @@ describe('offline count query', () => {
 
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(10)
+    await sleep(20)
 
     assert.equal(query.get(), 1)
   })
@@ -75,7 +75,7 @@ describe('offline count query', () => {
     assert.equal(query.get(), 1)
 
     store.connectModel(model)
-    await sleep(10)
+    await sleep(20)
 
     assert.equal(query.get(), 1)
   })
@@ -95,7 +95,7 @@ describe('offline count query', () => {
 
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(10)
+    await sleep(20)
 
     assert.equal(query.get(), 2)
     assert.equal(query2.get(), 2)
@@ -118,7 +118,7 @@ describe('offline count query', () => {
 
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(10)
+    await sleep(20)
 
     assert.equal(query.get(), 2)
     assert.equal(query2.get(), 2)
@@ -143,7 +143,7 @@ describe('offline count query', () => {
 
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(10)
+    await sleep(20)
 
     assert.equal(query.get(), 0)
     assert.equal(query2.get(), 0)
@@ -168,7 +168,7 @@ describe('offline count query', () => {
     await model.set([collectionName, '2', field], 'Vasya')
     store.connectModel(model2)
     store.connectModel(model)
-    await sleep(10)
+    await sleep(20)
 
     assert.equal(query.get(), 3)
     assert.equal(query2.get(), 3)
@@ -205,7 +205,7 @@ describe('offline count query', () => {
     await model2.set([collectionName, '2', field], 'Vasya')
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(10)
+    await sleep(20)
 
     assert.equal(query.get(), 2)
     assert.equal(query2.get(), 2)

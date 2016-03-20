@@ -366,7 +366,7 @@ class MutableDoc extends Doc {
 
     this.applyOps(ops)
 
-    this.emit(type, index, howMany)
+    this.emit(type, field, index, howMany)
 
     this.emit('change')
     this.collection.emit('change')
@@ -402,9 +402,11 @@ class MutableDoc extends Doc {
     let type = 'stringRemove'
     field = this.getFieldConsideringArrays(field)
 
+    let positionId = string.getRemovePositionIdByIndex(index)
+    if (!positionId) return
+
     for (let i = index; i < index + howMany; i++) {
-      let positionId = string.getRemovePositionIdByIndex(i)
-      if (!positionId) continue
+      if (i !== index) positionId = string.getNextRemovePositionId(positionId)
 
       let op = this.model.createOp({
         type,
@@ -420,7 +422,7 @@ class MutableDoc extends Doc {
 
     this.applyOps(ops)
 
-    this.emit(type, index, howMany)
+    this.emit(type, field, index, howMany)
 
     this.emit('change')
     this.collection.emit('change')

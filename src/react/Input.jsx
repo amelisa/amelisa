@@ -27,7 +27,8 @@ class Input extends Component {
     let { collectionName, docId, field } = this.props
     let doc = this.context.model.doc(collectionName, docId)
 
-    doc.on('stringInsert', (index, howMany) => {
+    doc.on('stringInsert', (eventField, index, howMany) => {
+      if (eventField !== field) return
       let value = doc.get(field)
       let input = this.refs['input']
       let { selectionStart, selectionEnd } = input
@@ -40,7 +41,8 @@ class Input extends Component {
       input.setSelectionRange(selectionStart, selectionEnd)
     })
 
-    doc.on('stringRemove', (index, howMany) => {
+    doc.on('stringRemove', (eventField, index, howMany) => {
+      if (eventField !== field) return
       let value = doc.get(field)
       let input = this.refs['input']
       let { selectionStart, selectionEnd } = input

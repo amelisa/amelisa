@@ -13,7 +13,7 @@ class ServerQuerySet {
   }
 
   async getOrCreateQuery (collectionName, expression) {
-    let hash = queryHash(collectionName, expression)
+    let hash = this.getQueryHash(collectionName, expression)
     let query = this.data[hash]
     debug('getOrCreateQuery', collectionName, expression, !!query)
 
@@ -43,7 +43,7 @@ class ServerQuerySet {
   }
 
   unattach (collectionName, expression) {
-    let hash = queryHash(collectionName, expression)
+    let hash = this.getQueryHash(collectionName, expression)
     delete this.data[hash]
   }
 
@@ -72,11 +72,11 @@ class ServerQuerySet {
       }
     }
   }
-}
 
-function queryHash (collectionName, expression) {
-  var args = [collectionName, expression]
-  return JSON.stringify(args).replace(/\./g, '|')
+  getQueryHash (collectionName, expression) {
+    let args = [collectionName, expression]
+    return JSON.stringify(args).replace(/\./g, '|')
+  }
 }
 
 export default ServerQuerySet

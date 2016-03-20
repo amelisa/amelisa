@@ -76,7 +76,7 @@ describe('offline query', () => {
     assert.equal(query.get().length, 1)
 
     store.connectModel(model)
-    await sleep(10)
+    await sleep(20)
 
     assert.equal(query.get().length, 1)
   })
@@ -96,7 +96,7 @@ describe('offline query', () => {
 
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(10)
+    await sleep(20)
 
     assert.equal(query.get().length, 2)
     assert.equal(query2.get().length, 2)
@@ -119,7 +119,7 @@ describe('offline query', () => {
 
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(10)
+    await sleep(20)
 
     assert.equal(query.get().length, 2)
     assert.equal(query2.get().length, 2)
@@ -144,7 +144,7 @@ describe('offline query', () => {
 
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(10)
+    await sleep(20)
 
     assert.equal(query.get().length, 0)
     assert.equal(query2.get().length, 0)

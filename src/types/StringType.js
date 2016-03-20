@@ -9,10 +9,14 @@ class StringType {
   }
 
   get () {
+    let charIds = {}
     let values = []
     let charId = this.firstCharId
 
     while (charId) {
+      if (charIds[charId]) break
+      charIds[charId] = true
+
       let char = this.chars[charId]
       if (!char) break
       charId = char.nextId
@@ -52,9 +56,14 @@ class StringType {
   }
 
   getIndexByPositionId (positionId) {
+    let charIds = {}
     let index = 0
     let charId = this.firstCharId
+
     while (charId) {
+      if (charIds[charId]) break
+      charIds[charId] = true
+
       if (charId === positionId) return index
       let char = this.chars[charId]
       charId = char && char.nextId
@@ -63,9 +72,14 @@ class StringType {
   }
 
   getInsertPositionIdByIndex (index) {
+    let charIds = {}
     let currentIndex = 0
     let charId = this.firstCharId
+
     while (charId) {
+      if (charIds[charId]) break
+      charIds[charId] = true
+
       let char = this.chars[charId]
       if (!char) break
       if (char.removed) {
@@ -79,9 +93,14 @@ class StringType {
   }
 
   getRemovePositionIdByIndex (index) {
+    let charIds = {}
     let currentIndex = 0
     let charId = this.firstCharId
+
     while (charId) {
+      if (charIds[charId]) break
+      charIds[charId] = true
+
       let char = this.chars[charId]
       if (!char) break
       if (char.removed) {
@@ -94,17 +113,43 @@ class StringType {
     }
   }
 
+  getNextRemovePositionId (positionId) {
+    let charIds = {}
+    let charId = positionId
+
+    while (charId) {
+      if (charIds[charId]) break
+      charIds[charId] = true
+
+      let char = this.chars[charId]
+      if (!char) break
+      if (char.removed || charId === positionId) {
+        charId = char.nextId
+        continue
+      }
+      return charId
+    }
+  }
+
   getStringSetValue () {
+    let charIds = {}
     let index = 0
     let charId = this.firstCharId
     let setValue = []
+
     while (charId) {
+      if (charIds[charId]) break
+      charIds[charId] = true
+
       let char = this.chars[charId]
-      charId = char && char.nextId
-      if (char && !char.removed) {
-        setValue.push([char.charId, char.value])
-        index++
+      if (!char) break
+      if (char.removed) {
+        charId = char.nextId
+        continue
       }
+      setValue.push([char.charId, char.value])
+      charId = char.nextId
+      index++
     }
     return setValue
   }
