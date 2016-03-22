@@ -4,12 +4,8 @@ import ClientQuery from './ClientQuery'
 class RemoteQuery extends ClientQuery {
   constructor (collectionName, expression, model, collection, querySet) {
     super(collectionName, expression, model, collection, querySet)
-    this.server = false
     this.subscribed = 0
     this.subscribing = false
-
-    // while offline, refresh immediately from memory
-    if (!model.online) this.refresh()
   }
 
   async fetch () {
@@ -37,11 +33,11 @@ class RemoteQuery extends ClientQuery {
   }
 
   onDiff (diffs, docOps) {
-    debug('onDiff', this.data, diffs, docOps, this.server)
+    debug('onDiff', this.data, diffs, docOps)
     this.attachDocsToCollection(docOps)
 
     let docIds = this.applyDiffs(diffs)
-    this.lastServerData = docIds
+
     this.refreshDataFromServer(docIds)
   }
 
@@ -71,21 +67,18 @@ class RemoteQuery extends ClientQuery {
   }
 
   refreshDataFromServer (data) {
+    this.lastServerData = data
     this.data = data
 
     this.subscribing = false
-    this.server = true
     this.emit('change')
   }
 
   refresh (op) {
-    debug('refresh', op ? op.type : null, this.server, this.model.online)
+    debug('refresh', op ? op.type : null, this.model.online, this.isServerOnly)
 
-    // Refresh queries from local data when offline
-    if (this.server && !this.model.online) this.server = false
-
-    // TODO: implement instant refreshing
-    if (!this.server || !this.isServerOnly) {
+    // Refresh queries from local data when offline or not server only query
+    if (!this.model.online || !this.isServerOnly) {
       super.refresh()
     }
     // TODO: emit only if there were changes
@@ -103,6 +96,7 @@ class RemoteQuery extends ClientQuery {
 
     if (!this.isServerOnly) {
       super.refresh()
+      this.lastServerData = this.data
       // return immediately if there is data in collection
       if (Object.keys(this.collection.data).length) {
         this.sendSubscribeOp()

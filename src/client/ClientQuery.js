@@ -53,7 +53,7 @@ class ClientQuery extends Query {
   }
 
   onCollectionChange = (op) => {
-    if (!this.subscribing) this.refresh(op)
+    this.refresh(op)
   };
 }
 

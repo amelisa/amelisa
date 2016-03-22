@@ -5,7 +5,6 @@ class LocalQuery extends ClientQuery {
   constructor (collectionName, expression, model, collection, querySet) {
     super(collectionName, expression, model, collection, querySet)
     this.local = true
-    this.refresh()
   }
 
   refresh (op) {
@@ -15,7 +14,12 @@ class LocalQuery extends ClientQuery {
     this.emit('change')
   }
 
+  async fetch () {
+    this.refresh()
+  }
+
   async subscribe () {
+    this.refresh()
     this.collection.on('change', this.onCollectionChange)
   }
 
