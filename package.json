@@ -62,7 +62,8 @@
       "before",
       "beforeEach",
       "after",
-      "afterEach"
+      "afterEach",
+      "fetch"
     ],
     "parser": "babel-eslint"
   }

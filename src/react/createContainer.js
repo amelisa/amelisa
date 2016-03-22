@@ -9,6 +9,10 @@ function createContainer (Component) {
       model: PropTypes.object
     };
 
+    static propTypes = {
+      hasResults: PropTypes.bool
+    };
+
     static isContainer = true;
 
     static displayName = `${Component.name} Container`;
