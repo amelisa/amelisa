@@ -27,7 +27,6 @@
     "node-libs-browser": "^0.5.2",
     "reconnectable-websocket": "^0.1.4",
     "redis-url": "^1.2.1",
-    "superagent": "^1.4.0",
     "uuid": "^2.0.1"
   },
   "devDependencies": {

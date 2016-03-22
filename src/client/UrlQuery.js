@@ -1,38 +1,26 @@
-// let debug = require('debug')('UrlQuery')
-import superagent from 'superagent'
 import { EventEmitter } from 'events'
 
 class UrlQuery extends EventEmitter {
   constructor (url, defaultValue, model) {
     super()
     this.url = url
-    this.defaultValue = defaultValue
+    this.data = defaultValue
     this.model = model
   }
 
   get () {
-    return this.value
+    return this.data
   }
 
   async load () {
-    return new Promise((resolve, reject) => {
-      if (!this.model.online) {
-        this.value = this.defaultValue
-        resolve()
-      } else {
-        superagent
-          .get(this.url)
-          .set('Accept', 'application/json')
-          .end((err, res) => {
-            if (err) return reject(err)
+    if (!this.model.online) return
 
-            if (!res.ok) return reject(res.body && res.body.message)
+    let res = await fetch(this.url)
+    if (res.status !== 200) {
+      throw new Error(`UrlQuery.load: status ${res.status} returned from ${this.url}`)
+    }
 
-            this.value = res.body
-            resolve()
-          })
-      }
-    })
+    this.data = await res.json()
   }
 
   async fetch () {
