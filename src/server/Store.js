@@ -238,9 +238,19 @@ class Store extends EventEmitter {
       case 'add':
       case 'set':
       case 'del':
+      case 'push':
+      case 'unshift':
+      case 'pop':
+      case 'shift':
+      case 'insert':
+      case 'remove':
+      case 'move':
+      case 'arraySet':
+      case 'invert':
       case 'increment':
       case 'stringInsert':
       case 'stringRemove':
+      case 'stringSet':
         doc = await this.docSet.getOrCreateDoc(collectionName, docId)
         doc.onOp(message, channel)
 
