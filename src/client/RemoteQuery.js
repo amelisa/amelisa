@@ -41,12 +41,12 @@ class RemoteQuery extends ClientQuery {
     this.attachDocsToCollection(docOps)
 
     let docIds = this.applyDiffs(diffs)
-
+    this.lastServerData = docIds
     this.refreshDataFromServer(docIds)
   }
 
   applyDiffs (diffs) {
-    let docIds = this.data
+    let docIds = this.lastServerData || this.data
 
     for (let diff of diffs) {
       switch (diff.type) {
@@ -85,7 +85,7 @@ class RemoteQuery extends ClientQuery {
     if (this.server && !this.model.online) this.server = false
 
     // TODO: implement instant refreshing
-    if (!this.server /* || this.isServerOnly*/) {
+    if (!this.server || !this.isServerOnly) {
       super.refresh()
     }
     // TODO: emit only if there were changes
@@ -147,6 +147,7 @@ class RemoteQuery extends ClientQuery {
     }
 
     if (this.isDocs) data.docIds = this.data
+    this.lastServerData = this.data
 
     return data
   }

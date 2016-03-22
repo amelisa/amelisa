@@ -167,6 +167,7 @@ describe('offline query', () => {
     await model2.add(collectionName, getDocData({_id: '4'}))
     await model.del(collectionName, docId)
     await model.set([collectionName, '2', field], 'Vasya')
+
     store.connectModel(model2)
     store.connectModel(model)
     await sleep(20)
