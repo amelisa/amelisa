@@ -85,10 +85,17 @@ class ServerDoc extends Doc {
       })
       .catch((err) => {
         if (err === 'version changed') {
-          this.once('loaded', this.save().bind(this))
+          this.once('loaded', this.save.bind(this))
           return this.load()
         } else if (err.code === 11000) {
           // E11000 duplicate key error collection
+          // TODO: move this to mongo storage
+          if (err.message.indexOf('index: _id_ dup key') !== -1) {
+            this.once('loaded', this.save.bind(this))
+            return this.load()
+          } else {
+            console.error('Duplicate key error while saving to Mongo', err)
+          }
         } else {
           console.trace('ServerDoc.saveToStorage', err)
         }
