@@ -77,12 +77,13 @@ class RemoteQuery extends ClientQuery {
   refresh (op) {
     debug('refresh', op ? op.type : null, this.model.online, this.isServerOnly)
 
-    // Refresh queries from local data when offline or not server only query
-    if (!this.model.online || !this.isServerOnly) {
-      super.refresh()
+    if (this.model.online && this.isServerOnly) return
+
+    let prevData = this.data
+    super.refresh()
+    if (this.dataHasChanged(prevData, this.data)) {
+      this.emit('change')
     }
-    // TODO: emit only if there were changes
-    this.emit('change')
   }
 
   async subscribe () {

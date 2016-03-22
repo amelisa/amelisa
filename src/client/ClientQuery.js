@@ -1,7 +1,7 @@
 // let debug = require('debug')('ClientQuery')
 import Query from './Query'
 import RemoteDoc from './RemoteDoc'
-import { dbFields } from '../util'
+import { dbFields, fastEqual } from '../util'
 
 class ClientQuery extends Query {
   constructor (collectionName, expression, model, collection, querySet) {
@@ -55,6 +55,28 @@ class ClientQuery extends Query {
   onCollectionChange = (op) => {
     this.refresh(op)
   };
+
+  dataHasChanged (prev, data) {
+    if (typeof prev !== typeof data) return true
+
+    if (this.isDocsQuery) {
+      // there is no cheap way to compare all query docs, so for now
+      // we always emit change
+      return true
+    } else {
+      // count query
+      if (typeof prev === 'number' && typeof data === 'number') {
+        return prev !== data
+      }
+      // aggregation
+      if (typeof prev === 'object' && typeof data === 'object') {
+        // cheap keys comparison
+        if (Object.keys(prev).length !== Object.keys(data).length) return true
+      }
+    }
+    // expensive deep comparison
+    return !fastEqual(prev, data)
+  }
 }
 
 export default ClientQuery

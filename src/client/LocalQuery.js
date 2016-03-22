@@ -8,10 +8,12 @@ class LocalQuery extends ClientQuery {
   }
 
   refresh (op) {
+    let prevData = this.data
     super.refresh(op)
 
-    // TODO: emit only if there were changes
-    this.emit('change')
+    if (this.dataHasChanged(prevData, this.data)) {
+      this.emit('change')
+    }
   }
 
   async fetch () {
