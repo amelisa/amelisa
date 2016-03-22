@@ -127,8 +127,8 @@ describe('subscribes query', () => {
     let query = model.query(collectionName, expression)
     await model.add(collectionName, getDocData())
     await query.subscribe()
-    setTimeout(() => model.set([collectionName, docId, field], value2))
-    await eventToPromise(query, 'change')
+    await model.set([collectionName, docId, field], value2)
+    // await eventToPromise(query, 'change')
 
     assert.equal(query.get().length, 1)
     assert.equal(query.get()[0][field], value2)
@@ -159,8 +159,7 @@ describe('subscribes query', () => {
     let query = model.query(collectionName, expression)
     await model.add(collectionName, getDocData())
     await query.subscribe()
-    setTimeout(() => model.del(collectionName, docId))
-    await eventToPromise(query, 'change')
+    await model.del(collectionName, docId)
 
     assert.equal(query.get().length, 0)
   })

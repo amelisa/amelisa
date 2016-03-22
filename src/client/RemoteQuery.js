@@ -101,16 +101,26 @@ class RemoteQuery extends ClientQuery {
 
     this.collection.on('change', this.onCollectionChange)
 
+    if (!this.isServerOnly) {
+      super.refresh()
+      // return immediately if there is data in collection
+      if (Object.keys(this.collection.data).length) {
+        this.sendSubscribeOp()
+        return
+      }
+    }
+
+    return this.sendSubscribeOp()
+  }
+
+  async sendSubscribeOp () {
     let op = {
       type: 'qsub',
       collectionName: this.collectionName,
       expression: this.expression
     }
 
-    if (this.isDocs) {
-      if (!this.refreshed) super.refresh()
-      op.docIds = this.data
-    }
+    if (this.isDocs) op.docIds = this.data
 
     this.subscribingPromise = this.model.sendOp(op)
     return this.subscribingPromise

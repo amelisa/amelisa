@@ -134,8 +134,7 @@ describe('subscribes doc', () => {
     let doc = model.doc(collectionName, docId)
     await model.add(collectionName, getDocData())
     await doc.subscribe()
-    setTimeout(() => model.del(collectionName, docId))
-    await eventToPromise(doc, 'change')
+    await model.del(collectionName, docId)
 
     assert(!doc.get())
   })

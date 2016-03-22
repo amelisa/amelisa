@@ -26,6 +26,16 @@ class RemoteDoc extends MutableDoc {
     this.subscribed++
     if (this.subscribed !== 1) return
 
+    if (this.ops.length) {
+      // return immediately if doc is not empty
+      this.sendSubscribeOp()
+      return
+    }
+
+    return this.sendSubscribeOp()
+  }
+
+  async sendSubscribeOp () {
     return this.model.sendOp({
       type: 'sub',
       collectionName: this.collection.name,
