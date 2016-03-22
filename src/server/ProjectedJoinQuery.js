@@ -1,4 +1,3 @@
-// let debug = require('debug')('ProjectedJoinQuery')
 import ProjectedQuery from './ProjectedQuery'
 import ServerJoinQuery from './ServerJoinQuery'
 

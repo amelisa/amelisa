@@ -1,4 +1,3 @@
-// let debug = require('debug')('ProjectedQuery')
 import ServerQuery from './ServerQuery'
 
 class ProjectedQuery extends ServerQuery {
@@ -9,8 +8,6 @@ class ProjectedQuery extends ServerQuery {
   }
 
   sendOp (op, channel) {
-    // debug('sendOp', op)
-
     if (op.collectionName) op.collectionName = this.projectionCollectionName
 
     if ((op.type === 'q' || op.type === 'qdiff') && this.isDocs) {

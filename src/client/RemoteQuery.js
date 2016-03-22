@@ -1,4 +1,3 @@
-let debug = require('debug')('RemoteQuery')
 import ClientQuery from './ClientQuery'
 
 class RemoteQuery extends ClientQuery {
@@ -28,12 +27,10 @@ class RemoteQuery extends ClientQuery {
   }
 
   onSnapshotNotDocs (data) {
-    debug('onSnapshotNotDocs', this.data, data)
     this.refreshDataFromServer(data)
   }
 
   onDiff (diffs, docOps) {
-    debug('onDiff', this.data, diffs, docOps)
     this.attachDocsToCollection(docOps)
 
     let docIds = this.applyDiffs(diffs)
@@ -75,8 +72,6 @@ class RemoteQuery extends ClientQuery {
   }
 
   refresh (op) {
-    debug('refresh', op ? op.type : null, this.model.online, this.isServerOnly)
-
     if (this.model.online && this.isServerOnly) return
 
     let prevData = this.data
@@ -88,7 +83,6 @@ class RemoteQuery extends ClientQuery {
 
   async subscribe () {
     this.subscribed++
-    debug('subscribe', this.subscribed)
     if (this.subscribing) return this.subscribingPromise
     this.subscribing = true
     if (this.subscribed !== 1) return
@@ -123,7 +117,6 @@ class RemoteQuery extends ClientQuery {
 
   async unsubscribe () {
     this.subscribed--
-    debug('unsubscribe', this.subscribed)
     if (this.subscribed !== 0) return
 
     this.collection.removeListener('change', this.onCollectionChange)

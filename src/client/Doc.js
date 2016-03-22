@@ -1,4 +1,3 @@
-// let debug = require('debug')('Doc')
 import { EventEmitter } from 'events'
 import { ArrayType, BooleanType, NumberType, StringType } from '../types'
 import { deepClone } from '../util'

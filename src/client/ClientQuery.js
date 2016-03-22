@@ -1,4 +1,3 @@
-// let debug = require('debug')('ClientQuery')
 import Query from './Query'
 import RemoteDoc from './RemoteDoc'
 import { dbFields, fastEqual } from '../util'

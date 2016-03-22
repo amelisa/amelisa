@@ -1,4 +1,3 @@
-// process.env.DEBUG = '*'
 require('babelify/polyfill')
 console.log('offline')
 

@@ -1,4 +1,3 @@
-let debug = require('debug')('RemoteDoc')
 import MutableDoc from './MutableDoc'
 import { arrayRemove } from '../util'
 
@@ -56,7 +55,6 @@ class RemoteDoc extends MutableDoc {
   }
 
   onFetched (serverVersion, ops) {
-    debug('fetched', serverVersion)
     this.serverVersion = serverVersion
     this.applyOps(ops)
     this.emit('change')
@@ -69,7 +67,6 @@ class RemoteDoc extends MutableDoc {
   }
 
   onSubscribed (serverVersion, ops) {
-    debug('subscribed', serverVersion)
     this.serverVersion = serverVersion
     this.applyOps(ops)
     this.emit('change')
@@ -82,13 +79,11 @@ class RemoteDoc extends MutableDoc {
   }
 
   async onOp (op) {
-    debug('onOp', op)
     super.onOp(op)
     return this.model.send(op)
   }
 
   receiveOp (newOp) {
-    debug('receiveOp', newOp.type)
     let existingOp = this.ops.find((op) => op.id === newOp.id)
     // TODO: debug repeating ops
     if (existingOp) return
@@ -130,7 +125,6 @@ class RemoteDoc extends MutableDoc {
 
   rejectOp (opId) {
     let op = this.ops.find((op) => op.id === opId)
-    debug('rejectOp', opId, op, this.ops.length, this.get())
     if (op) {
       arrayRemove(this.ops, op)
       this.refreshState()

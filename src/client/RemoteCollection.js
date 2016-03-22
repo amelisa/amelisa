@@ -1,4 +1,3 @@
-// let debug = require('debug')('RemoteCollection')
 import Collection from './Collection'
 import RemoteDoc from './RemoteDoc'
 

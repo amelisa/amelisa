@@ -1,4 +1,3 @@
-let debug = require('debug')('MutableDoc')
 import arraydiff from 'arraydiff'
 import Doc from './Doc'
 import { ArrayType, StringType } from '../types'
@@ -567,7 +566,6 @@ class MutableDoc extends Doc {
   }
 
   async onOp (op) {
-    debug('onOp', op)
     this.applyOp(op)
     this.emit('change')
     this.collection.emit('change', op)
@@ -576,7 +574,7 @@ class MutableDoc extends Doc {
 
   async save () {
     if (!this.model.storage || !this.ops.length) return
-    debug('save', this.state, this.ops)
+
     if (this.timeout) clearTimeout(this.timeout)
     this.timeout = setTimeout(() => this.saveToStorage(), this.model.options.clientSaveDebounceTimeout)
   }

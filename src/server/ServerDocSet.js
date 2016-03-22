@@ -1,4 +1,3 @@
-let debug = require('debug')('ServerDocSet')
 import eventToPromise from 'event-to-promise'
 import ProjectedDoc from './ProjectedDoc'
 import ServerDoc from './ServerDoc'
@@ -31,7 +30,6 @@ class ServerDocSet {
   }
 
   unattach (collectionName, docId) {
-    // debug('unattach', collectionName, docId)
     let hash = this.getDocHash(collectionName, docId)
     delete this.data[hash]
   }
@@ -45,7 +43,6 @@ class ServerDocSet {
   }
 
   onOp (op) {
-    debug('onOp')
     let { collectionName, docId } = op
 
     let dbCollectionName
@@ -73,7 +70,6 @@ class ServerDocSet {
   }
 
   onPubsubOp (op) {
-    debug('onPubsubOp')
     let { collectionName, docId } = op
 
     let dbCollectionName

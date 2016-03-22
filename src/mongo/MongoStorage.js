@@ -1,4 +1,3 @@
-// let debug = require('debug')('MongoStorage')
 import { MongoClient } from 'mongodb'
 import MongoQueries from './MongoQueries'
 
@@ -48,7 +47,6 @@ class MongoStorage extends MongoQueries {
   }
 
   async getDocsByQuery (collectionName, expression) {
-    // debug('getDocsByQuery', collectionName, expression)
     let query = this.normalizeQuery(expression)
     let projection = {}
     let collection = this.db.collection(collectionName)
@@ -79,7 +77,7 @@ class MongoStorage extends MongoQueries {
       }
 
       if (query.$mapReduce) {
-        var mapReduceOptions = {
+        let mapReduceOptions = {
           query: query.$query || {},
           out: {inline: 1},
           scope: query.$scope || {}

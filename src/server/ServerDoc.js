@@ -1,4 +1,3 @@
-let debug = require('debug')('ServerDoc')
 import Doc from '../client/Doc'
 import Model from '../client/Model'
 import { ArrayType, StringType } from '../types'
@@ -29,12 +28,9 @@ class ServerDoc extends Doc {
     if (this.loading) return
     this.loading = true
 
-    debug('load', this.collectionName, this.docId)
-
     this.store.storage
       .getDocById(this.collectionName, this.docId)
       .then((doc) => {
-        // debug('loaded', this.collectionName, this.docId)
         if (doc) {
           this.applyOps(doc._ops)
           this.prevVersion = doc._v
@@ -156,7 +152,6 @@ class ServerDoc extends Doc {
   }
 
   broadcast () {
-    debug('broadcast', this.projectionCollectionName, this.collectionName, this.docId, this.channels.length)
     for (let channel of this.channels) {
       this.sendOpsToChannel(channel)
     }
@@ -199,7 +194,6 @@ class ServerDoc extends Doc {
   }
 
   subscribe (channel, version, ackId) {
-    debug('subscribe')
     channel._session.saveDocVersion(this.collectionName, this.docId, version)
     this.addChannel(channel)
 
@@ -215,7 +209,6 @@ class ServerDoc extends Doc {
   }
 
   unsubscribe (channel) {
-    debug('unsubscribe')
     arrayRemove(this.channels, channel)
 
     this.maybeUnattach()

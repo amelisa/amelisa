@@ -1,4 +1,3 @@
-// let debug = require('debug')('LocalDoc')
 import MutableDoc from './MutableDoc'
 
 class LocalDoc extends MutableDoc {

@@ -1,5 +1,3 @@
-let debug = require('debug')('IndexedDbStorage')
-
 const dbName = 'amelisa'
 
 class IndexedDbStorage {
@@ -24,7 +22,6 @@ class IndexedDbStorage {
     return new Promise((resolve, reject) => {
       let request = window.indexedDB.open(dbName, this.version)
       request.onsuccess = (event) => {
-        debug('onsuccess')
         this.db = event.target.result
         let existingCollectionNames = this.getExistingCollectionNames()
         this.existingCollectionNames = existingCollectionNames
@@ -33,30 +30,26 @@ class IndexedDbStorage {
         resolve(this)
       }
       request.onupgradeneeded = (event) => {
-        debug('onupgradeneeded', event)
         this.db = event.target.result
         let existingCollectionNames = this.getExistingCollectionNames()
         this.existingCollectionNames = existingCollectionNames
         this.db.onerror = (event) => {
-          debug('onerror upgrage', event)
+          console.trace('onerror upgrage', event)
         }
 
         for (let collectionName of this.collectionNames) {
-          debug('collectionName', collectionName)
           if (existingCollectionNames.indexOf(collectionName) > -1) continue
 
           let objectStore = this.db.createObjectStore(collectionName, {keyPath: '_id'})
           objectStore.transaction.oncomplete = (e) => {
-            debug('oncomplete', e)
             // TODO: handle it
           }
           objectStore.transaction.onerror = (e) => {
-            debug('onerror', e)
+            console.trace('onerror', e)
           }
         }
       }
       request.onerror = (event) => {
-        debug('onerror', event)
         reject(event.target.webkitErrorMessage || event.target.error)
       }
     })
@@ -64,7 +57,7 @@ class IndexedDbStorage {
 
   getObjectStore (collectionName, transactionType) {
     if (Array.from(this.db.objectStoreNames).indexOf(collectionName) === -1) {
-      debug('No colleciton ' + collectionName + ' in IndexedDB')
+      console.trace('No colleciton ' + collectionName + ' in IndexedDB')
     }
     let transaction = this.db.transaction(collectionName, transactionType)
     return transaction.objectStore(collectionName)

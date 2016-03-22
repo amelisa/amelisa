@@ -1,4 +1,3 @@
-// process.env.DEBUG = '*,-express:*'
 import BrowserContext from './BrowserContext'
 import ServerContext from './ServerContext'
 

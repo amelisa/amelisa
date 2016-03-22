@@ -1,4 +1,3 @@
-// let debug = require('debug')('LocalQuery')
 import ClientQuery from './ClientQuery'
 
 class LocalQuery extends ClientQuery {

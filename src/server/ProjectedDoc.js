@@ -1,4 +1,3 @@
-// let debug = require('debug')('ProjectedDoc')
 import ServerDoc from './ServerDoc'
 
 class ProjectedDoc extends ServerDoc {
@@ -9,7 +8,6 @@ class ProjectedDoc extends ServerDoc {
   }
 
   onOp (op, channel) {
-    // debug('onOp', op)
     op = Object.assign({}, op)
 
     let error = this.projection.validateOp(op)
@@ -34,8 +32,6 @@ class ProjectedDoc extends ServerDoc {
   }
 
   sendOp (op, channel) {
-    // debug('sendOp')
-
     if (op.collectionName) op.collectionName = this.projectionCollectionName
 
     if (op.type === 'add' || op.type === 'set' || op.type === 'del') {

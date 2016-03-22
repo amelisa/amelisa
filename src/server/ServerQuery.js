@@ -1,4 +1,3 @@
-let debug = require('debug')('ServerQuery')
 import arraydiff from 'arraydiff'
 import Query from '../client/Query'
 import { arrayRemove, deepClone, fastEqual } from '../util'
@@ -27,12 +26,9 @@ class ServerQuery extends Query {
     if (this.loading) return
     this.loading = true
 
-    debug('load', this.collectionName, this.expression)
-
     this.store.storage
       .getDocsByQuery(this.collectionName, this.expression)
       .then((docs) => {
-        debug('loaded', this.collectionName, this.expression, docs)
         this.prev = this.data
         this.data = docs
         this.loading = false
@@ -45,8 +41,6 @@ class ServerQuery extends Query {
   }
 
   broadcast () {
-    debug('broadcast', this.projectionCollectionName, this.collectionName, this.expression, this.channels.length)
-
     if (!this.isDocs) {
       if (fastEqual(this.prev, this.data)) return
 

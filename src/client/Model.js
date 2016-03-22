@@ -1,4 +1,3 @@
-let debug = require('debug')('Model')
 import invariant from 'invariant'
 import uuid from 'uuid'
 import { EventEmitter } from 'events'
@@ -27,7 +26,6 @@ class Model extends EventEmitter {
     this.callbacks = {}
 
     channel.on('message', (message) => {
-      debug('message', message)
       this
         .onMessage(message)
         .catch((err) => {
@@ -36,7 +34,6 @@ class Model extends EventEmitter {
     })
 
     channel.on('open', () => {
-      debug('open')
       if (isServer && !this.options.isClient) {
         this.inited = true
         this.setOnline()
@@ -50,18 +47,15 @@ class Model extends EventEmitter {
     })
 
     channel.on('close', () => {
-      debug('close')
       this.onChannelClose()
     })
 
     channel.on('error', () => {
-      debug('error')
       this.onChannelClose()
     })
   }
 
   onChannelClose () {
-    debug('onChannelClose', this.inited, this.online)
     if (!this.inited && !this.initing) {
       this
         .init()
@@ -74,7 +68,6 @@ class Model extends EventEmitter {
   }
 
   async init () {
-    debug('init')
     this.initing = true
 
     this.storage = this.getStorage && this.getStorage()
@@ -101,7 +94,6 @@ class Model extends EventEmitter {
   }
 
   async handshake () {
-    debug('handshake')
     this.initing = true
 
     let start = Date.now()
@@ -539,7 +531,6 @@ class Model extends EventEmitter {
   }
 
   async send (message, forceSend) {
-    debug('send', message, forceSend, this.inited, this.online, !!message.id)
     if (!forceSend && (!this.inited || !this.online || !message.id)) return
 
     return new Promise((resolve, reject) => {
@@ -577,7 +568,6 @@ class Model extends EventEmitter {
   }
 
   async sendOp (opData) {
-    // debug('sendOp', opData)
     let op = this.createOp(opData)
 
     return this.send(op)

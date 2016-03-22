@@ -1,4 +1,3 @@
-// let debug = require('debug')('RedisChannel')
 import { EventEmitter } from 'events'
 import redisUrl from 'redis-url'
 

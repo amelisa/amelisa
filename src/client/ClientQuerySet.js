@@ -1,4 +1,3 @@
-// let debug = require('debug')('ClientQuerySet')
 import LocalQuery from './LocalQuery'
 import RemoteQuery from './RemoteQuery'
 import { isLocalCollection } from '../util'

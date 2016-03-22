@@ -1,4 +1,3 @@
-// let debug = require('debug')('LocalCollection')
 import Collection from './Collection'
 import LocalDoc from './LocalDoc'
 

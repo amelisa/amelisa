@@ -1,4 +1,3 @@
-// let debug = require('debug')('Subscription')
 import MutableDoc from './MutableDoc'
 import ClientQuery from './ClientQuery'
 import UrlQuery from './UrlQuery'

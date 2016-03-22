@@ -1,4 +1,3 @@
-// let debug = require('debug')('Collection')
 import { EventEmitter } from 'events'
 import Doc from './Doc'
 

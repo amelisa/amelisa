@@ -1,4 +1,3 @@
-// let debug = require('debug')('ServerJoinQuery')
 import ServerQuery from './ServerQuery'
 
 class ServerJoinQuery extends ServerQuery {

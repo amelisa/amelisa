@@ -1,4 +1,3 @@
-let debug = require('debug')('Store')
 import { EventEmitter } from 'events'
 import ChannelSession from './ChannelSession'
 import Projection from './Projection'
@@ -69,12 +68,10 @@ class Store extends EventEmitter {
   }
 
   onChannel (channel) {
-    debug('onChannel', channel.server)
     channel._session = new ChannelSession()
     this.clients.push(channel)
 
     channel.on('message', (message) => {
-      debug('message', message)
       this.validateMessage(message, channel)
         .catch((err) => {
           let op = {
@@ -90,14 +87,13 @@ class Store extends EventEmitter {
     })
 
     channel.on('close', () => {
-      debug('close', this.clients.length)
       arrayRemove(this.clients, channel)
       this.docSet.channelClose(channel)
       this.querySet.channelClose(channel)
     })
 
     channel.on('error', (err) => {
-      debug('error', err)
+      console.trace('channel error', err)
     })
 
     this.emit('channel', channel)
@@ -312,13 +308,6 @@ class Store extends EventEmitter {
   }
 
   sendOp (op, channel) {
-    debug('sendOp', op.type, op)
-    // console.trace('sendOp', op.type)
-
-    if (!channel) {
-      return console.trace('Store.sendOp no channel')
-    }
-
     try {
       channel.send(op)
     } catch (err) {

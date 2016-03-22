@@ -1,4 +1,3 @@
-let debug = require('debug')('ServerQuerySet')
 import eventToPromise from 'event-to-promise'
 import MongoQueries from '../mongo/MongoQueries'
 import ProjectedQuery from './ProjectedQuery'
@@ -15,7 +14,6 @@ class ServerQuerySet {
   async getOrCreateQuery (collectionName, expression) {
     let hash = this.getQueryHash(collectionName, expression)
     let query = this.data[hash]
-    debug('getOrCreateQuery', collectionName, expression, !!query)
 
     if (!query) {
       let joinQuery = MongoQueries.prototype.isJoinQuery(expression)
@@ -56,7 +54,6 @@ class ServerQuerySet {
   }
 
   onOp (op) {
-    debug('onOp', op)
     for (let hash in this.data) {
       let query = this.data[hash]
       if (query.collectionName === op.collectionName ||
