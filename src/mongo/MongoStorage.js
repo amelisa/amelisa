@@ -134,11 +134,20 @@ class MongoStorage extends MongoQueries {
       this.db
         .collection(collectionName)
         .findAndModify(query, [], update, options, (err, doc) => {
-          if (err) return reject(err)
-
-          if (!doc) {
-            return reject('version changed')
+          if (err) {
+            // if E11000 duplicate key error on _id field,
+            // it means that we inserted two docs with same _id.
+            // let's load saved doc from db, merge with current and save again
+            if (err.code === 11000 && err.message.indexOf('index: _id_ dup key') !== -1) {
+              return reject('stale data')
+            }
+            return reject(err)
           }
+
+          // if there was no doc with previous version,
+          // it means that version changed and our data is stale
+          // let's load it, merge with current doc and save one more time
+          if (!doc) return reject('stale data')
 
           resolve()
         })
