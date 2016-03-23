@@ -1,6 +1,6 @@
 import Doc from '../client/Doc'
 import Model from '../client/Model'
-import { ArrayType, StringType } from '../types'
+import { ArrayType, BooleanType, NumberType, StringType } from '../types'
 import { arrayRemove } from '../util'
 
 class ServerDoc extends Doc {
@@ -68,8 +68,16 @@ class ServerDoc extends Doc {
   saveToStorage () {
     let version = this.version()
 
-    if (this.ops.length > 50) {
-      this.cutOplog()
+    if (this.ops.length > this.store.options.cuttingOpsCount) {
+      let date = Date.now() - this.store.options.cuttingTimeout
+      let allOps = this.ops
+      this.ops = allOps.filter((op) => op.date < date)
+      this.refreshState()
+      let cutOps = this.getCutOps(null, this.state)
+      for (let cutOp of cutOps) {
+        allOps.push(cutOp)
+      }
+      this.ops = allOps
       this.distillOps()
     }
 
@@ -89,66 +97,43 @@ class ServerDoc extends Doc {
       })
   }
 
-  cutOplog () {
-    // TODO: make it smarter to create stirngSet with some gap in time to
-    // avoid race conditions
-    let cuttableFields = this.getCuttableFields(null, this.state)
+  getCutOps (field, value) {
+    let ops = []
 
-    for (let cuttableField of cuttableFields) {
-      let { type, field, value } = cuttableField
-
-      if (type === 'array') {
-        // let op = {
-        //   id: Model.prototype.id(),
-        //   source: this.store.options.source,
-        //   date: Date.now(),
-        //   type: 'arraySet',
-        //   collectionName: this.collectionName,
-        //   docId: this.docId,
-        //   value: value.getArraySetValue()
-        // }
-        let op = {
-          id: Model.prototype.id(),
-          source: this.store.options.source,
-          date: Date.now(),
-          type: 'set',
-          collectionName: this.collectionName,
-          docId: this.docId,
-          value: this.get(field)
-        }
-        if (field) op.field = field
-        this.ops.push(op)
-        this.broadcastOp(op)
-      } else if (type === 'string') {
-        let op = {
-          id: Model.prototype.id(),
-          source: this.store.options.source,
-          date: Date.now(),
-          type: 'stringSet',
-          collectionName: this.collectionName,
-          docId: this.docId,
-          value: value.getStringSetValue()
-        }
-        if (field) op.field = field
-        this.ops.push(op)
-        this.broadcastOp(op)
+    // TODO: use arraySet for array
+    if (value instanceof ArrayType || value instanceof BooleanType || value instanceof NumberType) {
+      let op = {
+        id: Model.prototype.id(),
+        source: this.store.options.source,
+        date: Date.now(),
+        type: 'set',
+        collectionName: this.collectionName,
+        docId: this.docId,
+        value: this.get(field)
       }
+      if (field) op.field = field
+      ops.push(op)
+    } else if (value instanceof StringType) {
+      let op = {
+        id: Model.prototype.id(),
+        source: this.store.options.source,
+        date: Date.now(),
+        type: 'stringSet',
+        collectionName: this.collectionName,
+        docId: this.docId,
+        value: value.getStringSetValue()
+      }
+      if (field) op.field = field
+      ops.push(op)
     }
-  }
-
-  getCuttableFields (field, value) {
-    let cuttableFields = []
-
-    if (value instanceof ArrayType) return [{type: 'array', field, value}]
-    if (value instanceof StringType) return [{type: 'string', field, value}]
 
     if (value && typeof value === 'object') {
       for (let key in value) {
         let subField = field ? `${field}.${key}` : key
-        cuttableFields = cuttableFields.concat(this.getCuttableFields(subField, value[key]))
+        ops = ops.concat(this.getCutOps(subField, value[key]))
       }
     }
-    return cuttableFields
+    return ops
   }
 
   broadcast () {

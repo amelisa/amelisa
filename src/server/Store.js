@@ -12,7 +12,9 @@ const defaultOptions = {
   projections: {},
   source: 'server',
   unattachTimeout: 5000,
-  saveDebounceTimeout: 1000
+  saveDebounceTimeout: 1000,
+  cuttingOpsCount: 100,
+  cuttingTimeout: 2000
 }
 
 class Store extends EventEmitter {
