@@ -9,7 +9,6 @@ class Query extends EventEmitter {
     this.expression = expression
     this.data = []
     this.isDocs = this.isDocsQuery(expression)
-    this.isServerOnly = this.isServerOnlyQuery(expression)
   }
 
   get (options) {
@@ -32,10 +31,6 @@ class Query extends EventEmitter {
 
   isDocsQuery (expression) {
     return MongoQueries.prototype.isDocsQuery(expression)
-  }
-
-  isServerOnlyQuery (expression) {
-    return MongoQueries.prototype.isServerOnlyQuery(expression)
   }
 
   getQueryResultFromArray (docs, expression) {

@@ -26,10 +26,6 @@ const notDocsOperators = {
   $aggregate: true
 }
 
-const serverOnlyQueryOperators = {
-  $skip: true
-}
-
 class MongoQueries {
 
   static get allSelector () {
@@ -115,18 +111,6 @@ class MongoQueries {
     for (let key in query.$query) {
       let value = query.$query[key]
       if (this.isJoinField(value)) return true
-    }
-
-    return false
-  }
-
-  isServerOnlyQuery (expression) {
-    if (!this.isDocsQuery(expression)) return true
-
-    let query = this.normalizeQuery(expression)
-
-    for (let key in query) {
-      if (serverOnlyQueryOperators[key]) return true
     }
 
     return false

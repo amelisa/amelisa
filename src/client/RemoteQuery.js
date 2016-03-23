@@ -87,14 +87,14 @@ class RemoteQuery extends ClientQuery {
 
     this.collection.on('change', this.onCollectionChange)
 
-    if (!this.isServerOnly) {
-      super.refresh()
-      this.lastServerData = this.data
-      // return immediately if there is data in collection
-      if (Object.keys(this.collection.data).length) {
-        this.sendSubscribeOp()
-        return
-      }
+    super.refresh()
+    this.lastServerData = this.data
+
+    // TODO: can be better way?
+    // return immediately if there is data in collection
+    if (Object.keys(this.collection.data).length) {
+      this.sendSubscribeOp()
+      return
     }
 
     return this.sendSubscribeOp()
