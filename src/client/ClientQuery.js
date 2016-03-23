@@ -5,10 +5,11 @@ import { dbFields, fastEqual } from '../util'
 class ClientQuery extends Query {
   constructor (collectionName, expression, model, collection, querySet) {
     super(collectionName, expression)
+
     this.model = model
     this.collection = collection
     this.querySet = querySet
-    this.refreshed = false
+    this.refresh()
   }
 
   getStateFromDocData (doc) {
@@ -48,7 +49,6 @@ class ClientQuery extends Query {
     } else {
       this.data = docDatas
     }
-    if (!this.refreshed) this.refreshed = true
   }
 
   onCollectionChange = (op) => {

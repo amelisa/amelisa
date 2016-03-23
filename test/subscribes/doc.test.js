@@ -1,7 +1,7 @@
 import assert from 'assert'
 import eventToPromise from 'event-to-promise'
 import { MemoryStorage, Store } from '../../src/server'
-import { collectionName, docId, field, value, value2, getDocData } from '../util'
+import { collectionName, docId, field, value, value2, getDocData, sleep } from '../util'
 
 let storage
 let store
@@ -125,7 +125,7 @@ describe('subscribes doc', () => {
     await model2.add(collectionName, getDocData())
     await doc.subscribe()
     setTimeout(() => model2.del(collectionName, docId))
-    await eventToPromise(doc, 'change')
+    await sleep(10)
 
     assert(!doc.get())
   })

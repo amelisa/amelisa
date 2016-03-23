@@ -11,16 +11,16 @@ class RemoteQuery extends ClientQuery {
     if (this.subscribing) return this.subscribingPromise
     this.subscribing = true
 
+    super.refresh()
+    this.lastServerData = this.data
+
     let op = {
       type: 'qfetch',
       collectionName: this.collection.name,
       expression: this.expression
     }
 
-    if (this.isDocs) {
-      if (!this.refreshed) super.refresh()
-      op.docIds = this.data
-    }
+    if (this.isDocs) op.docIds = this.data
 
     this.subscribingPromise = this.model.sendOp(op)
     return this.subscribingPromise
@@ -72,8 +72,6 @@ class RemoteQuery extends ClientQuery {
   }
 
   refresh (op) {
-    if (this.model.online && this.isServerOnly) return
-
     let prevData = this.data
     super.refresh()
     if (this.dataHasChanged(prevData, this.data)) {
