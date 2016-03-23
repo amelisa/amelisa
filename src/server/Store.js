@@ -51,7 +51,8 @@ class Store extends EventEmitter {
     let channel = new ServerChannel()
     let channel2 = new ServerChannel()
     channel.pipe(channel2).pipe(channel)
-    let model = new Model(channel, this.source, Object.assign({}, this.options, options), this.projectionHashes)
+    let modelOptions = Object.assign({}, this.options, options)
+    let model = new Model(channel, this.options.source, modelOptions, this.projectionHashes)
     model.server = true
 
     this.onChannel(channel2)
