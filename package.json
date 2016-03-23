@@ -1,7 +1,7 @@
 {
   "name": "amelisa",
   "version": "0.1.14",
-  "description": "",
+  "description": "Data engine with offline and realtime",
   "main": "lib/index.js",
   "scripts": {
     "prepublish": "babel --optional runtime src --out-dir lib",
@@ -14,7 +14,34 @@
     "test": "mocha --compilers js:babel-core/register \"test/**/*.test.js\"",
     "test-bundle": "browserify test/integration/offline.client.js -t babelify -o test/integration/tmp/offline.js"
   },
-  "author": "",
+  "homepage": "http://amelisajs.com",
+  "repository": {
+   "type": "git",
+   "url": "https://github.com/amelisa/amelisa.git"
+  },
+  "bugs": {
+    "url": "https://github.com/amelisa/amelisa/issues"
+  },
+  "keywords": [
+    "amelisa",
+    "crdt",
+    "offline",
+    "realtime",
+    "engine",
+    "data",
+    "queries",
+    "sync",
+    "collaborative",
+    "server rendering"
+    "node",
+    "react",
+    "react-native",
+    "mongo"
+  ],
+  "author": {
+    "email": "vmakhaev@gmail.com",
+    "name": "Vladimir Makhaev"
+  },
   "license": "MIT",
   "dependencies": {
     "arraydiff": "^0.1.1",
