@@ -1,6 +1,6 @@
 {
   "name": "amelisa",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Data engine with offline and realtime",
   "main": "lib/index.js",
   "scripts": {
@@ -16,8 +16,8 @@
   },
   "homepage": "http://amelisajs.com",
   "repository": {
-   "type": "git",
-   "url": "https://github.com/amelisa/amelisa.git"
+    "type": "git",
+    "url": "https://github.com/amelisa/amelisa.git"
   },
   "bugs": {
     "url": "https://github.com/amelisa/amelisa/issues"
