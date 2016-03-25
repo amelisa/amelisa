@@ -1,5 +1,6 @@
 import assert from 'assert'
-import { MemoryStorage, Store } from '../src/server'
+import { MemoryStorage } from '../src/mongo'
+import { Store } from '../src/server'
 import { collectionName, getDocData } from './util'
 
 let store
@@ -8,9 +9,8 @@ let model
 describe('hooks', () => {
   beforeEach(async () => {
     let storage = new MemoryStorage()
-    await storage.init()
-
     store = new Store(storage)
+    await store.init()
     store.onAfterHookError = () => {}
     model = store.createModel()
   })

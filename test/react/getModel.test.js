@@ -3,7 +3,8 @@ import fakeIndexedDb from 'fake-indexeddb'
 import localStorage from 'localStorage'
 import jsdom from 'node-jsdom'
 import getModel from '../../src/react/getModel'
-import { MemoryStorage, Store } from '../../src/server'
+import { MemoryStorage } from '../../src/mongo'
+import { Store } from '../../src/server'
 import ServerChannel from '../../src/server/ServerChannel'
 import { value, sleep } from '../util'
 
@@ -32,9 +33,8 @@ describe('getModel', () => {
     }
     global.window.localStorage = localStorage // HACK
     let storage = new MemoryStorage()
-    await storage.init()
-
     store = new Store(storage, null, storeOptions)
+    await store.init()
   })
 
   afterEach(() => {

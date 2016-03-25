@@ -1,6 +1,7 @@
 import assert from 'assert'
 import eventToPromise from 'event-to-promise'
-import { MemoryStorage, Store } from '../../src/server'
+import { MemoryStorage } from '../../src/mongo'
+import { Store } from '../../src/server'
 import { collectionName, docId, joinExpression, getDocData } from '../util'
 
 let storage
@@ -11,9 +12,8 @@ let model2
 describe('subscribes join query', () => {
   beforeEach(async () => {
     storage = new MemoryStorage()
-    await storage.init()
-
     store = new Store(storage, null, {saveDebounceTimeout: 0})
+    await store.init()
     model = store.createModel()
     model.source = 'model1'
     model2 = store.createModel()

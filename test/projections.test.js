@@ -1,6 +1,7 @@
 import assert from 'assert'
 import eventToPromise from 'event-to-promise'
-import { MemoryStorage, Store } from '../src/server'
+import { MemoryStorage } from '../src/mongo'
+import { Store } from '../src/server'
 import { collectionName, dbCollectionName, docId, expression, countExpression, joinExpression,
   field, field2, value, value2, getDocData, sleep } from './util'
 
@@ -25,9 +26,8 @@ let options = {
 describe('projections', () => {
   beforeEach(async () => {
     storage = new MemoryStorage()
-    await storage.init()
-
     store = new Store(storage, null, options)
+    await store.init()
     model = store.createModel({isClient: true})
     model.source = 'model1'
     model2 = store.createModel({isClient: true})
