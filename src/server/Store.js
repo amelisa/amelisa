@@ -75,17 +75,18 @@ class Store extends EventEmitter {
     this.clients.push(channel)
 
     channel.on('message', (message) => {
-      this.validateMessage(message, channel)
+      this.onMessage(message, channel)
         .catch((err) => {
+          let { id, collectionName, docId } = message
           let op = {
-            ackId: message.id,
-            collectionName: message.collectionName,
-            docId: message.docId,
+            ackId: id,
+            collectionName,
+            docId,
             error: 'Internal Error'
           }
           this.sendOp(op, channel)
 
-          console.error('validateMessage error', err, err.stack)
+          console.trace('onMessage error', err)
         })
     })
 
@@ -102,7 +103,12 @@ class Store extends EventEmitter {
     this.emit('channel', channel)
   }
 
-  async validateMessage (message, channel) {
+  async onMessage (message, channel) {
+    let { type, id, collectionName, docId, expression, value, version, docIds, ops, opsType } = message
+    let doc
+    let query
+    let op
+
     if (this.preHook) {
       let { session, params } = this.getHookParams(channel)
 
@@ -110,23 +116,14 @@ class Store extends EventEmitter {
         await this.preHook(message, session, params)
       } catch (err) {
         let op = {
-          ackId: message.id,
-          collectionName: message.collectionName,
-          docId: message.docId,
+          ackId: id,
+          collectionName,
+          docId,
           error: err && err.message
         }
         return this.sendOp(op, channel)
       }
     }
-
-    await this.onMessage(message, channel)
-  }
-
-  async onMessage (message, channel) {
-    let { type, id, collectionName, docId, expression, value, version, docIds, ops, opsType } = message
-    let doc
-    let query
-    let op
 
     switch (type) {
       case 'handshake':
@@ -278,7 +275,7 @@ class Store extends EventEmitter {
   }
 
   onAfterHookError (err) {
-    console.error('afterHook', err, err.stack)
+    console.trace('afterHook error', err)
   }
 
   getHookParams (channel) {
