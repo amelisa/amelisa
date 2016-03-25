@@ -48,6 +48,10 @@ class Store extends EventEmitter {
     }
   }
 
+  init () {
+    return Promise.all([this.storage.init(), this.pubsub ? this.pubsub.init() : Promise.resolve()])
+  }
+
   createModel (options) {
     let channel = new ServerChannel()
     let channel2 = new ServerChannel()
