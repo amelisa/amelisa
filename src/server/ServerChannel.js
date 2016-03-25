@@ -6,32 +6,24 @@ class ServerChannel extends EventEmitter {
     super()
     this.server = true
     this.opened = false
-
-    this.on('open', () => {
-      if (this.opened) return
-      this.opened = true
-
-      if (!this.pipedChannel) return
-      this.pipedChannel.open()
-    })
-
-    this.on('close', () => {
-      if (!this.opened) return
-      this.opened = false
-
-      if (!this.pipedChannel) return
-      this.pipedChannel.close()
-    })
   }
 
   open () {
     if (this.opened) return
+    this.opened = true
     this.emit('open')
+
+    if (!this.pipedChannel) return
+    this.pipedChannel.open()
   }
 
   close () {
     if (!this.opened) return
+    this.opened = false
     this.emit('close')
+
+    if (!this.pipedChannel) return
+    this.pipedChannel.close()
   }
 
   send (message) {}
