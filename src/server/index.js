@@ -3,7 +3,6 @@ import MemoryPubsub from '../redis/MemoryPubsub'
 import MemoryStorage from '../mongo/MemoryStorage'
 import MongoStorage from '../mongo/MongoStorage'
 import RedisPubsub from '../redis/RedisPubsub'
-import ServerSocketChannel from './ServerSocketChannel'
 import Store from './Store'
 import { renderToString, renderToStaticMarkup } from '../react/serverRendering'
 
@@ -16,7 +15,6 @@ export default {
   MemoryStorage,
   MongoStorage,
   RedisPubsub,
-  ServerSocketChannel,
   Store,
   renderToString,
   renderToStaticMarkup,

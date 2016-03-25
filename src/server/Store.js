@@ -4,6 +4,7 @@ import Projection from './Projection'
 import ServerDocSet from './ServerDocSet'
 import ServerQuerySet from './ServerQuerySet'
 import ServerChannel from './ServerChannel'
+import ServerSocketChannel from './ServerSocketChannel'
 import Model from '../client/Model'
 import { arrayRemove } from '../util'
 
@@ -70,7 +71,12 @@ class Store extends EventEmitter {
     channel.open()
   }
 
-  onChannel (channel) {
+  onConnection = (socket) => {
+    let channel = new ServerSocketChannel(socket, socket.upgradeReq)
+    this.onChannel(channel)
+  };
+
+  onChannel = (channel) => {
     channel._session = new ChannelSession()
     this.clients.push(channel)
 
@@ -101,7 +107,7 @@ class Store extends EventEmitter {
     })
 
     this.emit('channel', channel)
-  }
+  };
 
   async onMessage (message, channel) {
     let { type, id, collectionName, docId, expression, value, version, docIds, ops, opsType } = message
