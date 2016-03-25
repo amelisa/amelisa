@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events'
+import invariant from 'invariant'
 import ChannelSession from './ChannelSession'
 import Projection from './Projection'
 import ServerDocSet from './ServerDocSet'
@@ -21,6 +22,7 @@ const defaultOptions = {
 class Store extends EventEmitter {
   constructor (storage, pubsub, options = {}) {
     super()
+    invariant(storage, 'Store.constructor storage is required for creating store')
     this.storage = storage
     this.pubsub = pubsub
     this.options = Object.assign({}, defaultOptions, options)
