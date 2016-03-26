@@ -99,7 +99,10 @@ class ServerDoc extends Doc {
   }
 
   saveOp (op) {
-    this.store.storage
+    if (!this.store.options.saveOps) return
+    if (!this.store.opsStorage.saveOp) return
+
+    this.store.opsStorage
       .saveOp(op)
       .catch((err) => {
         console.trace('ServerDoc.saveOp', err)

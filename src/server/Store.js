@@ -16,7 +16,8 @@ const defaultOptions = {
   unattachTimeout: 5000,
   saveDebounceTimeout: 1000,
   cuttingOpsCount: 100,
-  cuttingTimeout: 2000
+  cuttingTimeout: 2000,
+  saveOps: true
 }
 
 class Store extends EventEmitter {
@@ -25,7 +26,7 @@ class Store extends EventEmitter {
     let { storage, opsStorage, pubsub } = options
     invariant(storage, 'Store.constructor storage is required for creating store')
     this.storage = storage
-    this.opsStorage = opsStorage
+    this.opsStorage = storage || opsStorage
     this.pubsub = pubsub
     this.dbQueries = storage.getDbQueries()
     this.options = Object.assign({}, defaultOptions, options)
