@@ -1,3 +1,4 @@
+import invariant from 'invariant'
 import { deepClone, dbFields } from '../util'
 
 class Projection {
@@ -16,24 +17,23 @@ class Projection {
   }
 
   validate (fields) {
-    if (!fields) throw new Error('Fields are required')
-    if (typeof fields !== 'object') throw new Error('Fields should be an object')
-    let fieldList = Object.keys(fields)
-    if (fieldList.length === 0) throw new Error('Fields object can not be empty')
+    invariant(fields, 'Fields are required')
+    invariant(typeof fields === 'object', 'Fields should be an object')
+    invariant(Object.keys(fields).length, 'Fields object can not be empty')
 
     let inclusive
 
     for (let field in fields) {
       let value = fields[field]
       if (inclusive !== undefined) {
-        if (inclusive !== value) throw new Error('All fields should be true or all fields should be false')
+        invariant(inclusive === value, 'All fields should be true or all fields should be false')
       } else {
         inclusive = value
       }
     }
 
-    if (inclusive && !fields['_id']) throw new Error('Inclusive projection should has field _id')
-    if (!inclusive && fields['_id'] !== undefined) throw new Error('Exclusive projection should not has field _id')
+    if (inclusive) invariant(fields['_id'], 'Inclusive projection should has field _id')
+    if (!inclusive) invariant(fields['_id'] === undefined, 'Exclusive projection should not has field _id')
 
     return inclusive
   }
