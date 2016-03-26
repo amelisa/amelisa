@@ -6,7 +6,6 @@ import { Store } from '../src/server'
 import { collectionName, docId, expression, field, value2, getDocData } from './util'
 
 let storage
-let storage2
 let store
 let store2
 let model
@@ -15,10 +14,9 @@ let model2
 describe('multystore', () => {
   beforeEach(async () => {
     storage = new MemoryStorage()
-    storage2 = new MemoryStorage()
     let pubsub = new MemoryPubsub()
     store = new Store({storage, pubsub, source: 'store1', saveDebounceTimeout: 0})
-    store2 = new Store({storage: storage2, pubsub, source: 'store2', saveDebounceTimeout: 0})
+    store2 = new Store({storage, pubsub, source: 'store2', saveDebounceTimeout: 0})
     await store.init()
     await store2.init()
     model = store.createModel()
@@ -52,7 +50,7 @@ describe('multystore', () => {
     assert(!doc2.get())
   })
 
-  it.skip('should subscribe query and get it', async () => {
+  it('should subscribe query and get it', async () => {
     let query = model.query(collectionName, expression)
     await query.subscribe()
     setTimeout(() => model2.add(collectionName, getDocData()), 0)

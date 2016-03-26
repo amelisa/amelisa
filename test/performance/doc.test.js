@@ -31,6 +31,6 @@ describe('performance doc', () => {
     doc.refreshState()
     let time = Date.now() - start
     console.log('refreshState', time)
-    if (time > 10) throw new Error('refreshState takes too long ' + time)
+    if (time > 20) throw new Error('refreshState takes too long ' + time)
   })
 })
