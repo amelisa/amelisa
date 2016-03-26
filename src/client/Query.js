@@ -1,14 +1,10 @@
 import { EventEmitter } from 'events'
-import MongoQueries from '../mongo/MongoQueries'
 
 class Query extends EventEmitter {
   constructor (collectionName, expression) {
     super()
-    if (!expression) expression = MongoQueries.allSelector
     this.collectionName = collectionName
-    this.expression = expression
     this.data = []
-    this.isDocs = this.isDocsQuery(expression)
   }
 
   get (options) {
@@ -27,14 +23,6 @@ class Query extends EventEmitter {
       .map((docId) => this.collection.get(docId))
       // FIXME: we need this to avoid race condition with del
       .filter((docData) => docData)
-  }
-
-  isDocsQuery (expression) {
-    return MongoQueries.prototype.isDocsQuery(expression)
-  }
-
-  getQueryResultFromArray (docs, expression) {
-    return MongoQueries.prototype.getQueryResultFromArray(docs, expression)
   }
 }
 

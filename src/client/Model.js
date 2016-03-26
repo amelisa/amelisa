@@ -11,12 +11,13 @@ const defaultOptions = {
 }
 
 class Model extends EventEmitter {
-  constructor (channel, options = {}, projectionHashes) {
+  constructor (channel, options = {}, dbQueries, projectionHashes) {
     super()
 
     this.channel = channel
     this.options = Object.assign({}, defaultOptions, options)
     this.source = this.options.source
+    this.dbQueries = dbQueries
     this.projectionHashes = projectionHashes
     this.initing = false
     this.inited = false

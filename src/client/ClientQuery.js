@@ -6,9 +6,13 @@ class ClientQuery extends Query {
   constructor (collectionName, expression, model, collection, querySet) {
     super(collectionName, expression)
 
+    if (!expression) expression = this.model.dbQueries.getAllSelector()
+    this.expression = expression
     this.model = model
     this.collection = collection
     this.querySet = querySet
+    this.isDocs = this.model.dbQueries.isDocsQuery(expression)
+
     this.refresh()
   }
 
@@ -43,7 +47,7 @@ class ClientQuery extends Query {
 
   refresh () {
     let docs = this.collection.getDocs()
-    let docDatas = this.getQueryResultFromArray(docs, this.expression)
+    let docDatas = this.model.dbQueries.getQueryResultFromArray(docs, this.expression)
     if (this.isDocs) {
       this.data = docDatas.map((docData) => docData._id)
     } else {
@@ -58,7 +62,7 @@ class ClientQuery extends Query {
   dataHasChanged (prev, data) {
     if (typeof prev !== typeof data) return true
 
-    if (this.isDocsQuery) {
+    if (this.model.dbQueries.isDocsQuery) {
       // there is no cheap way to compare all query docs, so for now
       // we always emit change
       return true

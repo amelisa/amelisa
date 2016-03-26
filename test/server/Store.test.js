@@ -1,6 +1,6 @@
 import assert from 'assert'
 import eventToPromise from 'event-to-promise'
-import { MemoryStorage } from '../../src/mongo'
+import { MemoryStorage } from '../../src/mongo/server'
 import { Store } from '../../src/server'
 import ServerChannel from '../../src/server/ServerChannel'
 import { collectionName, docId } from '../util'
@@ -12,7 +12,7 @@ let channel
 describe('Store', () => {
   beforeEach(async () => {
     storage = new MemoryStorage()
-    store = new Store(storage)
+    store = new Store({storage})
     await store.init()
     channel = new ServerChannel()
     let channel2 = new ServerChannel()

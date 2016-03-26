@@ -56,6 +56,10 @@ class MemoryStorage extends MongoQueries {
     let collection = this.getOrCreateCollection(collectionName)
     collection[docId] = doc
   }
+
+  getDbQueries () {
+    return new MongoQueries()
+  }
 }
 
 export default MemoryStorage

@@ -1,9 +1,7 @@
-import MemoryStorage from './MemoryStorage'
 import MongoQueries from './MongoQueries'
-import MongoStorage from './MongoStorage'
+
+const dbQueries = new MongoQueries()
 
 export default {
-  MemoryStorage,
-  MongoQueries,
-  MongoStorage
+  dbQueries
 }

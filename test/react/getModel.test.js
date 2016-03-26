@@ -3,7 +3,7 @@ import fakeIndexedDb from 'fake-indexeddb'
 import localStorage from 'localStorage'
 import jsdom from 'node-jsdom'
 import getModel from '../../src/react/getModel'
-import { MemoryStorage } from '../../src/mongo'
+import { MemoryStorage } from '../../src/mongo/server'
 import { Store } from '../../src/server'
 import ServerChannel from '../../src/server/ServerChannel'
 import { value, sleep } from '../util'
@@ -14,11 +14,8 @@ global.window.localStorage = localStorage
 global.window.indexedDB = fakeIndexedDb
 global.navigator = global.window.navigator
 
-const storeOptions = {
-  version: 1
-}
 const options = {
-  model: {
+  modelOptions: {
     isClient: true,
     clientSaveDebounceTimeout: 0
   }
@@ -33,7 +30,7 @@ describe('getModel', () => {
     }
     global.window.localStorage = localStorage // HACK
     let storage = new MemoryStorage()
-    store = new Store(storage, null, storeOptions)
+    store = new Store({storage, version: 1})
     await store.init()
   })
 
@@ -45,7 +42,7 @@ describe('getModel', () => {
 
   it('should get model', async () => {
     let channel = new ServerChannel()
-    model = getModel(channel, options)
+    model = getModel(Object.assign({}, options, {channel}))
     store.connectModel(model)
 
     await model.onReady()
@@ -61,7 +58,7 @@ describe('getModel', () => {
     window.localStorage.setItem('version', 1)
     let channel = new ServerChannel()
     channel.open = () => {}
-    model = getModel(channel, options)
+    model = getModel(Object.assign({}, options, {channel}))
     channel.emit('close')
     await model.onReady()
 
@@ -74,7 +71,7 @@ describe('getModel', () => {
 
   it('should save data in indexedDB and get it next time', async () => {
     let channel = new ServerChannel()
-    model = getModel(channel, options)
+    model = getModel(Object.assign({}, options, {channel}))
     store.connectModel(model)
 
     await model.onReady()
@@ -85,7 +82,7 @@ describe('getModel', () => {
     delete model.storage
 
     channel = new ServerChannel()
-    model = getModel(channel, options)
+    model = getModel(Object.assign({}, options, {channel}))
     store.connectModel(model)
 
     await model.onReady()

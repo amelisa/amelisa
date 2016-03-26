@@ -32,7 +32,7 @@ const notDocsOperators = {
 
 class MongoQueries {
 
-  static get allSelector () {
+  getAllSelector () {
     return {}
   }
 

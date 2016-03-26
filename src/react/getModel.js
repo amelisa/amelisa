@@ -11,14 +11,16 @@ async function onBundleReady () {
   await onDomReady()
 }
 
-function getModel (channel, options = {}) {
-  if (!channel) {
-    let url = options.url || `ws://${window.location.host}`
+function getModel (options = {}) {
+  let { channel, url, wsOptions, modelOptions, dbQueries } = options
 
-    channel = new WebSocketChannel(url, options.ws)
+  if (!channel) {
+    url = url || `ws://${window.location.host}`
+
+    channel = new WebSocketChannel(url, wsOptions)
   }
 
-  let model = new Model(channel, options.model)
+  let model = new Model(channel, modelOptions, dbQueries)
 
   window.model = model
 

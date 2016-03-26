@@ -1,6 +1,6 @@
 import assert from 'assert'
 import eventToPromise from 'event-to-promise'
-import { MemoryStorage } from '../../src/mongo'
+import { MemoryStorage } from '../../src/mongo/server'
 import { Store } from '../../src/server'
 import { collectionName, docId, expression, field, value, value2, getDocData, sleep } from '../util'
 
@@ -12,7 +12,7 @@ let model2
 describe('subscribes query', () => {
   beforeEach(async () => {
     storage = new MemoryStorage()
-    store = new Store(storage, null, {saveDebounceTimeout: 0})
+    store = new Store({storage, saveDebounceTimeout: 0})
     await store.init()
     model = store.createModel()
     model2 = store.createModel()

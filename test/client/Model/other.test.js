@@ -2,6 +2,7 @@ import assert from 'assert'
 import ClientQuery from '../../../src/client/ClientQuery'
 import Model from '../../../src/client/Model'
 import ServerChannel from '../../../src/server/ServerChannel'
+import { dbQueries } from '../../../src/mongo'
 import { source, collectionName, field, value } from '../../util'
 
 let channel
@@ -10,7 +11,7 @@ let model
 describe('Model other', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel, {source})
+    model = new Model(channel, {source}, dbQueries)
     model.online = true
   })
 

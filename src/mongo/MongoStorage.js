@@ -137,6 +137,10 @@ class MongoStorage extends MongoQueries {
         throw err
       })
   }
+
+  getDbQueries () {
+    return new MongoQueries()
+  }
 }
 
 export default MongoStorage

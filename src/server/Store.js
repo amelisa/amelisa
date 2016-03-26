@@ -20,11 +20,14 @@ const defaultOptions = {
 }
 
 class Store extends EventEmitter {
-  constructor (storage, pubsub, options = {}) {
+  constructor (options = {}) {
     super()
+    let { storage, opsStorage, pubsub } = options
     invariant(storage, 'Store.constructor storage is required for creating store')
     this.storage = storage
+    this.opsStorage = opsStorage
     this.pubsub = pubsub
+    this.dbQueries = storage.getDbQueries()
     this.options = Object.assign({}, defaultOptions, options)
     this.docSet = new ServerDocSet(this)
     this.querySet = new ServerQuerySet(this)
@@ -59,7 +62,7 @@ class Store extends EventEmitter {
     let channel2 = new ServerChannel()
     channel.pipe(channel2).pipe(channel)
     options = Object.assign({}, this.options, options)
-    let model = new Model(channel, options, this.projectionHashes)
+    let model = new Model(channel, options, this.dbQueries, this.projectionHashes)
     model.server = true
 
     this.onChannel(channel2)

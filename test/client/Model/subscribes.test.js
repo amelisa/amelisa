@@ -1,5 +1,6 @@
 import Model from '../../../src/client/Model'
 import ServerChannel from '../../../src/server/ServerChannel'
+import { dbQueries } from '../../../src/mongo'
 import { collectionName, docId } from '../../util'
 
 let channel
@@ -8,7 +9,7 @@ let model
 describe('Model subscribes', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel)
+    model = new Model(channel, {}, dbQueries)
   })
 
   it('should fetch doc when no array', async () => {

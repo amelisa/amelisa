@@ -1,6 +1,6 @@
 import assert from 'assert'
 import HtmlLayout from '../../src/react/HtmlLayout'
-import { MemoryStorage } from '../../src/mongo'
+import { MemoryStorage } from '../../src/mongo/server'
 import { Store } from '../../src/server'
 import React from 'react'
 import { renderToString } from 'react-dom/server'
@@ -12,7 +12,7 @@ let model
 describe('HtmlLayout', () => {
   beforeEach(async () => {
     storage = new MemoryStorage()
-    store = new Store(storage)
+    store = new Store({storage})
     await store.init()
     model = store.createModel()
   })
