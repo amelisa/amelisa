@@ -2,7 +2,7 @@ import assert from 'assert'
 import ClientQuery from '../../../src/client/ClientQuery'
 import Model from '../../../src/client/Model'
 import ServerChannel from '../../../src/server/ServerChannel'
-import { collectionName, field, value } from '../../util'
+import { source, collectionName, field, value } from '../../util'
 
 let channel
 let model
@@ -10,7 +10,7 @@ let model
 describe('Model other', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel, 'test')
+    model = new Model(channel, {source})
     model.online = true
   })
 
@@ -37,6 +37,7 @@ describe('Model other', () => {
     assert(op)
     assert(op.id)
     assert(op.date)
+    assert(op.source)
     assert.equal(op.source, model.source)
     assert.equal(op.type, opData.type)
     assert.equal(Object.keys(op).length, 4)

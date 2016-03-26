@@ -10,7 +10,7 @@ let model
 describe('Doc general', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel, source)
+    model = new Model(channel, {source})
   })
 
   it('should get undefined from empty doc', () => {

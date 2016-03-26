@@ -2,7 +2,7 @@ import assert from 'assert'
 import Doc from '../../../src/client/Doc'
 import Model from '../../../src/client/Model'
 import ServerChannel from '../../../src/server/ServerChannel'
-import { source, collectionName, docId, field, value } from '../../util'
+import { collectionName, docId, field, value } from '../../util'
 
 let channel
 let model
@@ -10,7 +10,7 @@ let model
 describe('Doc distillOps', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel, source)
+    model = new Model(channel)
   })
 
   it('should distillOps on same field', () => {

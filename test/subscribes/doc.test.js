@@ -15,9 +15,7 @@ describe('subscribes doc', () => {
     store = new Store(storage, null, {saveDebounceTimeout: 0})
     await store.init()
     model = store.createModel()
-    model.source = 'model1'
     model2 = store.createModel()
-    model2.source = 'model2'
   })
 
   it('should fetch empty doc if doc not exists', async () => {

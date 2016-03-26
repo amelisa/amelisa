@@ -1,7 +1,7 @@
 import assert from 'assert'
 import Model from '../../../../src/client/Model'
 import ServerChannel from '../../../../src/server/ServerChannel'
-import { source, collectionName, localCollectionName, docId, field, value, value2, arrayValue, getDocData } from '../../../util'
+import { collectionName, localCollectionName, docId, field, value, value2, arrayValue, getDocData } from '../../../util'
 
 let channel
 let model
@@ -9,7 +9,7 @@ let model
 describe('Model mutators array', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel, source)
+    model = new Model(channel)
   })
 
   it('should push when args as array', () => {

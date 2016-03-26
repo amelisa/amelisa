@@ -1,7 +1,7 @@
 import assert from 'assert'
 import Model from '../../../../src/client/Model'
 import ServerChannel from '../../../../src/server/ServerChannel'
-import { source, collectionName, docId, field, value } from '../../../util'
+import { collectionName, docId, field, value } from '../../../util'
 
 let channel
 let model
@@ -9,7 +9,7 @@ let model
 describe('Model mutators string', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel, source)
+    model = new Model(channel)
   })
 
   it('should stringInsert when args as array', () => {

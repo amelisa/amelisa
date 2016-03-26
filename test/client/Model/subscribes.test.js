@@ -8,7 +8,7 @@ let model
 describe('Model subscribes', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel, 'test')
+    model = new Model(channel)
   })
 
   it('should fetch doc when no array', async () => {

@@ -14,9 +14,7 @@ describe('local', () => {
     store = new Store(storage)
     await store.init()
     model = store.createModel()
-    model.source = 'model1'
     model2 = store.createModel()
-    model2.source = 'model2'
   })
 
   it('should not send ops for local doc', async () => {

@@ -15,9 +15,7 @@ describe('subscribes join query', () => {
     store = new Store(storage, null, {saveDebounceTimeout: 0})
     await store.init()
     model = store.createModel()
-    model.source = 'model1'
     model2 = store.createModel()
-    model2.source = 'model2'
   })
 
   it('should subscribe join query and get doc', async () => {

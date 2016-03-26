@@ -13,7 +13,7 @@ function getModel (channel, options = {}) {
     channel = new WebSocketChannel(url, options.ws)
   }
 
-  let model = new Model(channel, options.source, options.model)
+  let model = new Model(channel, options.model)
 
   window.model = model
 

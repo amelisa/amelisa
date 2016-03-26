@@ -15,9 +15,7 @@ describe('offline count query', () => {
     store = new Store(storage, null, {saveDebounceTimeout: 0})
     await store.init()
     model = store.createModel({isClient: true})
-    model.source = 'model1'
     model2 = store.createModel({isClient: true})
-    model2.source = 'model2'
     await model.onReady()
     await model2.onReady()
   })
