@@ -8,24 +8,11 @@ class MongoStorage extends MongoQueries {
   }
 
   async init () {
-    return new Promise((resolve, reject) => {
-      MongoClient.connect(this.url, (err, db) => {
-        if (err) return reject(err)
-
-        this.db = db
-        resolve()
-      })
-    })
+    this.db = await MongoClient.connect(this.url)
   }
 
   async clear () {
-    return new Promise((resolve, reject) => {
-      this.db.dropDatabase((err, result) => {
-        if (err) return reject(err)
-
-        resolve()
-      })
-    })
+    await this.db.dropDatabase()
   }
 
   async getDocById (collectionName, docId) {
@@ -33,74 +20,72 @@ class MongoStorage extends MongoQueries {
       _id: docId
     }
 
-    return new Promise((resolve, reject) => {
-      this.db
-        .collection(collectionName)
-        .find(query)
-        .limit(1)
-        .next((err, doc) => {
-          if (err) return reject(err)
+    let collection = this.db.collection(collectionName)
 
-          resolve(doc)
-        })
-    })
+    return collection
+      .find(query)
+      .limit(1)
+      .next()
   }
 
   async getDocsByQuery (collectionName, expression) {
     let query = this.normalizeQuery(expression)
-    let projection = {}
     let collection = this.db.collection(collectionName)
 
-    return new Promise((resolve, reject) => {
-      if (query.$count) {
-        collection.count(query.$query || {}, (err, extra) => {
-          if (err) return reject(err)
-          resolve(extra)
-        })
-        return
+    if (query.$count) {
+      return collection
+        .count(query.$query || {})
+    }
+
+    if (query.$distinct) {
+      return collection
+        .distinct(query.$field, query.$query || {})
+    }
+
+    if (query.$aggregate) {
+      return collection
+        .aggregate(query.$aggregate)
+        .toArray()
+    }
+
+    if (query.$mapReduce) {
+      let mapReduceOptions = {
+        query: query.$query || {},
+        out: {inline: 1},
+        scope: query.$scope || {}
       }
+      return collection
+        .mapReduce(query.$map, query.$reduce, mapReduceOptions)
+    }
 
-      if (query.$distinct) {
-        collection.distinct(query.$field, query.$query || {}, (err, extra) => {
-          if (err) return reject(err)
-          resolve(extra)
-        })
-        return
-      }
+    let cursor = collection.find(query.$query)
 
-      if (query.$aggregate) {
-        collection.aggregate(query.$aggregate, (err, extra) => {
-          if (err) return reject(err)
-          resolve(extra)
-        })
-        return
-      }
+    if (query.$orderby) cursor = cursor.sort(query.$orderby)
+    if (query.$skip) cursor = cursor.skip(query.$skip)
+    if (query.$limit) cursor = cursor.limit(query.$limit)
 
-      if (query.$mapReduce) {
-        let mapReduceOptions = {
-          query: query.$query || {},
-          out: {inline: 1},
-          scope: query.$scope || {}
-        }
-        collection.mapReduce(query.$map, query.$reduce, mapReduceOptions, (err, extra) => {
-          if (err) return reject(err)
-          resolve(extra)
-        })
-        return
-      }
+    return cursor.toArray()
+  }
 
-      let cursor = collection.find(query.$query).project(projection)
+  async getOpsByQuery (collectionName) {
+    let opsCollectionName = this.getOpsCollection(collectionName)
 
-      if (query.$orderby) cursor = cursor.sort(query.$orderby)
-      if (query.$skip) cursor = cursor.skip(query.$skip)
-      if (query.$limit) cursor = cursor.limit(query.$limit)
+    return this.db
+      .collection(opsCollectionName)
+      .find({})
+      .toArray()
+  }
 
-      cursor.toArray((err, docs) => {
-        if (err) return reject(err)
+  async saveOp (op) {
+    let opsCollectionName = this.getOpsCollection(op.collectionName)
 
-        resolve(docs)
-      })
-    })
+    return this.db
+      .collection(opsCollectionName)
+      .insert(op)
+  }
+
+  getOpsCollection (collectionName) {
+    return `${collectionName}_ops`
   }
 
   async saveDoc (collectionName, docId, state, prevVersion, version, ops) {
@@ -128,28 +113,29 @@ class MongoStorage extends MongoQueries {
       options.upsert = true
     }
 
-    return new Promise((resolve, reject) => {
-      this.db
-        .collection(collectionName)
-        .findAndModify(query, [], update, options, (err, doc) => {
-          if (err) {
-            // if E11000 duplicate key error on _id field,
-            // it means that we inserted two docs with same _id.
-            // let's load saved doc from db, merge with current and save again
-            if (err.code === 11000 && err.message.indexOf('index: _id_ dup key') !== -1) {
-              return reject('stale data')
-            }
-            return reject(err)
-          }
+    return this.db
+      .collection(collectionName)
+      .findAndModify(query, [], update, options)
+      .then((result) => {
+        let doc = result.value
 
-          // if there was no doc with previous version,
-          // it means that version changed and our data is stale
-          // let's load it, merge with current doc and save one more time
-          if (!doc) return reject('stale data')
+        // if there was no doc with previous version,
+        // it means that version changed and our data is stale
+        // let's load it, merge with current doc and save one more time
+        if (!doc) throw new Error('stale data')
 
-          resolve()
-        })
-    })
+        return doc
+      })
+      .catch((err) => {
+        // if E11000 duplicate key error on _id field,
+        // it means that we inserted two docs with same _id.
+        // let's load saved doc from db, merge with current and save again
+        if (err.code === 11000 && err.message.indexOf('index: _id_ dup key') !== -1) {
+          throw new Error('stale data')
+        }
+
+        throw err
+      })
   }
 }
 

@@ -40,6 +40,8 @@ class MemoryStorage extends MongoQueries {
     return docs
   }
 
+  async saveOp (op) {}
+
   async saveDoc (collectionName, docId, state, prevVersion, version, ops) {
     let doc = {
       _id: docId,

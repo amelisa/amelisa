@@ -48,6 +48,7 @@ class ServerDoc extends Doc {
   onOp (op, channel) {
     if (channel) channel._session.updateDocVersion(this.collectionName, this.docId, op.source, op.date)
     this.applyOp(op)
+    this.saveOp(op)
     this.save()
     this.broadcastOp(op, channel)
   }
@@ -94,6 +95,14 @@ class ServerDoc extends Doc {
         } else {
           console.trace('ServerDoc.saveToStorage', err)
         }
+      })
+  }
+
+  saveOp (op) {
+    this.store.storage
+      .saveOp(op)
+      .catch((err) => {
+        console.trace('ServerDoc.saveOp', err)
       })
   }
 

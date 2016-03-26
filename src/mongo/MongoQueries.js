@@ -18,12 +18,16 @@ const metaOperators = {
   $skip: true,
   $snapshot: true,
   $count: true,
-  $aggregate: true
+  $aggregate: true,
+  $distinct: true,
+  $field: true
 }
 
 const notDocsOperators = {
   $count: true,
-  $aggregate: true
+  $aggregate: true,
+  $distinct: true,
+  $mapReduce: true
 }
 
 class MongoQueries {
@@ -57,6 +61,14 @@ class MongoQueries {
     }
 
     if (query.$count) return cursor.count()
+
+    if (query.$distinct) {
+      return cursor
+        .all()
+        .map((doc) => doc[query.$field])
+    }
+
+    // TODO: implement $mapReduce
 
     return cursor.all()
   }
