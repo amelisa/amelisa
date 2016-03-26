@@ -1,5 +1,4 @@
 import eventToPromise from 'event-to-promise'
-import MongoQueries from '../mongo/MongoQueries'
 import ProjectedQuery from './ProjectedQuery'
 import ProjectedJoinQuery from './ProjectedJoinQuery'
 import ServerJoinQuery from './ServerJoinQuery'
@@ -16,15 +15,15 @@ class ServerQuerySet {
     let query = this.data[hash]
 
     if (!query) {
-      let joinQuery = MongoQueries.prototype.isJoinQuery(expression)
+      let isJoinQuery = this.store.dbQueries.isJoinQuery(expression)
       let projection = this.store.projections[collectionName]
-      if (projection && !joinQuery) {
+      if (projection && !isJoinQuery) {
         query = new ProjectedQuery(collectionName, projection, expression, this.store, this)
-      } else if (projection && joinQuery) {
-        let joinFields = MongoQueries.prototype.getJoinFields(expression)
+      } else if (projection && isJoinQuery) {
+        let joinFields = this.store.dbQueries.getJoinFields(expression)
         query = new ProjectedJoinQuery(collectionName, projection, expression, this.store, this, joinFields)
-      } else if (joinQuery) {
-        let joinFields = MongoQueries.prototype.getJoinFields(expression)
+      } else if (isJoinQuery) {
+        let joinFields = this.store.dbQueries.getJoinFields(expression)
         query = new ServerJoinQuery(collectionName, expression, this.store, this, joinFields)
       } else {
         query = new ServerQuery(collectionName, expression, this.store, this)
