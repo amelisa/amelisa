@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events'
+import eventToPromise from 'event-to-promise'
 import invariant from 'invariant'
 import ChannelSession from './ChannelSession'
 import Projection from './Projection'
@@ -141,15 +142,10 @@ class Store extends EventEmitter {
     }
     doc.broadcastOp(op, channel)
 
-    doc.once('saved', () => {
-      if (ackId) {
-        let ackOp = {
-          ackId
-        }
-        this.sendOp(ackOp, channel)
-      }
-      this.onOp(op)
-    })
+    await eventToPromise(doc, 'saved')
+
+    if (ackId) this.sendAckOp(ackId, channel)
+    this.onOp(op)
 
     for (let op of ops) {
       this.afterOp(op, channel)
@@ -198,13 +194,11 @@ class Store extends EventEmitter {
     let { type, id, collectionName, docId, expression, value, version, docIds, ops, opsType } = message
     let doc
     let query
-    let op
     let valid
-    let ackOp
 
     switch (type) {
       case 'handshake':
-        op = {
+        let op = {
           type: 'handshake',
           ackId: id,
           value: {
@@ -225,8 +219,12 @@ class Store extends EventEmitter {
           let collectionSyncData = syncData.collections[collectionName]
           for (let docId in collectionSyncData) {
             let { ops, version } = collectionSyncData[docId]
-            let doc = await this.onDocOps(null, collectionName, docId, ops, channel)
-            doc.subscribe(channel, version)
+            let docPromise = this
+              .onDocOps(null, collectionName, docId, ops, channel)
+              .then((doc) => {
+                doc.subscribe(channel, version)
+              })
+            docPromises.push(docPromise)
           }
         }
 
@@ -245,16 +243,13 @@ class Store extends EventEmitter {
         }
         await Promise.all(queryPromises)
 
-        ackOp = {
-          type: 'sync',
-          ackId: id
-        }
-        this.sendOp(ackOp, channel)
+        this.sendAckOp(id, channel)
         break
 
       case 'fetch':
         valid = await this.validateOp(message, channel)
         if (!valid) break
+
         doc = await this.docSet.getOrCreateDoc(collectionName, docId)
         doc.fetch(channel, version, id)
         break
@@ -262,6 +257,7 @@ class Store extends EventEmitter {
       case 'qfetch':
         valid = await this.validateOp(message, channel)
         if (!valid) break
+
         query = await this.querySet.getOrCreateQuery(collectionName, expression)
         query.fetch(channel, docIds, id)
         break
@@ -269,6 +265,7 @@ class Store extends EventEmitter {
       case 'sub':
         valid = await this.validateOp(message, channel)
         if (!valid) break
+
         doc = await this.docSet.getOrCreateDoc(collectionName, docId)
         doc.subscribe(channel, version, id)
         break
@@ -276,6 +273,7 @@ class Store extends EventEmitter {
       case 'qsub':
         valid = await this.validateOp(message, channel)
         if (!valid) break
+
         query = await this.querySet.getOrCreateQuery(collectionName, expression)
         query.subscribe(channel, docIds, id)
         break
@@ -310,24 +308,20 @@ class Store extends EventEmitter {
       case 'stringInsert':
       case 'stringRemove':
       case 'stringSet':
-        doc = await this.docSet.getOrCreateDoc(collectionName, docId)
         valid = await this.validateOp(message, channel)
         if (!valid) break
+
+        doc = await this.docSet.getOrCreateDoc(collectionName, docId)
         doc.onOp(message, channel)
         doc.broadcastOp(message, channel)
 
-        doc.once('saved', () => {
-          ackOp = {
-            ackId: id
-          }
-          this.sendOp(ackOp, channel)
-          this.onOp(message)
-        })
+        await eventToPromise(doc, 'saved')
+
+        this.sendAckOp(id, channel)
+        this.onOp(message)
 
         this.afterOp(message, channel)
         break
-
-      default:
     }
   }
 
@@ -346,6 +340,13 @@ class Store extends EventEmitter {
       session,
       params
     }
+  }
+
+  sendAckOp (ackId, channel) {
+    let ackOp = {
+      ackId
+    }
+    this.sendOp(ackOp, channel)
   }
 
   onOp (op) {
