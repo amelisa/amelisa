@@ -21,7 +21,7 @@ class BrowserContext {
         setTimeout(() => {
           console.log('browser context close')
           this.close()
-        }, 10000)
+        }, 5000)
       })
     })
   }
@@ -50,6 +50,8 @@ class BrowserContext {
 
         page.open('http://localhost:' + this.port, (err, status) => {
           if (err) return reject(err)
+
+          if (status !== 'success') return reject('Unable to open site, status: ' + status)
 
           resolve(page)
         })

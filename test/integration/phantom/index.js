@@ -3,14 +3,16 @@ import ServerContext from './ServerContext'
 
 const defaultPort = 5005
 
-function getBrowserContext (port = defaultPort) {
+async function getBrowserContext (port = defaultPort) {
   let browserContext = new BrowserContext(port)
-  return browserContext.init()
+  await browserContext.init()
+  return browserContext
 }
 
-function getServerContext (port = defaultPort) {
+async function getServerContext (port = defaultPort) {
   let serverContext = new ServerContext(port)
-  return serverContext.init()
+  await serverContext.init()
+  return serverContext
 }
 
 export default {

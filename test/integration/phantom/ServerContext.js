@@ -1,4 +1,4 @@
-import initServer from './server'
+import serverInit from './server'
 
 class ServerContext {
   constructor (port) {
@@ -7,39 +7,32 @@ class ServerContext {
     this.nextSocketId = 0
   }
 
-  init () {
-    return new Promise((resolve, reject) => {
-      initServer((err, server, store) => {
-        if (err) return reject(err)
+  async init () {
+    let { server, store } = await serverInit()
+    this.server = server
+    this.store = store
 
-        this.server = server
-        this.store = store
+    // Maintain a hash of all connected sockets
+    server.on('connection', (socket) => {
+      // Add a newly connected socket
+      let socketId = this.nextSocketId++
+      this.sockets[socketId] = socket
+      // console.log('socket', socketId, 'opened')
 
-        // Maintain a hash of all connected sockets
-        server.on('connection', (socket) => {
-          // Add a newly connected socket
-          let socketId = this.nextSocketId++
-          this.sockets[socketId] = socket
-          // console.log('socket', socketId, 'opened')
-
-          // Remove the socket when it closes
-          socket.on('close', () => {
-            // console.log('socket', socketId, 'closed')
-            delete this.sockets[socketId]
-          })
-
-          // Extend socket lifetime for demo purposes
-          socket.setTimeout(4000)
-        })
-
-        resolve(this)
-
-        setTimeout(() => {
-          console.log('server context close')
-          this.close()
-        }, 10000)
+      // Remove the socket when it closes
+      socket.on('close', () => {
+        // console.log('socket', socketId, 'closed')
+        delete this.sockets[socketId]
       })
+
+      // Extend socket lifetime for demo purposes
+      socket.setTimeout(4000)
     })
+
+    setTimeout(() => {
+      console.log('server context close')
+      this.close()
+    }, 10000)
   }
 
   open () {

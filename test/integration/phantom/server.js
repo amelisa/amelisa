@@ -1,57 +1,35 @@
-let http = require('http')
-let { MemoryStorage, RedisChannel, ServerSocketChannel, Store } = require('../../../src')
+import http from 'http'
+import { Server as WebSocketServer } from 'ws'
+import app from './app'
+import store from './store'
 
-const mongoUrl = 'mongodb://localhost:27017/test'
-const redisUrl = 'redis://localhost:6379/13'
+async function init () {
+  await store.init()
 
-// let storage = new MongoStorage(mongoUrl)
-let storage = new MemoryStorage()
-let redis = new RedisChannel(redisUrl)
-let pubsub = new RedisChannel(redisUrl)
+  store.preHook = async (op, session, params) => {
 
-export default function (serverDone) {
-  storage
-    .init()
-    .then(() => redis.init())
-    .then(() => pubsub.init(true))
-    .then(() => {
-      let options = {
-        collections: {
-          auths: {
-            client: false
-          },
-          users: {
-            client: true,
-            preload: {}
-          }
-        },
-        projections: {
-          users: {
-            collectionName: 'auths',
-            fields: {
-              _id: true,
-              email: true,
-              name: true
-            }
-          }
-        }
-      }
+  }
 
-      let store = new Store(storage, redis, pubsub, options)
+  let server = http.createServer()
 
-      store.preHook = async (op, session, params) => {
+  server.on('request', app)
 
-      }
+  let wsServer = new WebSocketServer({server})
 
-      let httpServer = http.createServer()
-      let app = require('./app')(store, httpServer, mongoUrl)
-      app.ws('/', (client, req) => {
-        let channel = new ServerSocketChannel(client, req)
-        store.onChannel(channel)
-      })
+  wsServer.on('connection', store.onConnection)
 
-      httpServer.on('request', app)
+  // server.listen(port, (err) => {
+  //   if (err) {
+  //     console.error('Can\'t start server, Error:', err)
+  //   } else {
+  //     console.info(`${process.pid} listening. Go to: http://localhost:${port}`)
+  //   }
+  // })
 
-      serverDone(null, httpServer, store)
-    })
+  return {
+    server,
+    store
+  }
 }
+
+export default init
