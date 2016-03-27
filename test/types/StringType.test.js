@@ -42,6 +42,26 @@ describe('StringType', () => {
     assert.equal(string.get(), 'a')
   })
 
+  it('should insert after remove at begining', () => {
+    string = new StringType()
+    string.insert(null, '1', 'a')
+    string.insert('1', '2', 'b')
+    string.remove('1')
+    string.insert('1', '3', 'c')
+
+    assert.equal(string.get(), 'cb')
+  })
+
+  it('should insert after remove at end', () => {
+    string = new StringType()
+    string.insert(null, '1', 'a')
+    string.insert('1', '2', 'b')
+    string.remove('2')
+    string.insert('2', '3', 'c')
+
+    assert.equal(string.get(), 'ac')
+  })
+
   it('should get insert positionId when insert to the end', () => {
     string = new StringType()
     string.insert(null, '1', 'a')
