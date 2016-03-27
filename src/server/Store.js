@@ -119,17 +119,54 @@ class Store extends EventEmitter {
     this.emit('channel', channel)
   };
 
-  async onMessage (message, channel) {
-    let { type, id, collectionName, docId, expression, value, version, docIds, ops, opsType } = message
-    let doc
-    let query
-    let op
+  async onDocOps (ackId, collectionName, docId, newOps, channel, opsType) {
+    let doc = await this.docSet.getOrCreateDoc(collectionName, docId)
+    let ops = []
+    for (let op of newOps) {
+      let valid = await this.validateOp(op, channel)
+      if (valid) {
+        ops.push(op)
+        doc.saveOp(op)
+      }
+    }
+    doc.applyOps(ops, opsType)
+    doc.save()
+
+    let op = {
+      id: Model.prototype.id(),
+      type: 'ops',
+      collectionName,
+      docId,
+      ops
+    }
+    doc.broadcastOp(op, channel)
+
+    doc.once('saved', () => {
+      if (ackId) {
+        let ackOp = {
+          ackId
+        }
+        this.sendOp(ackOp, channel)
+      }
+      this.onOp(op)
+    })
+
+    for (let op of ops) {
+      this.afterOp(op, channel)
+    }
+
+    return doc
+  }
+
+  async validateOp (op, channel) {
+    let { id, collectionName, docId } = op
 
     if (this.preHook) {
       let { session, params } = this.getHookParams(channel)
 
       try {
-        await this.preHook(message, session, params)
+        await this.preHook(op, session, params)
+        return true
       } catch (err) {
         let op = {
           ackId: id,
@@ -137,9 +174,33 @@ class Store extends EventEmitter {
           docId,
           error: err && err.message
         }
-        return this.sendOp(op, channel)
+        this.sendOp(op, channel)
+        return false
       }
     }
+
+    return true
+  }
+
+  async afterOp (op, channel) {
+    let { session, params } = this.getHookParams(channel)
+
+    if (this.afterHook) {
+      try {
+        await this.afterHook(op, session, params)
+      } catch (err) {
+        this.onAfterHookError(err, op, session, params)
+      }
+    }
+  }
+
+  async onMessage (message, channel) {
+    let { type, id, collectionName, docId, expression, value, version, docIds, ops, opsType } = message
+    let doc
+    let query
+    let op
+    let valid
+    let ackOp
 
     switch (type) {
       case 'handshake':
@@ -164,19 +225,8 @@ class Store extends EventEmitter {
           let collectionSyncData = syncData.collections[collectionName]
           for (let docId in collectionSyncData) {
             let { ops, version } = collectionSyncData[docId]
-            let docPromise = this.docSet
-              .getOrCreateDoc(collectionName, docId)
-              .then((doc) => {
-                for (let op of ops) {
-                  doc.onOp(op, channel)
-
-                  doc.once('saved', () => {
-                    this.onOp(op)
-                  })
-                }
-                doc.subscribe(channel, version)
-              })
-            docPromises.push(docPromise)
+            let doc = await this.onDocOps(null, collectionName, docId, ops, channel)
+            doc.subscribe(channel, version)
           }
         }
 
@@ -195,36 +245,44 @@ class Store extends EventEmitter {
         }
         await Promise.all(queryPromises)
 
-        op = {
+        ackOp = {
           type: 'sync',
           ackId: id
         }
-        this.sendOp(op, channel)
+        this.sendOp(ackOp, channel)
         break
 
       case 'fetch':
+        valid = await this.validateOp(message, channel)
+        if (!valid) break
         doc = await this.docSet.getOrCreateDoc(collectionName, docId)
         doc.fetch(channel, version, id)
         break
 
       case 'qfetch':
+        valid = await this.validateOp(message, channel)
+        if (!valid) break
         query = await this.querySet.getOrCreateQuery(collectionName, expression)
         query.fetch(channel, docIds, id)
         break
 
       case 'sub':
+        valid = await this.validateOp(message, channel)
+        if (!valid) break
         doc = await this.docSet.getOrCreateDoc(collectionName, docId)
         doc.subscribe(channel, version, id)
+        break
+
+      case 'qsub':
+        valid = await this.validateOp(message, channel)
+        if (!valid) break
+        query = await this.querySet.getOrCreateQuery(collectionName, expression)
+        query.subscribe(channel, docIds, id)
         break
 
       case 'unsub':
         doc = await this.docSet.getOrCreateDoc(collectionName, docId)
         doc.unsubscribe(channel)
-        break
-
-      case 'qsub':
-        query = await this.querySet.getOrCreateQuery(collectionName, expression)
-        query.subscribe(channel, docIds, id)
         break
 
       case 'qunsub':
@@ -233,18 +291,7 @@ class Store extends EventEmitter {
         break
 
       case 'ops':
-        doc = await this.docSet.getOrCreateDoc(collectionName, docId)
-        doc.applyOps(ops, opsType)
-        doc.save()
-        doc.broadcastOp(message, channel)
-
-        doc.once('saved', () => {
-          op = {
-            ackId: id
-          }
-          this.sendOp(op, channel)
-          this.onOp(message)
-        })
+        await this.onDocOps(id, collectionName, docId, ops, channel, opsType)
         break
 
       case 'add':
@@ -264,26 +311,20 @@ class Store extends EventEmitter {
       case 'stringRemove':
       case 'stringSet':
         doc = await this.docSet.getOrCreateDoc(collectionName, docId)
+        valid = await this.validateOp(message, channel)
+        if (!valid) break
         doc.onOp(message, channel)
+        doc.broadcastOp(message, channel)
 
-        // FIXME: remove listener if reject
         doc.once('saved', () => {
-          op = {
+          ackOp = {
             ackId: id
           }
-          this.sendOp(op, channel)
+          this.sendOp(ackOp, channel)
           this.onOp(message)
         })
 
-        let { session, params } = this.getHookParams(channel)
-        if (this.afterHook) {
-          try {
-            await this.afterHook(message, session, params)
-          } catch (err) {
-            this.onAfterHookError(err, message, session, params)
-            return
-          }
-        }
+        this.afterOp(message, channel)
         break
 
       default:

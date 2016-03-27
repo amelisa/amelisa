@@ -47,8 +47,9 @@ class ServerDoc extends Doc {
 
   onOp (op, channel) {
     if (channel) channel._session.updateDocVersion(this.collectionName, this.docId, op.source, op.date)
-    this.applyOp(op)
+
     this.saveOp(op)
+    this.applyOp(op)
     this.save()
     this.broadcastOp(op, channel)
   }
