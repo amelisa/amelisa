@@ -1,6 +1,6 @@
 {
   "name": "amelisa",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "Data engine with offline and realtime",
   "main": "lib/index.js",
   "scripts": {
