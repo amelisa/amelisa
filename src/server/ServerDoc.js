@@ -90,7 +90,7 @@ class ServerDoc extends Doc {
         this.prevVersion = version
       })
       .catch((err) => {
-        if (err === 'stale data') {
+        if (err.message === 'stale data') {
           this.once('loaded', this.save.bind(this))
           return this.load()
         } else {
