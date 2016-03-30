@@ -99,6 +99,11 @@ class Doc extends EventEmitter {
     return string
   }
 
+  distillableOpType (type) {
+    return type === 'add' || type === 'set' || type === 'del' ||
+      type === 'arraySet' || type === 'stringSet'
+  }
+
   distillOps () {
     let ops = this.ops.slice()
 
@@ -119,20 +124,11 @@ class Doc extends EventEmitter {
       if (opIds[id]) continue
       opIds[id] = true
 
-      if (type === 'add') {
-        if (docRewrited) continue
-
-        distilledOps.push(op)
-        docRewrited = true
-        continue
-      }
-
       if (!field) {
         if (docRewrited) continue
 
         distilledOps.push(op)
-        if (type === 'set' || type === 'del' ||
-          type === 'arraySet' || type === 'stringSet') docRewrited = true
+        if (this.distillableOpType(type)) docRewrited = true
         continue
       }
 
@@ -155,8 +151,7 @@ class Doc extends EventEmitter {
       if (skip) continue
 
       distilledOps.push(op)
-      if (type === 'set' || type === 'del' ||
-        type === 'arraySet' || type === 'stringSet') fields[field] = true
+      if (this.distillableOpType(type)) fields[field] = true
     }
 
     distilledOps.sort(sortByDate)
@@ -362,8 +357,7 @@ class Doc extends EventEmitter {
 
   applyOp (op) {
     this.ops.push(op)
-    if ((op.type === 'stringInsert' || op.type === 'stringRemove') &&
-      this.stateDate && op.date > this.stateDate) {
+    if (!this.distillableOpType(op.type) && this.stateDate && op.date > this.stateDate) {
       this.applyOpToState(op)
     } else {
       this.distillOps()
@@ -376,8 +370,7 @@ class Doc extends EventEmitter {
     ops.sort(sortByDate)
     this.ops = this.ops.concat(ops)
     let firstOp = ops[0]
-    if ((opsType === 'stringInsert' || opsType === 'stringRemove') &&
-      this.stateDate && firstOp.date > this.stateDate) {
+    if (!this.distillableOpType(opsType) && this.stateDate && firstOp.date > this.stateDate) {
       for (let op of ops) {
         this.applyOpToState(op)
       }
