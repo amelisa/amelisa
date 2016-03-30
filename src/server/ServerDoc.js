@@ -45,13 +45,20 @@ class ServerDoc extends Doc {
       })
   }
 
+  onOpsOp (op, channel) {
+    if (channel) channel._session.updateDocVersion(this.collectionName, this.docId, op.source, op.date)
+
+    this.saveOp(op)
+    this.applyOp(op)
+  }
+
   onOp (op, channel) {
     if (channel) channel._session.updateDocVersion(this.collectionName, this.docId, op.source, op.date)
 
     this.saveOp(op)
     this.applyOp(op)
-    this.save()
     this.broadcastOp(op, channel)
+    this.save()
   }
 
   receiveOp (op) {

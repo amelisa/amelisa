@@ -122,16 +122,18 @@ class Store extends EventEmitter {
 
   async onDocOps (ackId, collectionName, docId, newOps, channel, opsType) {
     let doc = await this.docSet.getOrCreateDoc(collectionName, docId)
+
     let ops = []
+    let prevs = []
     for (let op of newOps) {
       let valid = await this.validateOp(op, channel)
-      if (valid) {
-        ops.push(op)
-        doc.saveOp(op)
-      }
+      if (!valid) continue
+
+      doc.onOpsOp(op, channel)
+      ops.push(op)
+      let prev = this.getPrev(op, doc)
+      prevs.push(prev)
     }
-    doc.applyOps(ops, opsType)
-    doc.save()
 
     let op = {
       id: Model.prototype.id(),
@@ -142,13 +144,17 @@ class Store extends EventEmitter {
     }
     doc.broadcastOp(op, channel)
 
+    doc.save()
+
     await eventToPromise(doc, 'saved')
 
     if (ackId) this.sendAckOp(ackId, channel)
     this.onOp(op)
 
-    for (let op of ops) {
-      this.afterOp(op, channel)
+    for (let i = 0; i < ops.length; i++) {
+      let op = ops[i]
+      let prev = prevs[i]
+      this.afterOp(op, channel, prev)
     }
 
     return doc
@@ -178,8 +184,8 @@ class Store extends EventEmitter {
     return true
   }
 
-  async afterOp (op, channel) {
-    let { session, params } = this.getHookParams(channel)
+  async afterOp (op, channel, prev) {
+    let { session, params } = this.getHookParams(channel, prev)
 
     if (this.afterHook) {
       try {
@@ -188,6 +194,12 @@ class Store extends EventEmitter {
         this.onAfterHookError(err, op, session, params)
       }
     }
+  }
+
+  getPrev (op, doc) {
+    if (op.type !== 'del') return
+
+    return doc.get(op.field)
   }
 
   async onMessage (message, channel) {
@@ -312,15 +324,15 @@ class Store extends EventEmitter {
         if (!valid) break
 
         doc = await this.docSet.getOrCreateDoc(collectionName, docId)
+        let prev = this.getPrev(message, doc)
         doc.onOp(message, channel)
-        doc.broadcastOp(message, channel)
 
         await eventToPromise(doc, 'saved')
 
         this.sendAckOp(id, channel)
         this.onOp(message)
 
-        this.afterOp(message, channel)
+        this.afterOp(message, channel, prev)
         break
     }
   }
@@ -329,10 +341,11 @@ class Store extends EventEmitter {
     console.trace('afterHook error', err)
   }
 
-  getHookParams (channel) {
+  getHookParams (channel, prev) {
     let { req, server } = channel
     let session = req ? req.session : undefined
     let params = {
+      prev,
       server
     }
 

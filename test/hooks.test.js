@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { MemoryStorage } from '../src/mongo/server'
 import { Store } from '../src/server'
-import { collectionName, getDocData } from './util'
+import { collectionName, docId, field, value, getDocData } from './util'
 
 let store
 let model
@@ -9,7 +9,7 @@ let model
 describe('hooks', () => {
   beforeEach(async () => {
     let storage = new MemoryStorage()
-    store = new Store({storage})
+    store = new Store({storage, saveDebounceTimeout: 0})
     await store.init()
     store.onAfterHookError = () => {}
     model = store.createModel()
@@ -62,5 +62,36 @@ describe('hooks', () => {
     }
 
     await model.add(collectionName, getDocData())
+  })
+
+  it('should pass server params', async () => {
+    store.afterHook = async (op, session, params) => {
+      assert(params.server)
+      console.log(params)
+    }
+
+    await model.add(collectionName, getDocData())
+  })
+
+  it('should pass prev params for del doc op', async () => {
+    let docData = getDocData()
+    await model.add(collectionName, docData)
+
+    store.afterHook = async (op, session, params) => {
+      assert.deepEqual(params.prev, docData)
+    }
+
+    await model.del(collectionName, docId)
+  })
+
+  it('should pass prev params for del field op', async () => {
+    let docData = getDocData()
+    await model.add(collectionName, docData)
+
+    store.afterHook = async (op, session, params) => {
+      assert.equal(params.prev, value)
+    }
+
+    await model.del(collectionName, docId, field)
   })
 })
