@@ -67,7 +67,6 @@ describe('hooks', () => {
   it('should pass server params', async () => {
     store.afterHook = async (op, session, params) => {
       assert(params.server)
-      console.log(params)
     }
 
     await model.add(collectionName, getDocData())
