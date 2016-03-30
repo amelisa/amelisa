@@ -18,7 +18,13 @@ class WebSocketChannel extends EventEmitter {
     }
 
     socket.onmessage = (e) => {
-      let message = JSON.parse(e.data)
+      let json = e.data
+      let message
+      try {
+        message = JSON.parse(json)
+      } catch (err) {
+        return console.error('WebSocketChannel unable to parse json', json)
+      }
       this.emit('message', message)
     }
 
@@ -39,9 +45,19 @@ class WebSocketChannel extends EventEmitter {
     this.socket.close && this.socket.close()
   }
 
-  send (data) {
-    let message = JSON.stringify(data)
-    this.socket.send(message)
+  send (message) {
+    let json
+    try {
+      json = JSON.stringify(message)
+    } catch (err) {
+      return console.error('WebSocketChannel unable to create json', message)
+    }
+
+    try {
+      this.socket.send(json)
+    } catch (err) {
+      console.error(err)
+    }
   }
 }
 

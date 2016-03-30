@@ -35,7 +35,8 @@ class ServerChannel extends EventEmitter {
 
     this.pipedChannel = channel
     channel.send = (message) => {
-      if (!channel.opened) return console.error('ServerChannel is closed', message)
+      if (!channel.opened) return
+
       // make it intentionally async
       process.nextTick(() => {
         this.emit('message', deepClone(message))

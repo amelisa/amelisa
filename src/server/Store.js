@@ -366,11 +366,7 @@ class Store extends EventEmitter {
   }
 
   sendOp (op, channel) {
-    try {
-      channel.send(op)
-    } catch (err) {
-      console.trace('Store.sendOp error', err)
-    }
+    channel.send(op)
   }
 
   modelMiddleware () {
