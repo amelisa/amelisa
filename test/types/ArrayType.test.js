@@ -279,6 +279,73 @@ describe('ArrayType', () => {
     assert.equal(array.lastItemId, '2')
   })
 
+  it('should swap', () => {
+    array = new ArrayType()
+    array.push('1', 1)
+    array.push('2', 2)
+    array.swap('1', '2')
+
+    assert.equal(array.get().length, 2)
+    assert.deepEqual(array.get(), [2, 1])
+    assert.equal(array.firstItemId, '2')
+    assert.equal(array.lastItemId, '1')
+  })
+
+  it('should swap when from beginning', () => {
+    array = new ArrayType()
+    array.push('1', 1)
+    array.push('2', 2)
+    array.push('3', 3)
+    array.push('4', 4)
+    array.swap('1', '3')
+
+    assert.equal(array.get().length, 4)
+    assert.deepEqual(array.get(), [3, 2, 1, 4])
+    assert.equal(array.firstItemId, '3')
+    assert.equal(array.lastItemId, '4')
+  })
+
+  it('should swap when from end', () => {
+    array = new ArrayType()
+    array.push('1', 1)
+    array.push('2', 2)
+    array.push('3', 3)
+    array.push('4', 4)
+    array.swap('2', '4')
+
+    assert.equal(array.get().length, 4)
+    assert.deepEqual(array.get(), [1, 4, 3, 2])
+    assert.equal(array.firstItemId, '1')
+    assert.equal(array.lastItemId, '2')
+  })
+
+  it('should swap when from between', () => {
+    array = new ArrayType()
+    array.push('1', 1)
+    array.push('2', 2)
+    array.push('3', 3)
+    array.push('4', 4)
+    array.swap('2', '3')
+
+    assert.equal(array.get().length, 4)
+    assert.deepEqual(array.get(), [1, 3, 2, 4])
+    assert.equal(array.firstItemId, '1')
+    assert.equal(array.lastItemId, '4')
+  })
+
+  it('should not swap when same place', () => {
+    array = new ArrayType()
+    array.push('1', 1)
+    array.push('2', 2)
+    array.swap('2', '2')
+
+    assert.equal(array.get().length, 2)
+    assert.equal(array.get()[0], 1)
+    assert.equal(array.get()[1], 2)
+    assert.equal(array.firstItemId, '1')
+    assert.equal(array.lastItemId, '2')
+  })
+
   it('should set', () => {
     array = new ArrayType()
     array.push('1', 1)

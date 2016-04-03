@@ -238,6 +238,7 @@ class Model extends EventEmitter {
       case 'insert':
       case 'remove':
       case 'move':
+      case 'swap':
       case 'arraySet':
       case 'invert':
       case 'increment':
@@ -404,6 +405,20 @@ class Model extends EventEmitter {
     let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
 
     return doc.move(field, from, to, howMany)
+  }
+
+  async swap (path, from, to) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    invariant(collectionName && typeof collectionName === 'string', 'Model.swap collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.swap docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.swap field should be a string')
+    invariant(typeof from === 'number', 'Model.swap from should be a number')
+    invariant(typeof to === 'number', 'Model.swap to should be a number')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.swap(field, from, to)
   }
 
   async arrayDiff (path, value) {

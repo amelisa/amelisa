@@ -276,6 +276,30 @@ class MutableDoc extends Doc {
     return this.model.send(op)
   }
 
+  async swap (field, from, to) {
+    this.arraySetIfValueIsArray(field)
+
+    let array = this.getInternalAsArrayType(field)
+    field = this.getFieldConsideringArrays(field)
+
+    let positionId = array.getRemovePositionIdByIndex(from)
+    if (!positionId) return
+    let itemId = array.getSetPositionIdByIndex(to)
+    if (!itemId) return
+
+    let op = this.model.createOp({
+      type: 'swap',
+      collectionName: this.collection.name,
+      docId: this.docId,
+      positionId,
+      itemId
+    })
+
+    if (field) op.field = field
+
+    return this.onOp(op)
+  }
+
   async arraySet (field, value) {
     let array = new ArrayType()
     array.setValue(value, this.model.id)

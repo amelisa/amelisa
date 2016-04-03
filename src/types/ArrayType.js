@@ -214,6 +214,37 @@ class ArrayType {
     toItem.nextId = item.itemId
   }
 
+  swap (positionId, itemId) {
+    if (!this.firstItemId || positionId === itemId) return
+    let item = this.items[positionId]
+    if (!item) return
+    let toItem = this.items[itemId]
+    if (!toItem) return
+
+    if (this.firstItemId === item.itemId) {
+      this.firstItemId = toItem.itemId
+    } else if (this.firstItemId === toItem.itemId) {
+      this.firstItemId = item.itemId
+    }
+    if (this.lastItemId === item.itemId) {
+      this.lastItemId = toItem.itemId
+    } else if (this.lastItemId === toItem.itemId) {
+      this.lastItemId = item.itemId
+    }
+
+    let previousId = item.previousId
+    if (previousId) this.items[previousId].nextId = toItem.itemId
+    item.previousId = toItem.previousId
+    if (toItem.previousId) this.items[toItem.previousId].nextId = item.itemId
+    toItem.previousId = previousId
+
+    let nextId = item.nextId
+    if (nextId) this.items[nextId].previousId = toItem.itemId
+    item.nextId = toItem.nextId
+    if (toItem.nextId) this.items[toItem.nextId].previousId = item.itemId
+    toItem.nextId = nextId
+  }
+
   getIndexByPositionId (positionId) {
     let itemIds = {}
     let index = 0

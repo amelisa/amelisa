@@ -254,6 +254,12 @@ class Doc extends EventEmitter {
         fieldState.move(positionId, itemId)
         break
 
+      case 'swap':
+        if (!(fieldState instanceof ArrayType)) fieldState = new ArrayType()
+
+        fieldState.swap(positionId, itemId)
+        break
+
       case 'arraySet':
         if (!(fieldState instanceof ArrayType)) fieldState = new ArrayType()
 

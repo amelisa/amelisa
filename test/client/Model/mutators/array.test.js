@@ -208,6 +208,45 @@ describe('Model mutators array', () => {
     assert.deepEqual(model.get(collectionName, docId, field), [2, 3, 1])
   })
 
+  it('should swap when args as array', () => {
+    model.swap([collectionName, docId, field], 0, 1)
+
+    assert.deepEqual(model.get(collectionName, docId, field), [])
+  })
+
+  it('should swap when args as path', () => {
+    model.swap(`${collectionName}.${docId}.${field}`, 0, 1)
+
+    assert.deepEqual(model.get(collectionName, docId, field), [])
+  })
+
+  it('should swap doc', () => {
+    model.swap([collectionName, docId], 0, 1)
+
+    assert.deepEqual(model.get(collectionName, docId), [])
+  })
+
+  it('should swap on array when two items', () => {
+    model.set([collectionName, docId, field], [value, value2])
+    model.swap([collectionName, docId, field], 0, 1)
+
+    assert.deepEqual(model.get(collectionName, docId, field), [value2, value])
+  })
+
+  it('should swap to zero index', () => {
+    model.set([collectionName, docId, field], [1, 2, 3])
+    model.swap([collectionName, docId, field], 1, 0)
+
+    assert.deepEqual(model.get(collectionName, docId, field), [2, 1, 3])
+  })
+
+  it('should swap from zero index', () => {
+    model.set([collectionName, docId, field], [1, 2, 3])
+    model.swap([collectionName, docId, field], 0, 2)
+
+    assert.deepEqual(model.get(collectionName, docId, field), [3, 2, 1])
+  })
+
   it('should arrayDiff when args as array', () => {
     model.add(collectionName, getDocData())
 

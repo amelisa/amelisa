@@ -314,6 +314,7 @@ class Store extends EventEmitter {
       case 'insert':
       case 'remove':
       case 'move':
+      case 'swap':
       case 'arraySet':
       case 'invert':
       case 'increment':
