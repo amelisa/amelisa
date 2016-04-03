@@ -1,5 +1,9 @@
 import ClientQuery from './ClientQuery'
 
+let defaultSubscribeOptions = {
+  fetch: true
+}
+
 class RemoteQuery extends ClientQuery {
   constructor (collectionName, expression, model, collection, querySet) {
     super(collectionName, expression, model, collection, querySet)
@@ -79,9 +83,10 @@ class RemoteQuery extends ClientQuery {
     }
   }
 
-  async subscribe () {
+  async subscribe (options) {
+    options = Object.assign({}, defaultSubscribeOptions, options)
     this.subscribed++
-    if (this.subscribing) return this.subscribingPromise
+    if (this.subscribing) return options.fetch ? this.subscribingPromise : undefined
     this.subscribing = true
     if (this.subscribed !== 1) return
 
@@ -90,14 +95,8 @@ class RemoteQuery extends ClientQuery {
     super.refresh()
     this.lastServerData = this.data
 
-    // TODO: can be better way?
-    // return immediately if there is data in collection
-    if (Object.keys(this.collection.data).length) {
-      this.sendSubscribeOp()
-      return
-    }
-
-    return this.sendSubscribeOp()
+    this.sendSubscribeOp()
+    return options.fetch ? this.subscribingPromise : undefined
   }
 
   async sendSubscribeOp () {

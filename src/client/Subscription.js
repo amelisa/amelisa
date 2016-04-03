@@ -32,17 +32,22 @@ class Subscription extends EventEmitter {
 
       if (Array.isArray(subscribe) && typeof subscribe[0] === 'string' &&
           (subscribe[0].indexOf('http') === 0 || subscribe[0].indexOf('/') === 0)) {
-        let [url, defaultValue] = subscribe
+        let [url, defaultValue, options] = subscribe
         let urlQuery = new UrlQuery(url, defaultValue, this.collectionSet.model)
+        urlQuery.subscribeOptions = options
         subscribes.push(urlQuery)
+      } else if (typeof subscribe === 'object' && !Array.isArray(subscribe)) {
+        this.options = subscribe
       } else {
-        let [collectionName, docIdOrExpression] = parsePath(subscribe)
+        let [collectionName, docIdOrExpression, options] = parsePath(subscribe)
 
         if (typeof docIdOrExpression === 'string') {
           let doc = this.collectionSet.getOrCreateDoc(collectionName, docIdOrExpression)
+          doc.subscribeOptions = options
           subscribes.push(doc)
         } else {
           let query = this.querySet.getOrCreateQuery(collectionName, docIdOrExpression)
+          query.subscribeOptions = options
           subscribes.push(query)
         }
       }
@@ -59,7 +64,9 @@ class Subscription extends EventEmitter {
     return Promise.all(
       this.subscribes.map((subscribe) => {
         subscribe.on('change', this.onChange)
-        return subscribe.subscribe()
+
+        let subscribeOptions = Object.assign({}, this.options, subscribe.subscribeOptions)
+        return subscribe.subscribe(subscribeOptions)
       })
     )
   }

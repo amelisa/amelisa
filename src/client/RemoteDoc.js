@@ -1,6 +1,10 @@
 import MutableDoc from './MutableDoc'
 import { arrayRemove } from '../util'
 
+let defaultSubscribeOptions = {
+  fetch: true
+}
+
 class RemoteDoc extends MutableDoc {
   constructor (docId, ops, collection, model, serverVersion) {
     super(docId, ops, collection, model)
@@ -14,24 +18,31 @@ class RemoteDoc extends MutableDoc {
   }
 
   async fetch () {
-    return this.model.sendOp({
+    if (this.subscribing) return this.subscribingPromise
+    this.subscribing = true
+
+    this.subscribingPromise = this.model.sendOp({
       type: 'fetch',
       collectionName: this.collection.name,
       docId: this.docId
     })
+    return this.subscribingPromise
   }
 
-  async subscribe () {
+  async subscribe (options) {
+    options = Object.assign({}, defaultSubscribeOptions, options)
     this.subscribed++
-    if (this.subscribed !== 1) return
+    if (this.subscribed !== 1) return options.fetch ? this.subscribingPromise : undefined
+    this.subscribing = true
 
-    if (this.ops.length) {
+    if (!options.fetch && this.ops.length) {
       // return immediately if doc is not empty
       this.sendSubscribeOp()
       return
     }
 
-    return this.sendSubscribeOp()
+    this.subscribingPromise = this.sendSubscribeOp()
+    return this.subscribingPromise
   }
 
   async sendSubscribeOp () {
@@ -54,21 +65,10 @@ class RemoteDoc extends MutableDoc {
     })
   }
 
-  onFetched (serverVersion, ops) {
+  onDataFromServer (serverVersion, ops) {
     this.serverVersion = serverVersion
     this.applyOps(ops)
-    this.emit('change')
-    this.save()
-
-    let opsToSend = this.getOpsToSend(serverVersion)
-    for (let op of opsToSend) {
-      this.model.send(op)
-    }
-  }
-
-  onSubscribed (serverVersion, ops) {
-    this.serverVersion = serverVersion
-    this.applyOps(ops)
+    this.subscribing = false
     this.emit('change')
     this.save()
 

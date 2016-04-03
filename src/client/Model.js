@@ -200,14 +200,14 @@ class Model extends EventEmitter {
       case 'fetch':
         doc = this.collectionSet.getDoc(collectionName, docId)
         if (doc) {
-          doc.onFetched(version, ops)
+          doc.onDataFromServer(version, ops)
         }
         break
 
       case 'sub':
         doc = this.collectionSet.getDoc(collectionName, docId)
         if (doc) {
-          doc.onSubscribed(version, ops)
+          doc.onDataFromServer(version, ops)
         }
         break
 

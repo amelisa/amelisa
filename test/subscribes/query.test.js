@@ -81,6 +81,19 @@ describe('subscribes query', () => {
     assert.equal(query.get()[0][field], value)
   })
 
+  it('should subscribe query without fetch', async () => {
+    let query = model.query(collectionName, expression)
+    await model2.add(collectionName, getDocData())
+    await query.subscribe({fetch: false})
+
+    assert.equal(query.get().length, 0)
+
+    await sleep(10)
+
+    assert.equal(query.get().length, 1)
+    assert.equal(query.get()[0][field], value)
+  })
+
   it('should subscribe query if in same model', async () => {
     let query = model.query(collectionName, expression)
     await model.add(collectionName, getDocData())

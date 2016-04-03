@@ -69,6 +69,34 @@ describe('subscribes doc', () => {
     assert.equal(doc.get(field), value)
   })
 
+  it('should subscribe doc without fetch when doc is empty', async () => {
+    let doc = model.doc(collectionName, docId)
+    await model2.add(collectionName, getDocData())
+    await doc.subscribe({fetch: false})
+
+    assert(doc.get())
+
+    await sleep(10)
+
+    assert(doc.get())
+    assert.equal(doc.get(field), value)
+  })
+
+  it('should subscribe doc without fetch when doc not empty', async () => {
+    let doc = model.doc(collectionName, docId)
+    await model.add(collectionName, getDocData())
+    await model2.set([collectionName, docId, field], value2)
+    await doc.subscribe({fetch: false})
+
+    assert(doc.get())
+    assert.equal(doc.get(field), value)
+
+    await sleep(10)
+
+    assert(doc.get())
+    assert.equal(doc.get(field), value2)
+  })
+
   it('should subscribe doc if doc in same model', async () => {
     let doc = model.doc(collectionName, docId)
     await model.add(collectionName, getDocData())

@@ -2,7 +2,7 @@ import assert from 'assert'
 import eventToPromise from 'event-to-promise'
 import { MemoryStorage } from '../../src/mongo/server'
 import { Store } from '../../src/server'
-import { collectionName, docId, expression, field, value2, getDocData } from '../util'
+import { collectionName, docId, expression, field, value2, getDocData, sleep } from '../util'
 
 let storage
 let store
@@ -46,5 +46,37 @@ describe('subscribes subscription', () => {
 
     assert.equal(subscription.get()[0].length, 1)
     assert.equal(subscription.get()[0][0][field], value2)
+  })
+
+  it('should subscribe query and get it with fetch', async () => {
+    let subscription = await model.subscribe([collectionName, expression])
+    setTimeout(() => model2.add(collectionName, getDocData()), 0)
+    await eventToPromise(subscription, 'change')
+
+    assert.equal(subscription.get()[0].length, 1)
+  })
+
+  it('should subscribe query and get it without fetch', async () => {
+    let subscription = await model.subscribe([collectionName, expression], {fetch: false})
+    setTimeout(() => model2.add(collectionName, getDocData()), 0)
+    await eventToPromise(subscription, 'change')
+
+    assert.equal(subscription.get()[0].length, 0)
+
+    await sleep(20)
+
+    assert.equal(subscription.get()[0].length, 1)
+  })
+
+  it('should subscribe query and get it without fetch in query options', async () => {
+    let subscription = await model.subscribe([collectionName, expression, {fetch: false}])
+    setTimeout(() => model2.add(collectionName, getDocData()), 0)
+    await eventToPromise(subscription, 'change')
+
+    assert.equal(subscription.get()[0].length, 0)
+
+    await sleep(20)
+
+    assert.equal(subscription.get()[0].length, 1)
   })
 })
