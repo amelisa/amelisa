@@ -1,7 +1,7 @@
 import Model from '../../../src/client/Model'
 import ServerChannel from '../../../src/server/ServerChannel'
 import { dbQueries } from '../../../src/mongo'
-import { collectionName, docId } from '../../util'
+import { collectionName, docId, expression } from '../../util'
 
 let channel
 let model
@@ -62,5 +62,13 @@ describe('Model subscribes', () => {
   it('should subscribe doc when array of docs', async () => {
     let doc = model.doc(collectionName, docId)
     await model.subscribe([doc])
+  })
+
+  it('should fetchAndGet doc', async () => {
+    await model.fetchAndGet(collectionName, docId)
+  })
+
+  it('should fetchAndGet query', async () => {
+    await model.fetchAndGet(collectionName, expression)
   })
 })

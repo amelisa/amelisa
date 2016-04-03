@@ -172,6 +172,14 @@ class Model extends EventEmitter {
     return subscription
   }
 
+  async fetchAndGet (collectionName, docIdOrExpression) {
+    if (typeof docIdOrExpression === 'string') {
+      return this.doc(collectionName, docIdOrExpression).fetchAndGet()
+    } else {
+      return this.query(collectionName, docIdOrExpression).fetchAndGet()
+    }
+  }
+
   setReady () {
     this.ready = true
     this.emit('ready')
