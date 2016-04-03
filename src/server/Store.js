@@ -120,7 +120,7 @@ class Store extends EventEmitter {
     this.emit('channel', channel)
   };
 
-  async onDocOps (ackId, collectionName, docId, newOps, channel, opsType) {
+  async onDocOps (ackId, collectionName, docId, field, newOps, channel, opsType, index, howMany) {
     let doc = await this.docSet.getOrCreateDoc(collectionName, docId)
 
     let ops = []
@@ -140,8 +140,13 @@ class Store extends EventEmitter {
       type: 'ops',
       collectionName,
       docId,
-      ops
+      ops,
+      opsType,
+      index,
+      howMany
     }
+    if (field) op.field = field
+
     doc.broadcastOp(op, channel)
 
     doc.save()
@@ -203,7 +208,8 @@ class Store extends EventEmitter {
   }
 
   async onMessage (message, channel) {
-    let { type, id, collectionName, docId, expression, value, version, docIds, ops, opsType } = message
+    let { type, id, collectionName, docId, field, expression, value, version,
+      docIds, ops, opsType, index, howMany } = message
     let doc
     let query
     let valid
@@ -232,7 +238,7 @@ class Store extends EventEmitter {
           for (let docId in collectionSyncData) {
             let { ops, version } = collectionSyncData[docId]
             let docPromise = this
-              .onDocOps(null, collectionName, docId, ops, channel)
+              .onDocOps(null, collectionName, docId, null, ops, channel)
               .then((doc) => {
                 doc.subscribe(channel, version)
               })
@@ -301,7 +307,7 @@ class Store extends EventEmitter {
         break
 
       case 'ops':
-        await this.onDocOps(id, collectionName, docId, ops, channel, opsType)
+        await this.onDocOps(id, collectionName, docId, field, ops, channel, opsType, index, howMany)
         break
 
       case 'add':
