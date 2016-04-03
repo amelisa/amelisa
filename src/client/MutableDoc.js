@@ -9,6 +9,18 @@ class MutableDoc extends Doc {
     this.model = model
   }
 
+  async fetch () {}
+
+  async subscribe () {}
+
+  async unsubscribe () {}
+
+  async fetchAndGet () {
+    await this.fetch()
+
+    return this.get()
+  }
+
   getFieldConsideringArrays (field) {
     if (field) {
       let parts = field.split('.')

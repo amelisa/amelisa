@@ -4,7 +4,6 @@ import LocalDoc from './LocalDoc'
 class LocalCollection extends Collection {
   constructor (name, data, model) {
     super(name, data, model)
-    this.local = true
   }
 
   async add (docId, docData) {

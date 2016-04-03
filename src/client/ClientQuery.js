@@ -16,6 +16,25 @@ class ClientQuery extends Query {
     this.refresh()
   }
 
+  async fetch () {
+    this.refresh()
+  }
+
+  async subscribe () {
+    this.refresh()
+    this.collection.on('change', this.onCollectionChange)
+  }
+
+  async unsubscribe () {
+    this.collection.removeListener('change', this.onCollectionChange)
+  }
+
+  async fetchAndGet () {
+    await this.fetch()
+
+    return this.get()
+  }
+
   getStateFromDocData (doc) {
     let state = {}
     for (let field in doc) {
@@ -46,12 +65,18 @@ class ClientQuery extends Query {
   }
 
   refresh () {
+    let prevData = this.data
+
     let docs = this.collection.getDocs()
     let docDatas = this.model.dbQueries.getQueryResultFromArray(docs, this.expression)
     if (this.isDocs) {
       this.data = docDatas.map((docData) => docData._id)
     } else {
       this.data = docDatas
+    }
+
+    if (this.dataHasChanged(prevData, this.data)) {
+      this.emit('change')
     }
   }
 

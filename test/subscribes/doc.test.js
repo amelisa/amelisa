@@ -54,6 +54,15 @@ describe('subscribes doc', () => {
     assert(!doc.get())
   })
 
+  it('should fetchAndGet doc', async () => {
+    let doc = model.doc(collectionName, docId)
+    await model2.add(collectionName, getDocData())
+    let docData = await doc.fetchAndGet()
+
+    assert(docData)
+    assert.deepEqual(docData, getDocData())
+  })
+
   it('should subscribe empty doc if doc not exists', async () => {
     let doc = model.doc(collectionName, docId)
     await doc.subscribe()

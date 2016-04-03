@@ -65,6 +65,15 @@ describe('subscribes query', () => {
     assert.equal(query.get().length, 1)
   })
 
+  it('should fetchAndGet query', async () => {
+    let query = model.query(collectionName, expression)
+    await model2.add(collectionName, getDocData())
+    let queryData = await query.fetchAndGet()
+
+    assert(queryData)
+    assert.deepEqual(queryData, [getDocData()])
+  })
+
   it('should subscribe empty query if not docs', async () => {
     let query = model.query(collectionName, expression)
     await query.subscribe()
@@ -193,7 +202,8 @@ describe('subscribes query', () => {
     await model2.set([collectionName, docId, field], 'Vasya')
     await model2.set([collectionName, docId, 'age'], 20)
 
-    query.on('change', done)
     query.subscribe()
+
+    query.on('change', done)
   })
 })

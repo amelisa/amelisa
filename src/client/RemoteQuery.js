@@ -15,7 +15,7 @@ class RemoteQuery extends ClientQuery {
     if (this.subscribing) return this.subscribingPromise
     this.subscribing = true
 
-    super.refresh()
+    this.refresh()
     this.lastServerData = this.data
 
     let op = {
@@ -28,6 +28,41 @@ class RemoteQuery extends ClientQuery {
 
     this.subscribingPromise = this.model.sendOp(op)
     return this.subscribingPromise
+  }
+
+  async subscribe (options) {
+    options = Object.assign({}, defaultSubscribeOptions, options)
+    this.subscribed++
+    if (this.subscribing) return options.fetch ? this.subscribingPromise : undefined
+    this.subscribing = true
+    if (this.subscribed !== 1) return
+
+    super.subscribe()
+    this.lastServerData = this.data
+
+    let op = {
+      type: 'qsub',
+      collectionName: this.collectionName,
+      expression: this.expression
+    }
+
+    if (this.isDocs) op.docIds = this.data
+
+    this.subscribingPromise = this.model.sendOp(op)
+    return options.fetch ? this.subscribingPromise : undefined
+  }
+
+  async unsubscribe () {
+    this.subscribed--
+    if (this.subscribed !== 0) return
+
+    super.unsubscribe()
+
+    return this.model.sendOp({
+      type: 'qunsub',
+      collectionName: this.collectionName,
+      expression: this.expression
+    })
   }
 
   onSnapshotNotDocs (data) {
@@ -73,56 +108,6 @@ class RemoteQuery extends ClientQuery {
 
     this.subscribing = false
     this.emit('change')
-  }
-
-  refresh (op) {
-    let prevData = this.data
-    super.refresh()
-    if (this.dataHasChanged(prevData, this.data)) {
-      this.emit('change')
-    }
-  }
-
-  async subscribe (options) {
-    options = Object.assign({}, defaultSubscribeOptions, options)
-    this.subscribed++
-    if (this.subscribing) return options.fetch ? this.subscribingPromise : undefined
-    this.subscribing = true
-    if (this.subscribed !== 1) return
-
-    this.collection.on('change', this.onCollectionChange)
-
-    super.refresh()
-    this.lastServerData = this.data
-
-    this.sendSubscribeOp()
-    return options.fetch ? this.subscribingPromise : undefined
-  }
-
-  async sendSubscribeOp () {
-    let op = {
-      type: 'qsub',
-      collectionName: this.collectionName,
-      expression: this.expression
-    }
-
-    if (this.isDocs) op.docIds = this.data
-
-    this.subscribingPromise = this.model.sendOp(op)
-    return this.subscribingPromise
-  }
-
-  async unsubscribe () {
-    this.subscribed--
-    if (this.subscribed !== 0) return
-
-    this.collection.removeListener('change', this.onCollectionChange)
-
-    return this.model.sendOp({
-      type: 'qunsub',
-      collectionName: this.collectionName,
-      expression: this.expression
-    })
   }
 
   getSyncData () {
