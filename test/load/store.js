@@ -1,7 +1,17 @@
-import { MongoStorage, RedisChannel, Store } from '../../src/server'
+import { MongoStorage } from '../../src/mongo/server'
+import { RedisPubsub } from '../../src/redis'
+import { Store } from '../../src/server'
+
+const MONGO_URL = 'mongodb://localhost:27017/test'
+const REDIS_URL = 'redis://localhost:6379/15'
+
+let storage = new MongoStorage(MONGO_URL)
+let pubsub = new RedisPubsub(REDIS_URL)
 
 const options = {
   version: 1,
+  storage,
+  pubsub,
   collections: {
     auths: {
       client: false
@@ -26,19 +36,6 @@ const options = {
   clientStorage: false
 }
 
-const MONGO_URL = 'mongodb://localhost:27017/test'
-const REDIS_URL = 'redis://localhost:6379/15'
-
-let storage = new MongoStorage(MONGO_URL)
-let redis = new RedisChannel(REDIS_URL)
-let pubsub = new RedisChannel(REDIS_URL)
-
-let store = new Store(storage, redis, pubsub, options)
-
-store.init = () => Promise.all([
-  storage.init(),
-  redis.init(),
-  pubsub.init()
-])
+let store = new Store(options)
 
 export default store

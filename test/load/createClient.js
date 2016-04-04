@@ -1,22 +1,30 @@
 import WebSocket from 'ws'
 import Model from '../../src/client/Model'
-import WebSocketChannel from '../../src/server/WebSocketChannel'
+import { dbQueries } from '../../src/mongo'
+import WebSocketChannel from '../../src/client/WebSocketChannel'
 
-let index = 1
-let source = 'client'
-let url = 'ws://localhost:3000'
+global.WebSocket = WebSocket
+const url = 'ws://localhost:3000'
 
-function createClient () {
-  let ws = new WebSocket(url)
-  let channel = new WebSocketChannel(ws)
-  let model = new Model(channel, source + index)
-  index++
+async function createClient () {
+  let channel = new WebSocketChannel(url, {reconnectOnError: true, reconnectOnCleanClose: true})
+  let options = {
+    isClient: true,
+    source: Model.prototype.id()
+  }
+  let model = new Model(channel, options, dbQueries)
 
-  return new Promise((resolve, reject) => {
-    channel.once('open', () => {
-      resolve(model)
-    })
+  model.on('online', () => {
+    console.log('online')
   })
+
+  model.on('offline', () => {
+    console.log('offline')
+  })
+
+  channel.open()
+
+  return model
 }
 
 export default createClient

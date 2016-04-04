@@ -3,11 +3,12 @@ import createClient from './createClient'
 async function init () {
   let model = await createClient()
 
-  let subscription = await model.subscribe('items.1')
+  let doc = model.doc('items', '1')
+  await doc.subscribe()
 
   let count = 0
 
-  subscription.on('change', () => {
+  doc.on('change', () => {
     count++
   })
 

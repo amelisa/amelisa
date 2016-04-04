@@ -1,5 +1,4 @@
 import http from 'http'
-import { ServerSocketChannel } from '../../src/server'
 import { Server as WebSocketServer } from 'ws'
 import app from './app'
 import store from './store'
@@ -9,16 +8,30 @@ const port = process.env.PORT || 3000
 async function init () {
   await store.init()
 
+  store.on('channel', () => {
+    console.log('channel')
+  })
+
+  let count = 0
+
+  store.preHook = async (op) => {
+    count++
+  }
+
+  function showCount () {
+    console.log('ops/sec', count)
+    count = 0
+  }
+
+  setInterval(showCount, 1000)
+
   let server = http.createServer()
 
   server.on('request', app)
 
   let wsServer = new WebSocketServer({server})
 
-  wsServer.on('connection', (socket) => {
-    let channel = new ServerSocketChannel(socket, socket.upgradeReq)
-    store.onChannel(channel)
-  })
+  wsServer.on('connection', store.onConnection)
 
   server.listen(port, (err) => {
     if (err) {
