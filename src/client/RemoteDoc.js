@@ -35,14 +35,8 @@ class RemoteDoc extends MutableDoc {
     if (this.subscribed !== 1) return options.fetch ? this.subscribingPromise : undefined
     this.subscribing = true
 
-    if (!options.fetch && this.ops.length) {
-      // return immediately if doc is not empty
-      this.sendSubscribeOp()
-      return
-    }
-
     this.subscribingPromise = this.sendSubscribeOp()
-    return this.subscribingPromise
+    return options.fetch ? this.subscribingPromise : undefined
   }
 
   async sendSubscribeOp () {

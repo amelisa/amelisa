@@ -83,7 +83,7 @@ describe('subscribes doc', () => {
     await model2.add(collectionName, getDocData())
     await doc.subscribe({fetch: false})
 
-    assert(doc.get())
+    assert(!doc.get())
 
     await sleep(10)
 
