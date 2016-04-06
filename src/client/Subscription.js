@@ -10,13 +10,14 @@ class Subscription extends EventEmitter {
     this.collectionSet = collectionSet
     this.querySet = querySet
 
-    this.subscribes = this.parseRawSubscribes(rawSubscribes)
+    this.parseRawSubscribes(rawSubscribes)
 
     this.onChange = this.onChange.bind(this)
   }
 
   parseRawSubscribes (rawSubscribes) {
     let subscribes = []
+    let subscribeOptionses = []
 
     if (Array.isArray(rawSubscribes) &&
       rawSubscribes.length === 1 &&
@@ -24,36 +25,36 @@ class Subscription extends EventEmitter {
       rawSubscribes = rawSubscribes[0]
     }
 
-    for (let subscribe of rawSubscribes) {
-      if (subscribe instanceof MutableDoc || subscribe instanceof ClientQuery) {
-        subscribes.push(subscribe)
+    for (let rawSubscribe of rawSubscribes) {
+      let subscribe
+      let subscribeOptions
+      if (rawSubscribe instanceof MutableDoc || rawSubscribe instanceof ClientQuery) {
+        subscribe = rawSubscribe
+      } else if (Array.isArray(rawSubscribe) && typeof rawSubscribe[0] === 'string' &&
+          (rawSubscribe[0].indexOf('http') === 0 || rawSubscribe[0].indexOf('/') === 0)) {
+        let [url, defaultValue, options] = rawSubscribe
+        subscribe = new UrlQuery(url, defaultValue, this.collectionSet.model)
+        subscribeOptions = options
+      } else if (typeof rawSubscribe === 'object' && !Array.isArray(rawSubscribe)) {
+        this.options = rawSubscribe
         continue
-      }
-
-      if (Array.isArray(subscribe) && typeof subscribe[0] === 'string' &&
-          (subscribe[0].indexOf('http') === 0 || subscribe[0].indexOf('/') === 0)) {
-        let [url, defaultValue, options] = subscribe
-        let urlQuery = new UrlQuery(url, defaultValue, this.collectionSet.model)
-        urlQuery.subscribeOptions = options
-        subscribes.push(urlQuery)
-      } else if (typeof subscribe === 'object' && !Array.isArray(subscribe)) {
-        this.options = subscribe
       } else {
-        let [collectionName, docIdOrExpression, options] = parsePath(subscribe)
+        let [collectionName, docIdOrExpression, options, options2] = parsePath(rawSubscribe)
 
         if (typeof docIdOrExpression === 'string') {
-          let doc = this.collectionSet.getOrCreateDoc(collectionName, docIdOrExpression)
-          doc.subscribeOptions = options
-          subscribes.push(doc)
+          subscribe = this.collectionSet.getOrCreateDoc(collectionName, docIdOrExpression)
+          subscribeOptions = options2 || options
         } else {
-          let query = this.querySet.getOrCreateQuery(collectionName, docIdOrExpression)
-          query.subscribeOptions = options
-          subscribes.push(query)
+          subscribe = this.querySet.getOrCreateQuery(collectionName, docIdOrExpression)
+          subscribeOptions = options2 || options
         }
       }
+      subscribes.push(subscribe)
+      subscribeOptionses.push(subscribeOptions)
     }
 
-    return subscribes
+    this.subscribes = subscribes
+    this.subscribeOptionses = subscribeOptionses
   }
 
   async fetch () {
@@ -61,14 +62,20 @@ class Subscription extends EventEmitter {
   }
 
   async subscribe () {
-    return Promise.all(
-      this.subscribes.map((subscribe) => {
-        subscribe.on('change', this.onChange)
+    let promises = []
 
-        let subscribeOptions = Object.assign({}, this.options, subscribe.subscribeOptions)
-        return subscribe.subscribe(subscribeOptions)
-      })
-    )
+    for (let i = 0; i < this.subscribes.length; i++) {
+      let subscribe = this.subscribes[i]
+      subscribe.on('change', this.onChange)
+
+      let subscribeOptions = this.subscribeOptionses[i]
+      subscribeOptions = Object.assign({}, this.options, subscribe.subscribeOptions)
+
+      let promise = subscribe.subscribe(subscribeOptions)
+      promises.push(promise)
+    }
+
+    return Promise.all(promises)
   }
 
   async unsubscribe () {
@@ -86,7 +93,7 @@ class Subscription extends EventEmitter {
 
   async changeSubscribes (nextRawSubscribes) {
     this.unsubscribe()
-    this.subscribes = this.parseRawSubscribes(nextRawSubscribes)
+    this.parseRawSubscribes(nextRawSubscribes)
     return this.subscribe()
   }
 

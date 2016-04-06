@@ -1,5 +1,9 @@
 import { EventEmitter } from 'events'
 
+let defaultGetOptions = {
+  map: false
+}
+
 class Query extends EventEmitter {
   constructor (collectionName, expression) {
     super()
@@ -10,7 +14,9 @@ class Query extends EventEmitter {
   get (options) {
     if (!this.isDocs) return this.data
 
-    if (options && options.map) {
+    options = Object.assign({}, defaultGetOptions, options)
+
+    if (options.map) {
       let map = {}
       for (let docId of this.data) {
         map[docId] = this.collection.get(docId)

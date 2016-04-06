@@ -12,6 +12,8 @@ class Doc extends EventEmitter {
   }
 
   get (field) {
+    if (field && typeof field !== 'string') field = null
+
     if (this.state && this.state._del) return
 
     if (field === '_id') return this.docId
