@@ -237,11 +237,20 @@ class Store extends EventEmitter {
           let collectionSyncData = syncData.collections[collectionName]
           for (let docId in collectionSyncData) {
             let { ops, version } = collectionSyncData[docId]
-            let docPromise = this
-              .onDocOps(null, collectionName, docId, null, ops, channel)
-              .then((doc) => {
-                doc.subscribe(channel, version)
-              })
+            let docPromise
+            if (ops.length) {
+              docPromise = this
+                .onDocOps(null, collectionName, docId, null, ops, channel)
+                .then((doc) => {
+                  doc.subscribe(channel, version)
+                })
+            } else if (version) {
+              docPromise = this.docSet
+                .getOrCreateDoc(collectionName, docId)
+                .then((doc) => {
+                  doc.subscribe(channel, version)
+                })
+            }
             docPromises.push(docPromise)
           }
         }
