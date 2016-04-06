@@ -244,7 +244,7 @@ class Store extends EventEmitter {
                 .then((doc) => {
                   doc.subscribe(channel, version)
                 })
-            } else if (version) {
+            } else {
               docPromise = this.docSet
                 .getOrCreateDoc(collectionName, docId)
                 .then((doc) => {
