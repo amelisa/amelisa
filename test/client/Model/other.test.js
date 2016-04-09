@@ -3,7 +3,7 @@ import ClientQuery from '../../../src/client/ClientQuery'
 import Model from '../../../src/client/Model'
 import ServerChannel from '../../../src/server/ServerChannel'
 import { dbQueries } from '../../../src/mongo'
-import { source, collectionName, field, value } from '../../util'
+import { source, collectionName, field, value, sleep } from '../../util'
 
 let channel
 let model
@@ -54,6 +54,20 @@ describe('Model other', () => {
     let op3 = model.createOp(opData)
 
     assert(op.date !== op2.date !== op3.date)
+  })
+
+  it('should sync date', async () => {
+    let start = Date.now()
+    await sleep(10)
+    let serverDate = Date.now()
+    await sleep(10)
+    model.syncDate(start, serverDate)
+
+    let dateDiff = model.get('_app.dateDiff')
+
+    assert(typeof dateDiff === 'number')
+    assert(dateDiff >= -1)
+    assert(dateDiff <= 1)
   })
 
   it('should return date', () => {

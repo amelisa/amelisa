@@ -601,10 +601,11 @@ class Model extends EventEmitter {
   syncDate (start, serverDate) {
     if (!serverDate) return
     // TODO: could it be better?
-    let end = Date.now()
-    let requestTime = end - start
-    let serverNow = serverDate - (requestTime / 2)
-    let dateDiff = serverNow - end
+    let now = Date.now()
+    let requestTime = now - start
+    let halfRequestTime = Math.floor(requestTime / 2)
+    let serverNow = serverDate + halfRequestTime
+    let dateDiff = serverNow - now
     this.set('_app.dateDiff', dateDiff)
   }
 
