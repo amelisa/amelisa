@@ -23,7 +23,7 @@ class TestComponent6 extends React.Component {
 
 class TestComponent5 extends React.Component {
 
-  getQueries () {
+  subscribe () {
     return {
       users: ['users', {name: 'Misha'}]
     }
@@ -46,7 +46,7 @@ let Container5 = createContainer(TestComponent5)
 
 class TestComponent4 extends React.Component {
 
-  getQueries () {
+  subscribe () {
     return {
       users: ['users', {name: 'Kostya'}]
     }
@@ -69,7 +69,7 @@ let Container4 = createContainer(TestComponent4)
 
 class TestComponent3 extends React.Component {
 
-  getQueries () {
+  subscribe () {
     return {
       users: ['users', {name: 'Vasya'}]
     }
@@ -94,7 +94,7 @@ let Container3 = createContainer(TestComponent3)
 
 class TestComponent2 extends React.Component {
 
-  getQueries () {
+  subscribe () {
     return {
       users: ['users', {name: 'Petr'}]
     }
@@ -119,7 +119,7 @@ let Container2 = createContainer(TestComponent2)
 
 class TestComponent extends React.Component {
 
-  getQueries () {
+  subscribe () {
     return {
       users: ['users', {name: 'Ivan'}]
     }
@@ -154,7 +154,7 @@ class Root extends RootComponent {
   }
 }
 
-describe.skip('serverRendering', () => {
+describe('serverRendering', () => {
   beforeEach(async () => {
     storage = new MemoryStorage()
     store = new Store({storage})

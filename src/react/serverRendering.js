@@ -29,36 +29,6 @@ async function render (method, Component, baseProps = {}, baseChildren = [], pro
     nextPromises.push(promise)
   }
 
-  // function processChildren (children) {
-  //   console.log('processChildren', children)
-  //   if (!Array.isArray(children)) children = React.Children.toArray(children)
-  //   children = children.map((child) => {
-  //     console.log('child', child.type.name || child.type, isContainer(child.type), datas.length)
-  //
-  //     let childChildren = child.props.children
-  //     if (childChildren) childChildren = processChildren(childChildren)
-  //
-  //     if (isContainer(child.type)) {
-  //       if (datas.length) {
-  //         let data = datas.shift()
-  //         let promise = promises[index]
-  //         nextPromises.push(promise)
-  //         return React.cloneElement(child, Object.assign({}, data, {hasResults: true, children: childChildren}))
-  //       } else {
-  //         return React.cloneElement(child, {onFetch, children: childChildren})
-  //       }
-  //       index++
-  //     } else {
-  //       return child
-  //     }
-  //   })
-  //   if (children.length === 1) children = children[0]
-  //   console.log(children)
-  //   return children
-  // }
-  //
-  // baseChildren = processChildren(baseChildren)
-
   function replacement (originalCreateElement, ...args) {
     let [type, props] = args
     if (!props) props = args[1] = {}

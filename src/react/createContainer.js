@@ -3,6 +3,10 @@ import Loading from './Loading'
 import { isServer, deepClone, fastEqual } from '../util'
 
 function createContainer (Component) {
+  if (!Component.prototype.subscribe) {
+    throw new Error(`${Component.name} should has 'subscribe' method for 'createContainer'`)
+  }
+
   class Container extends React.Component {
 
     static contextTypes = {
@@ -10,7 +14,8 @@ function createContainer (Component) {
     };
 
     static propTypes = {
-      hasResults: PropTypes.bool
+      hasResults: PropTypes.bool,
+      onFetch: PropTypes.func
     };
 
     static isContainer = true;
@@ -23,15 +28,13 @@ function createContainer (Component) {
       this.state = {
         hasResults
       }
-      this.props = props
       this.mounted = false
-      // console.log('constructor', Component.name, props)
     }
 
     componentWillMount () {
-      let subscribeQueries = this.getQueries(this.props)
-      this.setSubscription(subscribeQueries)
-      this.subscribeQueries = subscribeQueries
+      let subscribeData = this.getSubscribeData(this.props)
+      this.setSubscription(subscribeData)
+      this.subscribeData = subscribeData
     }
 
     componentDidMount () {
@@ -40,98 +43,88 @@ function createContainer (Component) {
 
     componentWillUnmount () {
       this.mounted = false
-      if (this.subscription) this.subscription.unsubscribe()
+      if (!this.subscription) return
+
+      this.subscription.unsubscribe()
     }
 
     componentWillReceiveProps (nextProps) {
-      let subscribeQueries = this.getQueries(nextProps)
-      if (!fastEqual(subscribeQueries, this.subscribeQueries)) {
-        this.setQueries(subscribeQueries)
+      let subscribeData = this.getSubscribeData(nextProps)
+      if (!fastEqual(subscribeData, this.subscribeData)) {
+        this.setSubscribeData(subscribeData)
       }
     }
 
-    getQueries (props) {
+    getSubscribeData (props) {
       let { context } = this
       let component = new Component(props, context)
-      return component.getQueries.call({props, context})
+      return component.subscribe.call({props, context})
     }
 
-    setQueries (nextSubscribeQueries) {
-      let rawSubscribes = this.getRawSubscribes(nextSubscribeQueries)
-      this.subscription.changeSubscribes(rawSubscribes)
-      this.subscribeQueries = nextSubscribeQueries
+    setSubscribeData (nextSubscribeData) {
+      this.setDataKeysAndRawSubscribes(nextSubscribeData)
+      this.subscription.changeSubscribes(this.rawSubscribes)
+      this.subscribeData = nextSubscribeData
     }
 
-    getRawSubscribes (subscribeQueries) {
+    setDataKeysAndRawSubscribes (subscribeData) {
       this.dataKeys = []
-      let rawSubscribes = []
+      this.rawSubscribes = []
 
-      for (let dataKey in subscribeQueries) {
+      for (let dataKey in subscribeData) {
         this.dataKeys.push(dataKey)
-        rawSubscribes.push(subscribeQueries[dataKey])
+        this.rawSubscribes.push(subscribeData[dataKey])
       }
-
-      return rawSubscribes
     }
 
-    setSubscription (subscribeQueries) {
-      let rawSubscribes = this.getRawSubscribes(subscribeQueries)
+    setSubscription (subscribeData) {
+      let { onFetch } = this.props
+      let { hasResults } = this.state
+      let { model } = this.context
 
-      if (isServer && this.props.onFetch && !this.state.hasResults) { // eslint-disable-line
-        let promise = new Promise((resolve, reject) => {
-          this.context.model
-            .subscribe(rawSubscribes)
+      this.setDataKeysAndRawSubscribes(subscribeData)
+
+      // server rendering
+      if (isServer && onFetch && !hasResults) { // eslint-disable-line
+        let promise = model
+            .subscribe(this.rawSubscribes)
             .then((subscription) => {
               this.subscription = subscription
 
-              let data = this.getPropsFromSubscription(subscription)
-              resolve(data)
+              return this.getPropsFromSubscription(subscription)
             })
-        })
 
-        this.props.onFetch(promise) // eslint-disable-line
-      } else {
-        this.context.model
-          .subscribe(rawSubscribes)
-          .then((subscription) => {
-            this.subscription = subscription
+        onFetch(promise) // eslint-disable-line
 
-            if (!isServer) {
-              subscription.on('change', () => {
-                this.refresh()
-              })
-            }
-
-            this.refresh()
-          })
+        return promise
       }
+
+      return model
+        .subscribe(this.rawSubscribes)
+        .then((subscription) => {
+          this.subscription = subscription
+
+          if (!isServer) {
+            subscription.on('change', () => {
+              this.refresh()
+            })
+          }
+
+          this.refresh()
+        })
     }
 
     refresh () {
       if (!this.mounted) return
+      let { hasResults } = this.state
 
-      if (this.state.hasResults) {
+      if (hasResults) {
         this.forceUpdate()
       } else {
         this.setState({
           hasResults: true
         })
       }
-    }
-
-    getSubscriptionPromise () {
-      let subscribeQueries = this.getQueries(this.props)
-      let rawSubscribes = this.getRawSubscribes(subscribeQueries)
-
-      return new Promise((resolve, reject) => {
-        this.context.model
-          .subscribe(rawSubscribes)
-          .then((subscription) => {
-            let props = this.getPropsFromSubscription(subscription)
-            resolve(props)
-          })
-          .catch(reject)
-      })
     }
 
     getPropsFromSubscription (subscription) {
@@ -141,30 +134,29 @@ function createContainer (Component) {
       for (let i = 0; i < subscribes.length; i++) {
         let subscribe = subscribes[i]
         let dataKey = this.dataKeys[i]
-        let options = this.subscribeQueries[dataKey][2]
+        let options = this.subscribeData[dataKey][2]
         let data = subscribe.get(options)
 
         dataProps[dataKey] = deepClone(data)
       }
 
       let utilProps = {
-        setQueries: this.setQueries.bind(this)
+        setSubscribeData: this.setSubscribeData.bind(this)
       }
       return Object.assign({}, dataProps, this.props || {}, utilProps)
     }
 
     render () {
-      if (!this.state.hasResults) {
-        // return <div>Loading...</div>
-        return <Loading />
-      } else {
-        let props = this.props
-        if (this.subscription) {
-          props = this.getPropsFromSubscription(this.subscription)
-        }
+      let { hasResults } = this.state
 
-        return <Component {...props} />
+      if (!hasResults) return <Loading />
+
+      let props = this.props
+      if (this.subscription) {
+        props = this.getPropsFromSubscription(this.subscription)
       }
+
+      return <Component {...props} />
     }
   }
 

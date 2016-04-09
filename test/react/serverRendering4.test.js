@@ -12,7 +12,7 @@ let model
 
 class TestComponent extends React.Component {
 
-  getQueries () {
+  subscribe () {
     return {
       userId: ['_session', 'userId'],
       user: ['users', '1']

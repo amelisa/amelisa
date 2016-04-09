@@ -12,7 +12,7 @@ let model
 
 class TestComponent2 extends React.Component {
 
-  getQueries () {
+  subscribe () {
     return {
       users: ['users', {name: 'Petr'}]
     }
@@ -37,7 +37,7 @@ let Container2 = createContainer(TestComponent2)
 
 class TestComponent extends React.Component {
 
-  getQueries () {
+  subscribe () {
     return {
       users: ['users', {name: 'Ivan'}]
     }
