@@ -15,7 +15,7 @@ const defaultOptions = {
   projections: {},
   source: 'server',
   unattachTimeout: 5000,
-  saveDebounceTimeout: 1000,
+  saveDebounceTimeout: 100,
   cuttingOpsCount: 100,
   cuttingTimeout: 2000,
   saveOps: true

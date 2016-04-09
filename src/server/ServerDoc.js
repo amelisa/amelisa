@@ -12,6 +12,7 @@ class ServerDoc extends Doc {
     this.prevVersion = null
     this.loaded = false
     this.loading = false
+    this.saving = false
     this.channels = []
 
     this.load()
@@ -69,9 +70,12 @@ class ServerDoc extends Doc {
   save () {
     if (!this.loaded) return
     if (this.ops.length === 0) return
-
-    if (this.timeout) clearTimeout(this.timeout)
-    this.timeout = setTimeout(() => this.saveToStorage(), this.store.options.saveDebounceTimeout)
+    if (this.saving) {
+      this.changed = true
+      return
+    }
+    this.saving = true
+    setTimeout(() => this.saveToStorage(), this.store.options.saveDebounceTimeout)
   }
 
   saveToStorage () {
@@ -93,8 +97,13 @@ class ServerDoc extends Doc {
     this.store.storage
       .saveDoc(this.collectionName, this.docId, this.getForSave(), this.prevVersion, version, this.ops)
       .then(() => {
-        this.emit('saved')
+        this.saving = false
         this.prevVersion = version
+        this.emit('saved')
+        if (this.changed) {
+          this.changed = false
+          this.save()
+        }
       })
       .catch((err) => {
         if (err.message === 'stale data') {
