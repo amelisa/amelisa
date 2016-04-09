@@ -5,20 +5,10 @@ async function init () {
 
   let index = 0
   let count = 0
-  async function createDoc () {
-    let doc = {
-      _id: '1',
-      name: null
-    }
 
-    await model.add('items', doc)
-    console.log('item created')
-  }
-
-  async function mutateDoc () {
-    model.set(['items', '1', 'name'], index++)
+  async function createOp () {
+    await model.set(['items', '1', 'name'], index++)
     count++
-    setTimeout(mutateDoc, 0)
   }
 
   function showCount () {
@@ -26,8 +16,7 @@ async function init () {
     count = 0
   }
 
-  await createDoc()
-  mutateDoc()
+  setInterval(createOp, 0)
   setInterval(showCount, 1000)
 }
 

@@ -7,9 +7,11 @@
     "prepublish": "babel --optional runtime src --out-dir lib",
     "postpublish": "rm -rf lib",
     "lint": "standard | snazzy",
-    "load-generator": "babel-node test/load/generator.js",
+    "load-generate-docs": "babel-node test/load/generate-docs.js",
+    "load-generate-ops": "babel-node test/load/generate-ops.js",
     "load-ops": "babel-node test/load/ops.js",
-    "load-subscriber": "babel-node test/load/subscriber.js",
+    "load-subscribe-doc": "babel-node test/load/subscribe-doc.js",
+    "load-subscribe-query": "babel-node test/load/subscribe-query.js",
     "load-server": "babel-node test/load/server.js",
     "test": "mocha --compilers js:babel-core/register \"test/**/*.test.js\"",
     "test-build": "webpack --progress --config test/integration/webpack.prod.babel.js"
@@ -78,7 +80,7 @@
     "snazzy": "^2.0.1",
     "standard": "^6.0.8",
     "webpack": "^1.12.9",
-    "ws": "^0.8.0"
+    "ws": "^1.0.1"
   },
   "standard": {
     "globals": [
