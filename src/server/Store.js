@@ -82,8 +82,20 @@ class Store extends EventEmitter {
     channel.open()
   }
 
-  onConnection = (socket) => {
+  onConnection = async (socket) => {
     let channel = new ServerSocketChannel(socket, socket.upgradeReq)
+
+    if (this.clientHook) {
+      let { session, params } = this.getHookParams(channel)
+
+      try {
+        await this.clientHook(channel, session, params)
+      } catch (err) {
+        console.trace('clientHook error', err)
+        return
+      }
+    }
+
     this.onChannel(channel)
   };
 
