@@ -74,7 +74,9 @@ class RemoteDoc extends MutableDoc {
 
   async onOp (op) {
     super.onOp(op)
-    return this.model.send(op)
+    await this.model.send(op)
+    if (!this.model.online) return
+    this.serverVersion = this.addOpToVersion(this.serverVersion, op)
   }
 
   receiveOp (newOp) {
@@ -91,6 +93,7 @@ class RemoteDoc extends MutableDoc {
     }
 
     this.applyOp(newOp)
+    this.serverVersion = this.addOpToVersion(this.serverVersion, newOp)
 
     if (type === 'stringInsert' || type === 'stringRemove') {
       if (index > -1) this.emit(type, field, index, 1)
@@ -105,6 +108,7 @@ class RemoteDoc extends MutableDoc {
     if (!ops.length) return
 
     this.applyOps(ops, opsType)
+    this.serverVersion = this.addOpsToVersion(this.serverVersion, ops)
 
     if (opsType === 'stringInsert' || opsType === 'stringRemove') {
       this.emit(opsType, field, index, howMany)

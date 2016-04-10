@@ -18,7 +18,7 @@ class ChannelSession {
   updateDocVersion (collectionName, docId, source, date) {
     let version = this.getDocVersion(collectionName, docId)
 
-    let map = Doc.prototype.getVersionMap(version)
+    let map = Doc.prototype.getMapFromVersion(version)
 
     map[source] = date
 

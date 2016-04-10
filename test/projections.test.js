@@ -207,7 +207,7 @@ describe('projections', () => {
 
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(20)
+    await sleep(40)
 
     assert.equal(query.get().length, 1)
   })

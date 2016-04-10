@@ -219,6 +219,7 @@ class ServerDoc extends Doc {
       ops: this.getOpsToSend(version),
       ackId
     }
+
     this.sendOp(op, channel)
   }
 

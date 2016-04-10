@@ -10,7 +10,9 @@ class RemoteCollection extends Collection {
     let doc = super.add(docId, docData)
     doc.save()
     let op = doc.ops[doc.ops.length - 1]
-    return this.model.send(op)
+    await this.model.send(op)
+    if (!this.model.online) return
+    doc.serverVersion = doc.addOpToVersion(doc.serverVersion, op)
   }
 
   attach (docId, ops, serverVersion) {

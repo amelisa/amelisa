@@ -404,17 +404,10 @@ class Doc extends EventEmitter {
       }
     }
 
-    // TODO: limit length of versions
-    let versions = []
-    for (let source in map) {
-      let date = map[source]
-      versions.push(source + ' ' + date)
-    }
-
-    return versions.join('|')
+    return this.getVersionFromMap(map)
   }
 
-  getVersionMap (version) {
+  getMapFromVersion (version) {
     let map = {}
 
     if (!version) return map
@@ -431,18 +424,57 @@ class Doc extends EventEmitter {
     return map
   }
 
+  getVersionFromMap (map = {}) {
+    let versions = []
+
+    for (let source in map) {
+      let date = map[source]
+      versions.push(source + ' ' + date)
+    }
+
+    return versions.join('|')
+  }
+
   getOpsToSend (version) {
     let opsToSend = []
-    let versionMap = this.getVersionMap(version)
+    let map = this.getMapFromVersion(version)
 
     for (let op of this.ops) {
-      let versionDate = versionMap[op.source]
-      if (!versionDate || versionDate < op.date) {
+      let { date, source } = op
+      let versionDate = map[source]
+      if (!versionDate || versionDate < date) {
         opsToSend.push(op)
       }
     }
 
     return opsToSend
+  }
+
+  addOpToVersion (version, op) {
+    let map = this.getMapFromVersion(version)
+    let { date, source } = op
+    let versionDate = map[source]
+
+    if (!versionDate || versionDate < date) {
+      map[source] = date
+    }
+
+    return this.getVersionFromMap(map)
+  }
+
+  addOpsToVersion (version, ops) {
+    let map = this.getMapFromVersion(version)
+
+    for (let op of ops) {
+      let { date, source } = op
+      let versionDate = map[source]
+
+      if (!versionDate || versionDate < date) {
+        map[source] = date
+      }
+    }
+
+    return this.getVersionFromMap(map)
   }
 
   bundle () {

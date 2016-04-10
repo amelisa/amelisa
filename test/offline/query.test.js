@@ -205,7 +205,7 @@ describe('offline query', () => {
     await model2.set([collectionName, '2', field], 'Vasya')
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(20)
+    await sleep(40)
 
     assert.equal(query.get().length, 2)
     assert.equal(query2.get().length, 2)

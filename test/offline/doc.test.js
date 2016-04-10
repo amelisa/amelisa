@@ -2,7 +2,7 @@ import assert from 'assert'
 import eventToPromise from 'event-to-promise'
 import { MemoryStorage } from '../../src/mongo/server'
 import { Store } from '../../src/server'
-import { collectionName, docId, field, getDocData, sleep } from '../util'
+import { collectionName, docId, field, value, getDocData, sleep } from '../util'
 
 let storage
 let store
@@ -59,6 +59,86 @@ describe('offline doc', () => {
     await sleep(20)
 
     assert(doc.get())
+  })
+
+  it('should not send add op on online when already sent', async () => {
+    let doc = model.doc(collectionName, docId)
+    await doc.subscribe()
+    await model2.add(collectionName, getDocData())
+    await sleep(20)
+
+    assert(doc.get())
+
+    model.close()
+    model2.close()
+    let hookCalled = false
+    store.afterHook = async (op) => {
+      hookCalled = true
+    }
+    store.connectModel(model)
+    store.connectModel(model2)
+    await sleep(20)
+    if (hookCalled) throw new Error('afterHook called')
+  })
+
+  it('should not send add op on online when already sent and same model', async () => {
+    let doc = model.doc(collectionName, docId)
+    await doc.subscribe()
+    await model.add(collectionName, getDocData())
+    await sleep(20)
+
+    assert(doc.get())
+
+    model.close()
+    model2.close()
+    let hookCalled = false
+    store.afterHook = async (op) => {
+      hookCalled = true
+    }
+    store.connectModel(model)
+    store.connectModel(model2)
+    await sleep(20)
+    if (hookCalled) throw new Error('afterHook called')
+  })
+
+  it('should not send set op on online when already sent', async () => {
+    let doc = model.doc(collectionName, docId)
+    await doc.subscribe()
+    await model2.set([collectionName, docId, field], value)
+    await sleep(20)
+
+    assert(doc.get())
+
+    model.close()
+    model2.close()
+    let hookCalled = false
+    store.afterHook = async (op) => {
+      hookCalled = true
+    }
+    store.connectModel(model)
+    store.connectModel(model2)
+    await sleep(20)
+    if (hookCalled) throw new Error('afterHook called')
+  })
+
+  it('should not send set op on online when already sent and same model', async () => {
+    let doc = model.doc(collectionName, docId)
+    await doc.subscribe()
+    await model2.set([collectionName, docId, field], value)
+    await sleep(20)
+
+    assert(doc.get())
+
+    model.close()
+    model2.close()
+    let hookCalled = false
+    store.afterHook = async (op) => {
+      hookCalled = true
+    }
+    store.connectModel(model)
+    store.connectModel(model2)
+    await sleep(20)
+    if (hookCalled) throw new Error('afterHook called')
   })
 
   it('should send and receive string ops on online when subscribed to doc', async () => {
