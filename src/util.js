@@ -34,11 +34,15 @@ function parsePath (path) {
   if (Array.isArray(path) && path.length === 1) {
     path = path[0]
   }
-  if (!Array.isArray(path)) {
-    path = path.split('.')
-  }
 
-  return path
+  if (Array.isArray(path)) return path
+
+  let [collectionName, docId, ...fields] = path.split('.')
+
+  if (!fields.length) return [collectionName, docId]
+
+  let field = fields.join('.')
+  return [collectionName, docId, field]
 }
 
 function parseArguments (...args) {

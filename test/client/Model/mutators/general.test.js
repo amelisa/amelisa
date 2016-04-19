@@ -137,6 +137,14 @@ describe('Model mutators general', () => {
     assert.equal(model.get(collectionName, docId, field), value2)
   })
 
+  it('should set when args as path with nested field', () => {
+    model.add(collectionName, getDocData())
+
+    model.set(`${collectionName}.${docId}.nested.${field}`, value2)
+
+    assert.deepEqual(model.get(collectionName, docId, 'nested'), {[field]: value2})
+  })
+
   it('should set field when doc is value', () => {
     model.set([collectionName, docId], value)
     model.set([collectionName, docId, field], value)

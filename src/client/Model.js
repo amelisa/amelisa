@@ -283,8 +283,8 @@ class Model extends EventEmitter {
     }
   }
 
-  get () {
-    let [collectionName, docId, field] = parseArguments(arguments)
+  get (...args) {
+    let [collectionName, docId, field] = parseArguments(args)
     return this.collectionSet.get(collectionName, docId, field)
   }
 
