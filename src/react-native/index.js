@@ -1,9 +1,11 @@
-import getModel from './getModel'
+import AsyncStorage from './AsyncStorage'
 import createContainer from './createContainer'
 import RootComponent from './RootComponent'
+import SqliteStorage from './SqliteStorage'
 
 export default {
+  AsyncStorage,
   createContainer,
-  getModel,
-  RootComponent
+  RootComponent,
+  SqliteStorage
 }

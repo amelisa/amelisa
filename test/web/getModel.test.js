@@ -2,7 +2,7 @@ import assert from 'assert'
 import fakeIndexedDb from 'fake-indexeddb'
 import localStorage from 'localStorage'
 import jsdom from 'node-jsdom'
-import getModel from '../../src/react/getModel'
+import { getModel, IndexedDbStorage } from '../../src/web'
 import { MemoryStorage } from '../../src/mongo/server'
 import { Store } from '../../src/server'
 import ServerChannel from '../../src/server/ServerChannel'
@@ -18,7 +18,8 @@ const options = {
   modelOptions: {
     isClient: true,
     clientSaveDebounceTimeout: 0
-  }
+  },
+  Storage: IndexedDbStorage
 }
 let store
 let model

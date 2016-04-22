@@ -1,5 +1,5 @@
-// in react-native process.title === undefined
-let isServer = process.title && process.title !== 'browser'
+let isBrowser = typeof document !== 'undefined'
+let isServer = typeof process !== 'undefined' && process.title !== 'browser'
 
 let dbFields = {
   _ops: true,
@@ -56,6 +56,7 @@ export default {
   deepClone,
   dbFields,
   fastEqual,
+  isBrowser,
   isServer,
   isLocalCollection,
   parsePath,

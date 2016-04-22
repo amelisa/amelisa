@@ -1,7 +1,7 @@
-import { getModel } from '../../../src/react'
+import { getModel, IndexedDbStorage } from '../../../src/web'
 
 console.log('offline')
-let model = getModel()
+let model = getModel({Storage: IndexedDbStorage})
 
 model.once('ready', () => {
   window.callPhantom('ready')

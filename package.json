@@ -2,7 +2,8 @@
   "name": "amelisa",
   "version": "0.1.19",
   "description": "Data engine with offline and realtime",
-  "main": "lib/index.js",
+  "browser": "lib/web",
+  "main": "lib/server",
   "scripts": {
     "prepublish": "babel --optional runtime src --out-dir lib",
     "postpublish": "rm -rf lib",

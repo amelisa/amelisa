@@ -1,4 +1,4 @@
-async function onDomReady () {
+async function onBundleReady () {
   return new Promise((resolve, reject) => {
     if (document.readyState === 'complete') {
       resolve()
@@ -16,6 +16,6 @@ function getBundleJsonFromDom () {
 }
 
 export default {
-  onDomReady,
+  onBundleReady,
   getBundleJsonFromDom
 }
