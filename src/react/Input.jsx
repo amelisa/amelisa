@@ -24,37 +24,53 @@ class Input extends Component {
   };
 
   componentDidMount () {
-    let { collectionName, docId, field } = this.props
+    let { collectionName, docId } = this.props
     let doc = this.context.model.doc(collectionName, docId)
 
-    doc.on('stringInsert', (eventField, index, howMany) => {
-      if (eventField !== field) return
-      let value = doc.get(field)
-      let input = this.refs['input']
-      let { selectionStart, selectionEnd } = input
-      if (selectionStart > index + howMany) selectionStart = selectionStart + howMany
-      if (selectionEnd > index + howMany) selectionEnd = selectionEnd + howMany
-
-      this.setState({
-        value
-      })
-      input.setSelectionRange(selectionStart, selectionEnd)
-    })
-
-    doc.on('stringRemove', (eventField, index, howMany) => {
-      if (eventField !== field) return
-      let value = doc.get(field)
-      let input = this.refs['input']
-      let { selectionStart, selectionEnd } = input
-      if (selectionStart > index) selectionStart = selectionStart - howMany
-      if (selectionEnd > index) selectionEnd = selectionEnd - howMany
-
-      this.setState({
-        value
-      })
-      input.setSelectionRange(selectionStart, selectionEnd)
-    })
+    doc.on('stringInsert', this.onStringInsert)
+    doc.on('stringRemove', this.onStringRemove)
   }
+
+  componentWillUnmount () {
+    let { collectionName, docId } = this.props
+    let doc = this.context.model.doc(collectionName, docId)
+
+    doc.removeListener('stringInsert', this.onStringInsert)
+    doc.removeListener('stringRemove', this.onStringRemove)
+  }
+
+  onStringInsert = (eventField, index, howMany) => {
+    let { collectionName, docId, field } = this.props
+    if (eventField !== field) return
+
+    let value = this.context.model.get(collectionName, docId, field)
+    let { input } = this.refs
+
+    let { selectionStart, selectionEnd } = input
+    if (selectionStart > index + howMany) selectionStart = selectionStart + howMany
+    if (selectionEnd > index + howMany) selectionEnd = selectionEnd + howMany
+
+    this.setState({
+      value
+    })
+    input.setSelectionRange(selectionStart, selectionEnd)
+  };
+
+  onStringRemove = (eventField, index, howMany) => {
+    let { collectionName, docId, field } = this.props
+    if (eventField !== field) return
+
+    let value = this.context.model.get(collectionName, docId, field)
+    let { input } = this.refs
+    let { selectionStart, selectionEnd } = input
+    if (selectionStart > index) selectionStart = selectionStart - howMany
+    if (selectionEnd > index) selectionEnd = selectionEnd - howMany
+
+    this.setState({
+      value
+    })
+    input.setSelectionRange(selectionStart, selectionEnd)
+  };
 
   onChange = (event) => {
     let { collectionName, docId, field } = this.props
