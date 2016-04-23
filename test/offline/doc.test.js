@@ -56,7 +56,8 @@ describe('offline doc', () => {
     await model2.add(collectionName, getDocData())
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(20)
+    await eventToPromise(doc, 'change')
+    await eventToPromise(doc, 'change')
 
     assert(doc.get())
   })
@@ -147,7 +148,8 @@ describe('offline doc', () => {
     let doc2 = model2.doc(collectionName, docId)
     await doc2.subscribe()
     await doc.stringDiff(field, 'asdf')
-    await sleep(20)
+    await eventToPromise(doc2, 'change')
+
     assert.equal(doc.get(field), 'asdf')
     assert.equal(doc2.get(field), 'asdf')
     model.close()
@@ -158,7 +160,10 @@ describe('offline doc', () => {
     await doc2.stringInsert(field, 5, '3')
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(20)
+    await [
+      eventToPromise(doc, 'change'),
+      eventToPromise(doc2, 'change')
+    ]
 
     assert(doc.get(field), '12asdf23')
   })

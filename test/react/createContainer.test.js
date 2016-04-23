@@ -34,7 +34,7 @@ class TestComponent extends Component {
 
   subscribe () {
     let { userQuery } = this.state
-    console.log('subscribe', userQuery)
+
     return {
       users: ['users', userQuery]
     }
