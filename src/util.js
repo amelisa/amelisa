@@ -1,7 +1,10 @@
-let isBrowser = typeof document !== 'undefined'
-let isServer = typeof process !== 'undefined' && process.title !== 'browser'
+const isBrowser = typeof document !== 'undefined'
+const isServer =
+  !isBrowser &&
+  typeof process !== 'undefined' &&
+  process.title !== 'browser'
 
-let dbFields = {
+const dbFields = {
   _ops: true,
   _sv: true,
   _v: true

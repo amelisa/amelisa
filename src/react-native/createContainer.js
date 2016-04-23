@@ -51,21 +51,32 @@ function createContainer (Component) {
     componentWillReceiveProps (nextProps) {
       let subscribeData = this.getSubscribeData(nextProps)
       if (!fastEqual(subscribeData, this.subscribeData)) {
-        this.setSubscribeData(subscribeData)
+        this.resubscribe(subscribeData)
       }
     }
 
     getSubscribeData (props) {
       let { context } = this
-      let component = new Component(props, context)
-      return component.subscribe.call({props, context})
+      let { component } = this.refs
+
+      // before initial rendering, component does not exists,
+      // so we create it with constructor.
+      // It should has the same state as after initial rendering
+      if (!component) component = new Component(props, context)
+
+      let { state } = component
+      return component.subscribe.call({props, state, context})
     }
 
-    setSubscribeData (nextSubscribeQueries) {
-      this.setDataKeysAndRawSubscribes(nextSubscribeQueries)
+    resubscribe = (nextSubscribeData) => {
+      if (!nextSubscribeData) {
+        nextSubscribeData = this.getSubscribeData(this.props)
+      }
+
+      this.setDataKeysAndRawSubscribes(nextSubscribeData)
       this.subscription.changeSubscribes(this.rawSubscribes)
-      this.subscribeData = nextSubscribeQueries
-    }
+      this.subscribeData = nextSubscribeData
+    };
 
     setDataKeysAndRawSubscribes (subscribeData) {
       this.dataKeys = []
@@ -122,7 +133,7 @@ function createContainer (Component) {
       }
 
       let utilProps = {
-        setSubscribeData: this.setSubscribeData.bind(this)
+        resubscribe: this.resubscribe
       }
       return Object.assign({}, dataProps, this.props || {}, utilProps)
     }
@@ -137,7 +148,7 @@ function createContainer (Component) {
         props = this.getPropsFromSubscription(this.subscription)
       }
 
-      return <Component {...props} />
+      return <Component ref='component' {...props} />
     }
   }
 
