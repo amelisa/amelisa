@@ -60,8 +60,10 @@ describe('offline query', () => {
 
     store.connectModel(model)
     store.connectModel(model2)
-    await eventToPromise(query, 'change')
-    await eventToPromise(query, 'change')
+    await Promise.all([
+      eventToPromise(model, 'online'),
+      eventToPromise(model2, 'online')
+    ])
 
     assert.equal(query.get().length, 1)
   })
@@ -75,7 +77,7 @@ describe('offline query', () => {
     assert.equal(query.get().length, 1)
 
     store.connectModel(model)
-    await eventToPromise(query, 'change')
+    await eventToPromise(model, 'online')
 
     assert.equal(query.get().length, 1)
   })
@@ -96,10 +98,9 @@ describe('offline query', () => {
     store.connectModel(model)
     store.connectModel(model2)
     await Promise.all([
-      eventToPromise(query, 'change'),
-      eventToPromise(query2, 'change')
+      eventToPromise(model, 'online'),
+      eventToPromise(model2, 'online')
     ])
-    await sleep(10)
 
     assert.equal(query.get().length, 2)
     assert.equal(query2.get().length, 2)
@@ -122,10 +123,9 @@ describe('offline query', () => {
     store.connectModel(model)
     store.connectModel(model2)
     await Promise.all([
-      eventToPromise(query, 'change'),
-      eventToPromise(query2, 'change')
+      eventToPromise(model, 'online'),
+      eventToPromise(model2, 'online')
     ])
-    await sleep(10)
 
     assert.equal(query.get().length, 2)
     assert.equal(query2.get().length, 2)
@@ -150,10 +150,9 @@ describe('offline query', () => {
     store.connectModel(model)
     store.connectModel(model2)
     await Promise.all([
-      eventToPromise(query, 'change'),
-      eventToPromise(query2, 'change')
+      eventToPromise(model, 'online'),
+      eventToPromise(model2, 'online')
     ])
-    await sleep(10)
 
     assert.equal(query.get().length, 0)
     assert.equal(query2.get().length, 0)
@@ -180,8 +179,8 @@ describe('offline query', () => {
     store.connectModel(model2)
     store.connectModel(model)
     await Promise.all([
-      eventToPromise(query, 'change'),
-      eventToPromise(query2, 'change')
+      eventToPromise(model, 'online'),
+      eventToPromise(model2, 'online')
     ])
 
     assert.equal(query.get().length, 3)
@@ -220,8 +219,8 @@ describe('offline query', () => {
     store.connectModel(model)
     store.connectModel(model2)
     await Promise.all([
-      eventToPromise(query, 'change'),
-      eventToPromise(query2, 'change')
+      eventToPromise(model, 'online'),
+      eventToPromise(model2, 'online')
     ])
 
     assert.equal(query.get().length, 2)

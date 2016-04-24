@@ -148,7 +148,7 @@ describe('offline doc', () => {
     let doc2 = model2.doc(collectionName, docId)
     await doc2.subscribe()
     await doc.stringDiff(field, 'asdf')
-    await eventToPromise(doc2, 'change')
+    await sleep(20)
 
     assert.equal(doc.get(field), 'asdf')
     assert.equal(doc2.get(field), 'asdf')

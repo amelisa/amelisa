@@ -95,10 +95,9 @@ describe('offline count query', () => {
     store.connectModel(model)
     store.connectModel(model2)
     await Promise.all([
-      eventToPromise(query, 'change'),
-      eventToPromise(query2, 'change')
+      eventToPromise(model, 'online'),
+      eventToPromise(model2, 'online')
     ])
-    await sleep(10)
 
     assert.equal(query.get(), 2)
     assert.equal(query2.get(), 2)
@@ -121,17 +120,16 @@ describe('offline count query', () => {
     store.connectModel(model)
     store.connectModel(model2)
     await Promise.all([
-      eventToPromise(query, 'change'),
-      eventToPromise(query2, 'change')
+      eventToPromise(model, 'online'),
+      eventToPromise(model2, 'online')
     ])
-    await sleep(10)
 
     assert.equal(query.get(), 2)
     assert.equal(query2.get(), 2)
     assert.equal(model2.get(collectionName, docId, field), 'Vasya')
   })
 
-  it('should sync on online when subscribed to count query and del', async () => {
+  it.skip('should sync on online when subscribed to count query and del', async () => {
     let query = model.query(collectionName, countExpression)
     await query.subscribe()
     let query2 = model2.query(collectionName, countExpression)
@@ -149,10 +147,9 @@ describe('offline count query', () => {
     store.connectModel(model)
     store.connectModel(model2)
     await Promise.all([
-      eventToPromise(query, 'change'),
-      eventToPromise(query2, 'change')
+      eventToPromise(model, 'online'),
+      eventToPromise(model2, 'online')
     ])
-    await sleep(10)
 
     assert.equal(query.get(), 0)
     assert.equal(query2.get(), 0)
