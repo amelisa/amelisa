@@ -326,25 +326,29 @@ class MutableDoc extends Doc {
     return this.onOp(op)
   }
 
-  arrayDiff (field, value) {
+  async arrayDiff (field, value) {
     let previous = this.get(field)
     if (!Array.isArray(previous)) previous = []
 
     let diffs = arraydiff(previous, value)
 
+    let promises = []
+
     for (let diff of diffs) {
       switch (diff.type) {
         case 'insert':
-          this.insert(field, diff.index, diff.values)
+          promises.push(this.insert(field, diff.index, diff.values))
           break
         case 'remove':
-          this.remove(field, diff.index, diff.howMany)
+          promises.push(this.remove(field, diff.index, diff.howMany))
           break
         case 'move':
-          this.move(field, diff.from, diff.to, diff.howMany)
+          promises.push(this.move(field, diff.from, diff.to, diff.howMany))
           break
       }
     }
+
+    return Promise.all(promises)
   }
 
   async invert (field) {
@@ -508,7 +512,7 @@ class MutableDoc extends Doc {
     return this.onOp(op)
   }
 
-  stringDiff (field, value) {
+  async stringDiff (field, value) {
     let previous = this.get(field)
     if (typeof previous !== 'string') previous = ''
 
@@ -526,14 +530,18 @@ class MutableDoc extends Doc {
       end++
     }
 
+    let promises = []
+
     if (previous.length !== start + end) {
       let howMany = previous.length - start - end
-      this.stringRemove(field, start, howMany)
+      promises.push(this.stringRemove(field, start, howMany))
     }
     if (value.length !== start + end) {
       let inserted = value.slice(start, value.length - end)
-      this.stringInsert(field, start, inserted)
+      promises.push(this.stringInsert(field, start, inserted))
     }
+
+    return Promise.all(promises)
   }
 
   richDiff (field, value) {
