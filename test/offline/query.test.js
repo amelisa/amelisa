@@ -132,7 +132,7 @@ describe('offline query', () => {
     assert.equal(model2.get(collectionName, docId, field), 'Vasya')
   })
 
-  it('should sync on online when subscribed to query and del', async () => {
+  it.skip('should sync on online when subscribed to query and del', async () => {
     let query = model.query(collectionName, expression)
     await query.subscribe()
     let query2 = model2.query(collectionName, expression)
