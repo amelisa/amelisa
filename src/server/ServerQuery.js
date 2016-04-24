@@ -17,6 +17,7 @@ class ServerQuery extends Query {
     this.isDocs = this.store.dbQueries.isDocsQuery(expression)
 
     this.load()
+
     this.on('loaded', () => {
       this.broadcast()
     })

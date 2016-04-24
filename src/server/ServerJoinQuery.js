@@ -2,7 +2,11 @@ import ServerQuery from './ServerQuery'
 
 class ServerJoinQuery extends ServerQuery {
   constructor (collectionName, expression, store, querySet, joinFields) {
-    super(collectionName, expression, store, querySet)
+    super(collectionName, expression, store, querySet, true)
+
+    this.notLoad = true
+
+    setTimeout(() => this.emit('loaded'))
 
     this.joinFieldValues = {}
     for (let field in joinFields) {
@@ -18,37 +22,33 @@ class ServerJoinQuery extends ServerQuery {
       }
     }
 
+    this.loadJoinFields()
+  }
+
+  load () {
+    if (this.notLoad) return
+    super.load()
+  }
+
+  onJoinFieldsChange = () => {
     let loadedFields = []
 
-    this
-      .loadJoinFields()
-      .then(() => {
-        for (let field in this.joinFieldValues) {
-          let joinFieldValue = this.joinFieldValues[field]
-          let { doc, fields } = joinFieldValue
+    for (let field in this.joinFieldValues) {
+      let joinFieldValue = this.joinFieldValues[field]
+      let { doc, fields } = joinFieldValue
 
-          let onFieldChange = () => {
-            let value = doc.get(fields)
+      let value = doc.get(fields)
+      if (value === undefined) return
+      if (loadedFields.indexOf(field) === -1) loadedFields.push(field)
 
-            if (value === undefined) return
-            if (loadedFields.indexOf(field) === -1) loadedFields.push(field)
+      if (loadedFields.length < Object.keys(this.joinFieldValues).length) return
 
-            if (loadedFields.length < Object.keys(this.joinFieldValues).length) return
+      this.expression[field] = value
 
-            expression[field] = value
-            this.load()
-          }
-
-          doc.on('saved', onFieldChange)
-
-          if (doc.loaded) {
-            onFieldChange()
-          } else {
-            doc.once('loaded', onFieldChange)
-          }
-        }
-      })
-  }
+      if (this.notLoad) this.notLoad = false
+      this.load()
+    }
+  };
 
   async loadJoinFields () {
     let promises = []
@@ -61,11 +61,14 @@ class ServerJoinQuery extends ServerQuery {
         .getOrCreateDoc(collectionName, docId)
         .then((doc) => {
           joinFieldValue.doc = doc
+          doc.on('saved', this.onJoinFieldsChange)
+
+          this.onJoinFieldsChange()
         })
       promises.push(promise)
     }
 
-    return Promise.all(promises)
+    await Promise.all(promises)
   }
 }
 
