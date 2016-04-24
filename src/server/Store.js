@@ -255,15 +255,11 @@ class Store extends EventEmitter {
             if (ops.length) {
               docPromise = this
                 .onDocOps(null, collectionName, docId, null, ops, channel)
-                .then((doc) => {
-                  doc.subscribe(channel, version)
-                })
+                .then((doc) => doc.subscribe(channel, version))
             } else {
               docPromise = this.docSet
                 .getOrCreateDoc(collectionName, docId)
-                .then((doc) => {
-                  doc.subscribe(channel, version)
-                })
+                .then((doc) => doc.subscribe(channel, version))
             }
 
             docPromises.push(docPromise)
@@ -278,9 +274,7 @@ class Store extends EventEmitter {
           let { collectionName, expression, docIds } = syncData.queries[hash]
           let queryPromise = this.querySet
             .getOrCreateQuery(collectionName, expression)
-            .then((query) => {
-              query.subscribe(channel, docIds)
-            })
+            .then((query) => query.subscribe(channel, docIds))
           queryPromises.push(queryPromise)
         }
         await Promise.all(queryPromises)
