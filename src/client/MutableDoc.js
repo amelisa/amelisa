@@ -59,6 +59,15 @@ class MutableDoc extends Doc {
     return this.onOp(op)
   }
 
+  async setNull (field, value) {
+    let arraysField = this.getFieldConsideringArrays(field)
+    let previous = this.get(arraysField)
+
+    if (previous !== undefined && previous !== null) return
+
+    return this.set(field, value)
+  }
+
   async del (field) {
     field = this.getFieldConsideringArrays(field)
 

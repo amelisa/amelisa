@@ -313,6 +313,18 @@ class Model extends EventEmitter {
     return doc.set(field, value)
   }
 
+  async setNull (path, value) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    invariant(collectionName && typeof collectionName === 'string', 'Model.setNull collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.setNull docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.setNull field should be a string')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.setNull(field, value)
+  }
+
   async del (...path) {
     let [collectionName, docId, field] = parsePath(path)
 

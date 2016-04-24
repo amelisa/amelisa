@@ -1,7 +1,7 @@
 import assert from 'assert'
 import Model from '../../../../src/client/Model'
 import ServerChannel from '../../../../src/server/ServerChannel'
-import { collectionName, localCollectionName, docId, field, value, value2, getDocData } from '../../../util'
+import { collectionName, localCollectionName, docId, field, field2, value, value2, getDocData } from '../../../util'
 
 let channel
 let model
@@ -154,6 +154,83 @@ describe('Model mutators general', () => {
 
   it('should set on empty doc', () => {
     model.set([collectionName, docId, field], value)
+
+    assert.equal(model.get(collectionName, docId, field), value)
+  })
+
+  it('should setNull doc', () => {
+    model.setNull([collectionName, docId], getDocData())
+    model.setNull([collectionName, docId], value)
+
+    assert.deepEqual(model.get(collectionName, docId), {_id: docId, [field]: value})
+  })
+
+  it('should setNull doc when args as path', () => {
+    model.setNull(`${collectionName}.${docId}`, getDocData())
+    model.setNull(`${collectionName}.${docId}`, value)
+
+    assert.deepEqual(model.get(collectionName, docId), {_id: docId, [field]: value})
+  })
+
+  it('should setNull value as doc', () => {
+    model.setNull([collectionName, docId], value)
+    model.setNull([collectionName, docId], value2)
+
+    assert.deepEqual(model.get(collectionName, docId), value)
+  })
+
+  it('should setNull value as doc on local collection', () => {
+    model.setNull([localCollectionName, docId], value)
+    model.setNull([localCollectionName, docId], value2)
+
+    assert.deepEqual(model.get(localCollectionName, docId), value)
+  })
+
+  it('should setNull value as doc on local collection when args as path', () => {
+    model.setNull(`${collectionName}.${docId}`, value)
+    model.setNull(`${collectionName}.${docId}`, value2)
+
+    assert.deepEqual(model.get(collectionName, docId), value)
+  })
+
+  it('should setNull when args as array', () => {
+    model.add(collectionName, getDocData())
+
+    model.setNull([collectionName, docId, field2], value2)
+    model.setNull([collectionName, docId, field2], value)
+
+    assert.equal(model.get(collectionName, docId, field2), value2)
+  })
+
+  it('should setNull when args as path', () => {
+    model.add(collectionName, getDocData())
+
+    model.setNull(`${collectionName}.${docId}.${field2}`, value2)
+    model.setNull(`${collectionName}.${docId}.${field2}`, value)
+
+    assert.equal(model.get(collectionName, docId, field2), value2)
+  })
+
+  it('should setNull when args as path with nested field', () => {
+    model.add(collectionName, getDocData())
+
+    model.setNull(`${collectionName}.${docId}.nested.${field}`, value2)
+    model.setNull(`${collectionName}.${docId}.nested.${field}`, value)
+
+    assert.deepEqual(model.get(collectionName, docId, 'nested'), {[field]: value2})
+  })
+
+  it('should setNull field when doc is value', () => {
+    model.setNull([collectionName, docId], value)
+    model.setNull([collectionName, docId, field], value)
+    model.setNull([collectionName, docId, field], value2)
+
+    assert.equal(model.get(collectionName, docId, field), value)
+  })
+
+  it('should setNull on empty doc', () => {
+    model.setNull([collectionName, docId, field], value)
+    model.setNull([collectionName, docId, field], value2)
 
     assert.equal(model.get(collectionName, docId, field), value)
   })
