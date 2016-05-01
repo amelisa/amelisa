@@ -141,6 +141,10 @@ class MongoQueries {
 
     return joinFields
   }
+
+  isQuery (expression) {
+    return typeof expression === 'object'
+  }
 }
 
 export default MongoQueries

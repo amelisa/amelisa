@@ -2,6 +2,7 @@ import eventToPromise from 'event-to-promise'
 import ProjectedQuery from './ProjectedQuery'
 import ProjectedJoinQuery from './ProjectedJoinQuery'
 import ServerJoinQuery from './ServerJoinQuery'
+import ServerGraphQLQuery from './ServerGraphQLQuery'
 import ServerQuery from './ServerQuery'
 
 class ServerQuerySet {
@@ -15,20 +16,7 @@ class ServerQuerySet {
     let query = this.data[hash]
 
     if (!query) {
-      let isJoinQuery = this.store.dbQueries.isJoinQuery(expression)
-      let projection = this.store.projections[collectionName]
-      if (projection && !isJoinQuery) {
-        query = new ProjectedQuery(collectionName, projection, expression, this.store, this)
-      } else if (projection && isJoinQuery) {
-        let joinFields = this.store.dbQueries.getJoinFields(expression)
-        query = new ProjectedJoinQuery(collectionName, projection, expression, this.store, this, joinFields)
-      } else if (isJoinQuery) {
-        let joinFields = this.store.dbQueries.getJoinFields(expression)
-        query = new ServerJoinQuery(collectionName, expression, this.store, this, joinFields)
-      } else {
-        query = new ServerQuery(collectionName, expression, this.store, this)
-      }
-
+      query = this.createQuery(collectionName, expression)
       this.data[hash] = query
     }
 
@@ -37,6 +25,33 @@ class ServerQuerySet {
     await eventToPromise(query, 'loaded')
 
     return query
+  }
+
+  createQuery (collectionName, expression) {
+    // TODO: validate graphql
+    let isGraphQLQuery = typeof expression === 'string'
+
+    if (isGraphQLQuery) {
+      return new ServerGraphQLQuery(collectionName, expression, this.store, this)
+    }
+
+    let projection = this.store.projections[collectionName]
+    let isJoinQuery = this.store.dbQueries.isJoinQuery(expression)
+    let joinFields = isJoinQuery ? this.store.dbQueries.getJoinFields(expression) : null
+
+    if (projection && !isJoinQuery) {
+      return new ProjectedQuery(collectionName, projection, expression, this.store, this)
+    }
+
+    if (projection && isJoinQuery) {
+      return new ProjectedJoinQuery(collectionName, projection, expression, this.store, this, joinFields)
+    }
+
+    if (isJoinQuery) {
+      return new ServerJoinQuery(collectionName, expression, this.store, this, joinFields)
+    }
+
+    return new ServerQuery(collectionName, expression, this.store, this)
   }
 
   unattach (collectionName, expression) {

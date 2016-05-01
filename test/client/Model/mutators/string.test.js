@@ -9,7 +9,7 @@ let model
 describe('Model mutators string', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel)
+    model = new Model({channel})
   })
 
   it('should stringInsert when args as array', () => {

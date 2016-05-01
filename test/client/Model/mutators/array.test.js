@@ -9,7 +9,7 @@ let model
 describe('Model mutators array', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel)
+    model = new Model({channel})
   })
 
   it('should push when args as array', () => {

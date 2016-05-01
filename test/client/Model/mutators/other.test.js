@@ -9,7 +9,7 @@ let model
 describe('Model mutators other', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel)
+    model = new Model({channel})
   })
 
   it('should invert when args as array', () => {

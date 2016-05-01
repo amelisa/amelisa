@@ -10,7 +10,7 @@ class ChannelSession {
     return collection && collection[docId]
   }
 
-  saveDocVersion (collectionName, docId, version) {
+  setDocVersion (collectionName, docId, version) {
     let collection = this.collections[collectionName] || (this.collections[collectionName] = {})
     collection[docId] = version
   }
@@ -28,7 +28,7 @@ class ChannelSession {
       versions.push(source + ' ' + date)
     }
 
-    this.saveDocVersion(collectionName, docId, versions.join('|'))
+    this.setDocVersion(collectionName, docId, versions.join('|'))
   }
 }
 

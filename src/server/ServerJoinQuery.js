@@ -2,7 +2,7 @@ import ServerQuery from './ServerQuery'
 
 class ServerJoinQuery extends ServerQuery {
   constructor (collectionName, expression, store, querySet, joinFields) {
-    super(collectionName, expression, store, querySet, true)
+    super(collectionName, expression, store, querySet)
 
     this.notLoad = true
 

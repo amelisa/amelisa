@@ -11,14 +11,16 @@ const defaultOptions = {
 }
 
 class Model extends EventEmitter {
-  constructor (channel, options = {}, dbQueries, projectionHashes) {
+  constructor (options = {}) {
     super()
-
+    let { channel, dbQueries, createSchema, projectionHashes, source } = options
+    invariant(channel, 'Model.constructor channel is required for creating model')
     this.channel = channel
-    this.options = Object.assign({}, defaultOptions, options)
-    this.source = this.options.source
     this.dbQueries = dbQueries
+    this.createSchema = createSchema
     this.projectionHashes = projectionHashes
+    this.source = source
+    this.options = Object.assign({}, defaultOptions, options)
     this.initing = false
     this.inited = false
     this.ready = false
@@ -221,7 +223,7 @@ class Model extends EventEmitter {
 
       case 'q':
         query = this.querySet.getOrCreateQuery(collectionName, expression)
-        query.onSnapshotNotDocs(value)
+        query.onSnapshot(value)
         break
 
       case 'qdiff':

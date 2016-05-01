@@ -9,7 +9,7 @@ let model
 describe('Model ops', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel)
+    model = new Model({channel})
     channel.open()
   })
 

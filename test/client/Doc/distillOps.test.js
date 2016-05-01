@@ -10,7 +10,7 @@ let model
 describe('Doc distillOps', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel)
+    model = new Model({channel})
   })
 
   it('should distillOps on same field', () => {

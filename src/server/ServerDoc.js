@@ -59,6 +59,7 @@ class ServerDoc extends Doc {
     this.saveOp(op)
     this.applyOp(op)
     this.broadcastOp(op, channel)
+    this.emit('change')
     this.save()
   }
 
@@ -203,12 +204,13 @@ class ServerDoc extends Doc {
   }
 
   subscribeWithoutSending (channel, version) {
-    channel._session.saveDocVersion(this.collectionName, this.docId, version)
+    channel._session.setDocVersion(this.collectionName, this.docId, version)
     this.addChannel(channel)
   }
 
   subscribe (channel, version, ackId) {
-    channel._session.saveDocVersion(this.collectionName, this.docId, version)
+    if (this.channels.indexOf(channel) > -1) return
+    if (version) channel._session.setDocVersion(this.collectionName, this.docId, version)
     this.addChannel(channel)
 
     let op = {
@@ -243,7 +245,7 @@ class ServerDoc extends Doc {
 
   sync (channel, version, resubscribe) {
     if (resubscribe) {
-      channel._session.saveDocVersion(this.collectionName, this.docId, version)
+      channel._session.setDocVersion(this.collectionName, this.docId, version)
       this.addChannel(channel)
     }
     this.sendOpsToChannel(channel)

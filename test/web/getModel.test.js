@@ -43,7 +43,10 @@ describe('getModel', () => {
 
   it('should get model', async () => {
     let channel = new ServerChannel()
-    model = getModel(Object.assign({}, options, {channel}))
+    model = getModel({
+      ...options,
+      ...{modelOptions: {...options.modelOptions, channel}}
+    })
     store.connectModel(model)
 
     await model.onReady()
@@ -59,7 +62,10 @@ describe('getModel', () => {
     window.localStorage.setItem('version', 1)
     let channel = new ServerChannel()
     channel.open = () => {}
-    model = getModel(Object.assign({}, options, {channel}))
+    model = getModel({
+      ...options,
+      ...{modelOptions: {...options.modelOptions, channel}}
+    })
     channel.emit('close')
     await model.onReady()
 
@@ -72,7 +78,10 @@ describe('getModel', () => {
 
   it('should save data in indexedDB and get it next time', async () => {
     let channel = new ServerChannel()
-    model = getModel(Object.assign({}, options, {channel}))
+    model = getModel({
+      ...options,
+      ...{modelOptions: {...options.modelOptions, channel}}
+    })
     store.connectModel(model)
 
     await model.onReady()
@@ -83,7 +92,10 @@ describe('getModel', () => {
     delete model.storage
 
     channel = new ServerChannel()
-    model = getModel(Object.assign({}, options, {channel}))
+    model = getModel({
+      ...options,
+      ...{modelOptions: {...options.modelOptions, channel}}
+    })
     store.connectModel(model)
 
     await model.onReady()

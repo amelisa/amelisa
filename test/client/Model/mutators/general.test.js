@@ -9,7 +9,7 @@ let model
 describe('Model mutators general', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel)
+    model = new Model({channel})
   })
 
   it('should get nothing from empty model', () => {

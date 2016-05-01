@@ -1,21 +1,65 @@
+import { graphql } from 'graphql'
 import ClientQuery from './ClientQuery'
 
 let defaultSubscribeOptions = {
   fetch: true
 }
 
-class RemoteQuery extends ClientQuery {
+class RemoteGraphQLQuery extends ClientQuery {
   constructor (collectionName, expression, model, collection, querySet) {
     super(collectionName, expression, model, collection, querySet)
     this.subscribed = 0
     this.subscribing = false
+    this.subscribes = []
+    this.isDocs = false
+    let { createSchema } = model
+    this.schema = createSchema(this.resolve)
   }
+
+  async refresh () {
+    let prevData = this.data
+
+    for (let subscribe of this.subscribes) {
+      subscribe.removeListener('change', this.onChange)
+      subscribe.unsubscribe()
+    }
+
+    let { data } = await graphql(this.schema, this.expression)
+    this.data = data
+
+    if (this.dataHasChanged(prevData, this.data)) {
+      this.emit('change')
+    }
+  }
+
+  resolve = (collectionName, docIdOrExpression) => {
+    let isQuery = this.model.dbQueries.isQuery(docIdOrExpression)
+    let subscribe
+
+    if (isQuery) {
+      subscribe = this.querySet.getOrCreateQuery(collectionName, docIdOrExpression)
+    } else {
+      subscribe = this.model.collectionSet.getOrCreateDoc(collectionName, docIdOrExpression)
+    }
+
+    this.subscribes.push(subscribe)
+    subscribe.on('change', this.onChange)
+    subscribe.subscribe()
+    subscribe.subscribing = false
+
+    return subscribe.get()
+  };
+
+  onChange = () => {
+    if (this.model.online) return
+    this.refresh()
+  };
 
   async fetch () {
     if (this.subscribing) return this.subscribingPromise
     this.subscribing = true
 
-    this.refresh()
+    await this.refresh()
     this.lastServerData = this.data
 
     let op = {
@@ -23,8 +67,6 @@ class RemoteQuery extends ClientQuery {
       collectionName: this.collection.name,
       expression: this.expression
     }
-
-    if (this.isDocs) op.docIds = this.data
 
     this.subscribingPromise = this.model.sendOp(op)
     return this.subscribingPromise
@@ -37,7 +79,7 @@ class RemoteQuery extends ClientQuery {
     this.subscribing = true
     if (this.subscribed !== 1) return
 
-    super.subscribe()
+    await this.refresh()
     this.lastServerData = this.data
 
     let op = {
@@ -45,8 +87,6 @@ class RemoteQuery extends ClientQuery {
       collectionName: this.collectionName,
       expression: this.expression
     }
-
-    if (this.isDocs) op.docIds = this.data
 
     this.subscribingPromise = this.model.sendOp(op)
     return options.fetch ? this.subscribingPromise : undefined
@@ -66,61 +106,12 @@ class RemoteQuery extends ClientQuery {
   }
 
   onSnapshot (data) {
-    this.refreshDataFromServer(data)
-  }
-
-  onDiff (diffs, docOps) {
-    this.attachDocsToCollection(docOps)
-
-    let docIds = this.applyDiffs(diffs)
-
-    this.refreshDataFromServer(docIds)
-  }
-
-  applyDiffs (diffs) {
-    let docIds = this.lastServerData || this.data
-
-    for (let diff of diffs) {
-      switch (diff.type) {
-        case 'insert':
-          let before = docIds.slice(0, diff.index)
-          let after = docIds.slice(diff.index)
-          docIds = before.concat(diff.values, after)
-          break
-
-        case 'move':
-          let move = docIds.splice(diff.from, diff.howMany)
-          docIds.splice.apply(docIds, [diff.to, 0].concat(move))
-          break
-
-        case 'remove':
-          docIds.splice(diff.index, diff.howMany)
-          break
-      }
-    }
-
-    return docIds
-  }
-
-  refreshDataFromServer (data) {
     this.lastServerData = data
     this.data = data
 
     this.subscribing = false
     this.emit('change')
   }
-
-  getSyncData () {
-    let data = {
-      collectionName: this.collectionName,
-      expression: this.expression
-    }
-
-    if (this.isDocs) data.docIds = this.data
-    this.lastServerData = this.data
-
-    return data
-  }
 }
 
-export default RemoteQuery
+export default RemoteGraphQLQuery

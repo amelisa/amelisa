@@ -9,7 +9,7 @@ let model
 describe('performance doc', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel, source)
+    model = new Model({channel, source})
   })
 
   it('should refreshState fast', () => {

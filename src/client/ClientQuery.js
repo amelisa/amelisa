@@ -1,6 +1,6 @@
 import Query from './Query'
 import RemoteDoc from './RemoteDoc'
-import { dbFields, fastEqual } from '../util'
+import { fastEqual } from '../util'
 
 class ClientQuery extends Query {
   constructor (collectionName, expression, model, collection, querySet) {
@@ -33,19 +33,6 @@ class ClientQuery extends Query {
     await this.fetch()
 
     return this.get()
-  }
-
-  getStateFromDocData (doc) {
-    let state = {}
-    for (let field in doc) {
-      if (!dbFields[field]) state[field] = doc[field]
-    }
-    return state
-  }
-
-  getStatesFromDocs (docs) {
-    if (!this.isDocs) return docs
-    return docs.map((doc) => this.getStateFromDocData(doc))
   }
 
   attachDocsToCollection (docs) {
@@ -87,7 +74,7 @@ class ClientQuery extends Query {
   dataHasChanged (prev, data) {
     if (typeof prev !== typeof data) return true
 
-    if (this.model.dbQueries.isDocsQuery) {
+    if (this.isDocs) {
       // there is no cheap way to compare all query docs, so for now
       // we always emit change
       return true

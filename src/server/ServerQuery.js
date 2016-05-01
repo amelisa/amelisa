@@ -26,6 +26,10 @@ class ServerQuery extends Query {
     this.setMaxListeners(0)
   }
 
+  get () {
+    return this.getStatesFromDocs(this.data)
+  }
+
   load () {
     // TODO: can be race condition. should load one more time
     if (this.loading) return
@@ -36,6 +40,7 @@ class ServerQuery extends Query {
       .then((docs) => {
         this.prev = this.data
         this.data = docs
+        this.emit('change')
         this.loading = false
         this.loaded = true
         this.emit('loaded')

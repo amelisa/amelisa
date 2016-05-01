@@ -10,11 +10,11 @@ const defaultOptions = {
 function getModel (options = {}) {
   options = Object.assign({}, defaultOptions, options)
 
-  let { channel, url, wsOptions, modelOptions, dbQueries, Storage } = options
+  let { url, wsOptions, modelOptions, Storage } = options
+  let { channel } = modelOptions
+  if (!channel) channel = modelOptions.channel = new WebSocketChannel(url, wsOptions)
 
-  if (!channel) channel = new WebSocketChannel(url, wsOptions)
-
-  let model = new Model(channel, modelOptions, dbQueries)
+  let model = new Model(modelOptions)
 
   if (Storage) {
     model.getStorage = (collectionNames, version) => {

@@ -10,7 +10,7 @@ let model
 describe('Doc refreshState', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel)
+    model = new Model({channel})
   })
 
   it('should refreshState on different field', () => {

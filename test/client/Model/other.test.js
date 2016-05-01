@@ -11,7 +11,7 @@ let model
 describe('Model other', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel, {source}, dbQueries)
+    model = new Model({channel, source, dbQueries})
     model.online = true
   })
 

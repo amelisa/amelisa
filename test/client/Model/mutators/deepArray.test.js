@@ -9,7 +9,7 @@ let model
 describe('Model mutators deep array', () => {
   beforeEach(() => {
     channel = new ServerChannel()
-    model = new Model(channel)
+    model = new Model({channel})
   })
 
   it('should set on item', () => {

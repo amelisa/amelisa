@@ -12,7 +12,7 @@ async function createClient () {
     isClient: true,
     source: Model.prototype.id()
   }
-  let model = new Model(channel, options, dbQueries)
+  let model = new Model({...options, channel, dbQueries})
 
   model.on('online', () => {
     console.log('online')

@@ -1,4 +1,5 @@
 import LocalQuery from './LocalQuery'
+import RemoteGraphQLQuery from './RemoteGraphQLQuery'
 import RemoteQuery from './RemoteQuery'
 import { isLocalCollection } from '../util'
 
@@ -9,17 +10,24 @@ class ClientQuerySet {
   }
 
   getOrCreateQuery (collectionName, expression) {
-    expression = Object.assign({}, expression)
+    if (!expression) expression = this.model.dbQueries.getAllSelector()
+    // TODO: validate query
+    let isGraphQLQuery = typeof expression === 'string'
+    if (isGraphQLQuery) expression = expression.replace(/ /g, '').replace(/\n/g, '')
     let hash = this.getQueryHash(collectionName, expression)
     let query = this.data[hash]
 
     if (!query) {
       let collection = this.model.collectionSet.getOrCreateCollection(collectionName)
-      if (isLocalCollection(collectionName)) {
+
+      if (isGraphQLQuery) {
+        query = new RemoteGraphQLQuery(collectionName, expression, this.model, collection, this)
+      } else if (isLocalCollection(collectionName)) {
         query = new LocalQuery(collectionName, expression, this.model, collection, this)
       } else {
         query = new RemoteQuery(collectionName, expression, this.model, collection, this)
       }
+
       this.data[hash] = query
     }
 
