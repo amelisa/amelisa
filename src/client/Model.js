@@ -295,9 +295,9 @@ class Model extends EventEmitter {
     invariant(docData && typeof docData === 'object', 'Model.add docData is required and should be an object')
 
     docData = deepClone(docData)
-    let docId = docData._id
+    let docId = docData.id
     if (!docId) docId = this.id()
-    else delete docData._id
+    else delete docData.id
 
     let collection = this.collectionSet.getOrCreateCollection(collectionName)
     return collection.add(docId, docData)
@@ -556,7 +556,7 @@ class Model extends EventEmitter {
     let collectionNames = []
 
     for (let collectionName in prevProjectionHashes) {
-      if (collectionName === '_id') continue
+      if (collectionName === 'id') continue
 
       let hash = prevProjectionHashes[collectionName]
       let newHash = newProjectionHashes[collectionName]

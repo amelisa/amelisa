@@ -16,14 +16,14 @@ class Doc extends EventEmitter {
 
     if (this.state && this.state._del) return
 
-    if (field === '_id') return this.docId
+    if (field === 'id') return this.docId
 
     let value = this.getInternal(field)
 
     value = this.getValue(value)
 
     if (!field && typeof value === 'object' && !Array.isArray(value)) {
-      value._id = this.docId
+      value.id = this.docId
     }
 
     return value
@@ -53,7 +53,7 @@ class Doc extends EventEmitter {
   getForSave () {
     if (this.state && this.state._del) {
       return {
-        _id: this.docId,
+        id: this.docId,
         _del: true
       }
     }

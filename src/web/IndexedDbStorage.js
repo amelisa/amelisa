@@ -40,7 +40,7 @@ class IndexedDbStorage {
         for (let collectionName of this.collectionNames) {
           if (existingCollectionNames.indexOf(collectionName) > -1) continue
 
-          let objectStore = this.db.createObjectStore(collectionName, {keyPath: '_id'})
+          let objectStore = this.db.createObjectStore(collectionName, {keyPath: 'id'})
           objectStore.transaction.oncomplete = (e) => {
             // TODO: handle it
           }
@@ -113,7 +113,7 @@ class IndexedDbStorage {
 
   async saveDoc (collectionName, docId, ops, serverVersion) {
     let doc = {
-      _id: docId,
+      id: docId,
       _ops: ops,
       _sv: serverVersion
     }

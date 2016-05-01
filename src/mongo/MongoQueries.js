@@ -37,35 +37,35 @@ class MongoQueries {
   }
 
   getQueryResultFromArray (allDocs, expression) {
-    let query = this.normalizeQuery(expression)
+    expression = this.normalizeExpression(expression)
 
-    if (query.$aggregate) {
-      let agg = new Mingo.Aggregator(query.$aggregate)
+    if (expression.$aggregate) {
+      let agg = new Mingo.Aggregator(expression.$aggregate)
       return agg.run(allDocs)
     }
 
-    let mingoQuery = new Mingo.Query(query.$query)
+    let mingoQuery = new Mingo.Query(expression.$query)
     let cursor = mingoQuery.find(allDocs)
 
-    if (query.$orderby) cursor.sort(query.$orderby)
+    if (expression.$orderby) cursor.sort(expression.$orderby)
 
-    if (query.$skip) cursor.skip(query.$skip)
+    if (expression.$skip) cursor.skip(expression.$skip)
 
-    if (query.$limit) cursor.limit(query.$limit)
+    if (expression.$limit) cursor.limit(expression.$limit)
 
-    if (query.$findOptions) {
-      for (let key in query.$findOptions) {
-        let value = query.$findOptions[key]
+    if (expression.$findOptions) {
+      for (let key in expression.$findOptions) {
+        let value = expression.$findOptions[key]
         cursor = cursor[key](value)
       }
     }
 
-    if (query.$count) return cursor.count()
+    if (expression.$count) return cursor.count()
 
-    if (query.$distinct) {
+    if (expression.$distinct) {
       return cursor
         .all()
-        .map((doc) => doc[query.$field])
+        .map((doc) => doc[expression.$field])
     }
 
     // TODO: implement $mapReduce
@@ -73,34 +73,49 @@ class MongoQueries {
     return cursor.all()
   }
 
-  normalizeQuery (expression) {
+  normalizeExpression (expression) {
     // Box queries inside of a $query and clone so that we know where to look
     // for selctors and can modify them without affecting the original object
-    let query
+    let normalized
     if (expression.$query) {
-      query = Object.assign({}, expression)
-      query.$query = Object.assign({}, query.$query)
+      normalized = {...expression}
+      normalized.$query = {...normalized.$query}
     } else {
-      query = {$query: {}}
+      normalized = {$query: {}}
       for (let key in expression) {
         if (metaOperators[key]) {
-          query[key] = expression[key]
+          normalized[key] = expression[key]
         } else {
-          query.$query[key] = expression[key]
+          normalized.$query[key] = expression[key]
         }
       }
     }
 
+    this.normalizeIds(normalized)
+
     // Do not return deleted docs
-    query.$query._del = {
+    normalized.$query._del = {
       $ne: true
     }
 
-    return query
+    return normalized
+  }
+
+  normalizeIds (object) {
+    if (typeof object !== 'object') return
+
+    if (object.id) {
+      object._id = object.id
+      delete object.id
+    }
+
+    for (let key in object) {
+      this.normalizeIds(object[key])
+    }
   }
 
   isDocsQuery (expression) {
-    let query = this.normalizeQuery(expression)
+    let query = this.normalizeExpression(expression)
 
     for (let key in query) {
       if (notDocsOperators[key]) return false
@@ -118,7 +133,7 @@ class MongoQueries {
   }
 
   isJoinQuery (expression) {
-    let query = this.normalizeQuery(expression)
+    let query = this.normalizeExpression(expression)
 
     for (let key in query.$query) {
       let value = query.$query[key]
@@ -129,11 +144,11 @@ class MongoQueries {
   }
 
   getJoinFields (expression) {
-    let query = this.normalizeQuery(expression)
+    expression = expression.$query || expression
     let joinFields = {}
 
-    for (let key in query.$query) {
-      let value = query.$query[key]
+    for (let key in expression) {
+      let value = expression[key]
       if (this.isJoinField(value)) {
         joinFields[key] = value
       }

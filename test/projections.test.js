@@ -14,7 +14,7 @@ let options = {
     [collectionName]: {
       collectionName: dbCollectionName,
       fields: {
-        _id: true,
+        id: true,
         [field]: true,
         complex: true
       }

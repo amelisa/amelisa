@@ -53,7 +53,7 @@ class AsyncStorage {
 
   async saveDoc (collectionName, docId, ops, serverVersion) {
     let doc = {
-      _id: docId,
+      id: docId,
       _ops: ops,
       _sv: serverVersion
     }

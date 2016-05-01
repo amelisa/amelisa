@@ -35,7 +35,7 @@ class SqliteStorage {
   }
 
   async createCollection (collectionName) {
-    return this.db.executeSql(`CREATE TABLE ${collectionName} (_id TEXT PRIMARY KEY, data TEXT);`)
+    return this.db.executeSql(`CREATE TABLE ${collectionName} (id TEXT PRIMARY KEY, data TEXT);`)
   }
 
   async removeCollection (collectionName) {
@@ -86,7 +86,7 @@ class SqliteStorage {
 
   async saveDoc (collectionName, docId, ops, serverVersion) {
     let doc = {
-      _id: docId,
+      id: docId,
       _ops: ops,
       _sv: serverVersion
     }
@@ -96,7 +96,7 @@ class SqliteStorage {
     // escape single quote character in SQL by doubling it
     data = data.replace(/'/g, "''")
 
-    await this.db.executeSql(`INSERT OR REPLACE INTO ${collectionName} (_id, data) VALUES ('${docId}', '${data}')`)
+    await this.db.executeSql(`INSERT OR REPLACE INTO ${collectionName} (id, data) VALUES ('${docId}', '${data}')`)
   }
 }
 

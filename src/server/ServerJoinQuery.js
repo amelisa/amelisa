@@ -9,6 +9,7 @@ class ServerJoinQuery extends ServerQuery {
     setTimeout(() => this.emit('loaded'))
 
     this.joinFieldValues = {}
+
     for (let field in joinFields) {
       let value = joinFields[field]
       value = value.slice(1)

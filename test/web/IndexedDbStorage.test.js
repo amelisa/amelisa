@@ -34,7 +34,7 @@ describe('IndexedDbStorage', () => {
     let doc = docs[0]
     assert(doc)
     assert.equal(Object.keys(doc).length, 3)
-    assert.equal(doc._id, docId)
+    assert.equal(doc.id, docId)
     assert.equal(doc._ops.length, 0)
     assert.equal(doc._sv, serverVersion)
   })

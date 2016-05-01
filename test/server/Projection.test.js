@@ -8,7 +8,7 @@ describe('Projection', () => {
   describe('validation', () => {
     it('should not throw an error when all fields are inclusive', () => {
       let fields = {
-        _id: true,
+        id: true,
         name: true,
         age: true
       }
@@ -39,7 +39,7 @@ describe('Projection', () => {
       throw new Error('Should be error')
     })
 
-    it('should throw an error when inclusive without _id', () => {
+    it('should throw an error when inclusive without id', () => {
       let fields = {
         name: true
       }
@@ -52,9 +52,9 @@ describe('Projection', () => {
       throw new Error('Should be error')
     })
 
-    it('should throw an error when exclusive with _id', () => {
+    it('should throw an error when exclusive with id', () => {
       let fields = {
-        _id: false,
+        id: false,
         name: false
       }
 
@@ -70,7 +70,7 @@ describe('Projection', () => {
   describe('inclusive', () => {
     beforeEach(() => {
       let fields = {
-        _id: true,
+        id: true,
         name: true
       }
 
@@ -80,12 +80,12 @@ describe('Projection', () => {
     it('should return hash', () => {
       let hash = projection.getHash()
 
-      assert.equal(hash, '_id:true,name:true')
+      assert.equal(hash, 'id:true,name:true')
     })
 
     it('should project doc', () => {
       let doc = {
-        _id: docId,
+        id: docId,
         name: value,
         age: 14,
         _ops: [],
@@ -95,7 +95,7 @@ describe('Projection', () => {
       let projectedDoc = projection.projectDoc(doc)
 
       assert.equal(Object.keys(projectedDoc).length, 4)
-      assert.equal(projectedDoc._id, doc._id)
+      assert.equal(projectedDoc.id, doc.id)
       assert.equal(projectedDoc.name, doc.name)
       assert.equal(projectedDoc.age, undefined)
       assert.equal(projectedDoc._ops.length, 0)
@@ -106,7 +106,7 @@ describe('Projection', () => {
       let op = {
         type: 'add',
         value: {
-          _id: docId,
+          id: docId,
           name: value,
           age: 14
         }
@@ -177,7 +177,7 @@ describe('Projection', () => {
       let op = {
         type: 'add',
         value: {
-          _id: docId,
+          id: docId,
           name: value
         }
       }
@@ -191,7 +191,7 @@ describe('Projection', () => {
       let op = {
         type: 'add',
         value: {
-          _id: docId,
+          id: docId,
           name: value,
           age: 14
         }
@@ -276,7 +276,7 @@ describe('Projection', () => {
 
     it('should project doc', () => {
       let doc = {
-        _id: docId,
+        id: docId,
         name: value,
         age: 14,
         _ops: [],
@@ -286,7 +286,7 @@ describe('Projection', () => {
       let projectedDoc = projection.projectDoc(doc)
 
       assert.equal(Object.keys(projectedDoc).length, 4)
-      assert.equal(projectedDoc._id, doc._id)
+      assert.equal(projectedDoc.id, doc.id)
       assert.equal(projectedDoc.name, doc.name)
       assert.equal(projectedDoc.age, undefined)
       assert.equal(projectedDoc._ops.length, 0)
@@ -297,7 +297,7 @@ describe('Projection', () => {
       let op = {
         type: 'add',
         value: {
-          _id: docId,
+          id: docId,
           name: value,
           age: 14
         }
@@ -368,7 +368,7 @@ describe('Projection', () => {
       let op = {
         type: 'add',
         value: {
-          _id: docId,
+          id: docId,
           name: value
         }
       }
@@ -382,7 +382,7 @@ describe('Projection', () => {
       let op = {
         type: 'add',
         value: {
-          _id: docId,
+          id: docId,
           name: value,
           age: 14
         }

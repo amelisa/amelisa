@@ -26,10 +26,14 @@ class MongoStorage extends MongoQueries {
       .find(query)
       .limit(1)
       .next()
+      .then((doc) => {
+        doc.id = doc._id
+        delete doc._id
+      })
   }
 
   async getDocsByQuery (collectionName, expression) {
-    let query = this.normalizeQuery(expression)
+    let query = this.normalizeExpression(expression)
     let collection = this.db.collection(collectionName)
 
     if (query.$count) {

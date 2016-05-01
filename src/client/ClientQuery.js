@@ -57,7 +57,7 @@ class ClientQuery extends Query {
     let docs = this.collection.getDocs()
     let docDatas = this.model.dbQueries.getQueryResultFromArray(docs, this.expression)
     if (this.isDocs) {
-      this.data = docDatas.map((docData) => docData._id)
+      this.data = docDatas.map((docData) => docData.id)
     } else {
       this.data = docDatas
     }

@@ -26,13 +26,13 @@ describe('Model mutators general', () => {
 
     let newId = Object.keys(model.get(collectionName))[0]
 
-    assert.deepEqual(model.get(collectionName, newId), {_id: newId, [field]: value})
+    assert.deepEqual(model.get(collectionName, newId), {id: newId, [field]: value})
   })
 
   it('should add with docId', () => {
     model.add(collectionName, getDocData())
 
-    assert.deepEqual(model.get(collectionName, docId), {_id: docId, [field]: value})
+    assert.deepEqual(model.get(collectionName, docId), {id: docId, [field]: value})
   })
 
   it('should del doc', () => {
@@ -64,7 +64,7 @@ describe('Model mutators general', () => {
 
     model.del(collectionName, docId, field)
 
-    assert.deepEqual(model.get(collectionName, docId), {_id: docId})
+    assert.deepEqual(model.get(collectionName, docId), {id: docId})
   })
 
   it('should del field when args as array', () => {
@@ -72,7 +72,7 @@ describe('Model mutators general', () => {
 
     model.del([collectionName, docId, field])
 
-    assert.deepEqual(model.get(collectionName, docId), {_id: docId})
+    assert.deepEqual(model.get(collectionName, docId), {id: docId})
   })
 
   it('should del field when args as path', () => {
@@ -80,7 +80,7 @@ describe('Model mutators general', () => {
 
     model.del(`${collectionName}.${docId}.${field}`)
 
-    assert.deepEqual(model.get(collectionName, docId), {_id: docId})
+    assert.deepEqual(model.get(collectionName, docId), {id: docId})
   })
 
   it('should del value on field when doc is value', () => {
@@ -88,19 +88,19 @@ describe('Model mutators general', () => {
 
     model.del(collectionName, docId, field)
 
-    assert.deepEqual(model.get(collectionName, docId), {_id: docId})
+    assert.deepEqual(model.get(collectionName, docId), {id: docId})
   })
 
   it('should set doc', () => {
     model.set([collectionName, docId], getDocData())
 
-    assert.deepEqual(model.get(collectionName, docId), {_id: docId, [field]: value})
+    assert.deepEqual(model.get(collectionName, docId), {id: docId, [field]: value})
   })
 
   it('should set doc when args as path', () => {
     model.set(`${collectionName}.${docId}`, getDocData())
 
-    assert.deepEqual(model.get(collectionName, docId), {_id: docId, [field]: value})
+    assert.deepEqual(model.get(collectionName, docId), {id: docId, [field]: value})
   })
 
   it('should set value as doc', () => {
@@ -162,14 +162,14 @@ describe('Model mutators general', () => {
     model.setNull([collectionName, docId], getDocData())
     model.setNull([collectionName, docId], value)
 
-    assert.deepEqual(model.get(collectionName, docId), {_id: docId, [field]: value})
+    assert.deepEqual(model.get(collectionName, docId), {id: docId, [field]: value})
   })
 
   it('should setNull doc when args as path', () => {
     model.setNull(`${collectionName}.${docId}`, getDocData())
     model.setNull(`${collectionName}.${docId}`, value)
 
-    assert.deepEqual(model.get(collectionName, docId), {_id: docId, [field]: value})
+    assert.deepEqual(model.get(collectionName, docId), {id: docId, [field]: value})
   })
 
   it('should setNull value as doc', () => {

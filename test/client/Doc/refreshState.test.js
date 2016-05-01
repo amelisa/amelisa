@@ -37,7 +37,7 @@ describe('Doc refreshState', () => {
 
     let doc = new Doc(docId, ops)
 
-    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get('id'), docId)
     assert.equal(doc.get(field), value)
     assert.equal(doc.get(field2), value2)
     assert.equal(Object.keys(doc.get()).length, 3)
@@ -67,7 +67,7 @@ describe('Doc refreshState', () => {
 
     let doc = new Doc(docId, ops)
 
-    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get('id'), docId)
     assert.equal(doc.get(field), value2)
     assert.equal(Object.keys(doc.get()).length, 2)
   })
@@ -98,7 +98,7 @@ describe('Doc refreshState', () => {
 
     let doc = new Doc(docId, ops)
 
-    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get('id'), docId)
     assert.equal(doc.get(`nested.${field}`), value2)
     assert.equal(Object.keys(doc.get()).length, 2)
   })
@@ -125,7 +125,7 @@ describe('Doc refreshState', () => {
 
     let doc = new Doc(docId, ops)
 
-    assert.equal(doc.get('_id'), undefined)
+    assert.equal(doc.get('id'), undefined)
     assert.equal(doc.get(field), undefined)
     assert.equal(doc.get(), undefined)
   })
@@ -161,7 +161,7 @@ describe('Doc refreshState', () => {
 
     let doc = new Doc(docId, ops)
 
-    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get('id'), docId)
     assert.equal(doc.get(field), value)
   })
 
@@ -190,7 +190,7 @@ describe('Doc refreshState', () => {
 
     let doc = new Doc(docId, ops)
 
-    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get('id'), docId)
     assert.equal(doc.get('nested'), undefined)
     assert.equal(Object.keys(doc.get()).length, 1)
   })
@@ -220,7 +220,7 @@ describe('Doc refreshState', () => {
 
     let doc = new Doc(docId, ops)
 
-    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get('id'), docId)
     assert.equal(typeof doc.get('nested'), 'object')
     assert.equal(Object.keys(doc.get('nested')).length, 0)
     assert.equal(doc.get('nested.' + field), undefined)
@@ -248,7 +248,7 @@ describe('Doc refreshState', () => {
 
     let doc = new Doc(docId, ops)
 
-    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get('id'), docId)
     assert.equal(doc.get(field), undefined)
     assert.equal(doc.get(), 7)
   })
@@ -273,7 +273,7 @@ describe('Doc refreshState', () => {
 
     let doc = new Doc(docId, ops)
 
-    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get('id'), docId)
     assert.equal(doc.get(field), undefined)
     assert.equal(doc.get(), 4)
   })
@@ -301,7 +301,7 @@ describe('Doc refreshState', () => {
 
     let doc = new Doc(docId, ops)
 
-    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get('id'), docId)
     assert.equal(doc.get(field), undefined)
     assert.equal(doc.get(), 4)
   })
@@ -330,7 +330,7 @@ describe('Doc refreshState', () => {
 
     let doc = new Doc(docId, ops)
 
-    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get('id'), docId)
     assert.equal(doc.get(field), 5)
   })
 
@@ -358,7 +358,7 @@ describe('Doc refreshState', () => {
 
     let doc = new Doc(docId, ops)
 
-    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get('id'), docId)
     assert.equal(doc.get(), 'a')
   })
 
@@ -395,7 +395,7 @@ describe('Doc refreshState', () => {
 
     let doc = new Doc(docId, ops)
 
-    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get('id'), docId)
     assert.equal(doc.get(), '')
   })
 
@@ -424,7 +424,7 @@ describe('Doc refreshState', () => {
 
     let doc = new Doc(docId, ops)
 
-    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get('id'), docId)
     assert.equal(doc.get(field), 'a')
   })
 
@@ -463,7 +463,7 @@ describe('Doc refreshState', () => {
 
     let doc = new Doc(docId, ops)
 
-    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get('id'), docId)
     assert.equal(doc.get(field), '')
   })
 })

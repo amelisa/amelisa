@@ -48,7 +48,7 @@ function createSchema (resolve) {
       stories: {
         type: new GraphQLList(Story),
         resolve (parent, args) {
-          return resolve('stories', {userId: parent._id})
+          return resolve('stories', {userId: parent.id})
         }
       }
     })
@@ -110,40 +110,40 @@ describe('subscribes graphql query', () => {
   })
 
   it('should fetch graphql query and get results', async () => {
-    await model.add('stories', {_id: docId, text: 'Story 1', userId: docId})
-    await model.add('users', {_id: docId, name: value})
+    await model.add('stories', {id: docId, text: 'Story 1', userId: docId})
+    await model.add('users', {id: docId, name: value})
     let query = model.query(collectionName, graphqlExpression)
     await query.fetch()
 
-    assert.deepEqual(query.get(), {user: {name: value, stories: [{id: null, text: 'Story 1'}]}})
+    assert.deepEqual(query.get(), {user: {name: value, stories: [{id: docId, text: 'Story 1'}]}})
   })
 
   it('should subscribe graphql query and get results', async () => {
-    await model.add('stories', {_id: docId, text: 'Story 1', userId: docId})
-    await model.add('users', {_id: docId, name: value})
+    await model.add('stories', {id: docId, text: 'Story 1', userId: docId})
+    await model.add('users', {id: docId, name: value})
     let query = model.query(collectionName, graphqlExpression)
     await query.subscribe()
 
-    assert.deepEqual(query.get(), {user: {name: value, stories: [{id: null, text: 'Story 1'}]}})
+    assert.deepEqual(query.get(), {user: {name: value, stories: [{id: docId, text: 'Story 1'}]}})
 
     setTimeout(() => model2.set(['stories', docId, 'text'], 'Story 2'))
     await eventToPromise(query, 'change')
 
-    assert.deepEqual(query.get(), {user: {name: value, stories: [{id: null, text: 'Story 2'}]}})
+    assert.deepEqual(query.get(), {user: {name: value, stories: [{id: docId, text: 'Story 2'}]}})
   })
 
   it('should subscribe graphql query and get results while offline', async () => {
     model.close()
-    await model.add('stories', {_id: docId, text: 'Story 1', userId: docId})
-    await model.add('users', {_id: docId, name: value})
+    await model.add('stories', {id: docId, text: 'Story 1', userId: docId})
+    await model.add('users', {id: docId, name: value})
     let query = model.query(collectionName, graphqlExpression)
     await query.subscribe()
 
-    assert.deepEqual(query.get(), {user: {name: value, stories: [{id: null, text: 'Story 1'}]}})
+    assert.deepEqual(query.get(), {user: {name: value, stories: [{id: docId, text: 'Story 1'}]}})
 
     setTimeout(() => model.set(['stories', docId, 'text'], 'Story 2'))
     await eventToPromise(query, 'change')
 
-    assert.deepEqual(query.get(), {user: {name: value, stories: [{id: null, text: 'Story 2'}]}})
+    assert.deepEqual(query.get(), {user: {name: value, stories: [{id: docId, text: 'Story 2'}]}})
   })
 })

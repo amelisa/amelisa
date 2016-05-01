@@ -57,9 +57,9 @@ describe('subscribes query', () => {
   it('should fetch query while docs are added at same model', async () => {
     let query = model.query(collectionName, expression)
     await model.add(collectionName, getDocData())
-    model.add(collectionName, getDocData({_id: '2'}))
+    model.add(collectionName, getDocData({id: '2'}))
     query.fetch()
-    model.add(collectionName, getDocData({_id: '3'}))
+    model.add(collectionName, getDocData({id: '3'}))
     await eventToPromise(query, 'change')
 
     assert.equal(query.get().length, 1)
@@ -167,9 +167,9 @@ describe('subscribes query', () => {
   it('should subscribe query while docs are added at same model', async () => {
     let query = model.query(collectionName, expression)
     await model.add(collectionName, getDocData())
-    model.add(collectionName, getDocData({_id: '2'}))
+    model.add(collectionName, getDocData({id: '2'}))
     query.subscribe()
-    model.add(collectionName, getDocData({_id: '3'}))
+    model.add(collectionName, getDocData({id: '3'}))
     await sleep(20)
 
     assert.equal(query.get().length, 3)
@@ -186,9 +186,9 @@ describe('subscribes query', () => {
 
   it('should subscribe two different queries', async () => {
     let query = model.query(collectionName, expression)
-    let query2 = model.query(collectionName, {_id: docId})
+    let query2 = model.query(collectionName, {id: docId})
     await model2.add(collectionName, getDocData())
-    await model2.add(collectionName, getDocData({_id: '2'}))
+    await model2.add(collectionName, getDocData({id: '2'}))
     await model.subscribe(query, query2)
 
     assert.equal(query.get().length, 2)

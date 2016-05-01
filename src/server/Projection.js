@@ -32,15 +32,15 @@ class Projection {
       }
     }
 
-    if (inclusive) invariant(fields['_id'], 'Inclusive projection should has field _id')
-    if (!inclusive) invariant(fields['_id'] === undefined, 'Exclusive projection should not has field _id')
+    if (inclusive) invariant(fields['id'], 'Inclusive projection should has field id')
+    if (!inclusive) invariant(fields['id'] === undefined, 'Exclusive projection should not has field id')
 
     return inclusive
   }
 
   projectDoc (doc) {
     let projectedDoc = {
-      _id: doc._id
+      id: doc.id
     }
 
     if (this.inclusive) {

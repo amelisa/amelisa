@@ -87,7 +87,7 @@ class ServerQuery extends Query {
     let docVersions = {}
 
     for (let doc of this.data) {
-      let docId = doc._id
+      let docId = doc.id
       docIds.push(docId)
       docOps[docId] = doc._ops
       docVersions[docId] = doc._v
@@ -103,7 +103,7 @@ class ServerQuery extends Query {
   async sendDiffQueryToChannel (channel, diffs, ackId) {
     let docMap = {}
     for (let doc of this.data) {
-      docMap[doc._id] = doc
+      docMap[doc.id] = doc
     }
 
     let docOps = {}
@@ -133,8 +133,8 @@ class ServerQuery extends Query {
   }
 
   getDiffs (prev = [], data) {
-    let prevIds = prev.map((doc) => doc._id)
-    let docIds = data.map((doc) => doc._id)
+    let prevIds = prev.map((doc) => doc.id)
+    let docIds = data.map((doc) => doc.id)
 
     return arraydiff(prevIds, docIds)
   }

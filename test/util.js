@@ -6,7 +6,7 @@ let localCollectionName = '_users'
 let docId = '1'
 let expression = {}
 let countExpression = {$count: true}
-let joinExpression = {_id: '$categories.1.userId'}
+let joinExpression = {id: '$categories.1.userId'}
 let field = 'name'
 let field2 = 'firstName'
 let value = 'Ivan'
@@ -16,14 +16,14 @@ let arrayValue = [1, 2]
 
 function getDocData (data) {
   let docData = {
-    _id: docId,
+    id: docId,
     [field]: value
   }
-  return Object.assign({}, docData, data)
+  return {...docData, ...data}
 }
 
 function sleep (ms = 0) {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 export default {

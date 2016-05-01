@@ -17,7 +17,7 @@ describe.skip('integration offline', () => {
 
     function addDoc () {
       let docData = {
-        _id: '1',
+        id: '1',
         name: 'value'
       }
       model.add('users', docData)

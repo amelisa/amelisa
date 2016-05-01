@@ -22,7 +22,7 @@ describe('Doc general', () => {
   it('should get docId from empty doc', () => {
     let doc = new Doc(docId)
 
-    assert.equal(doc.get('_id'), docId)
+    assert.equal(doc.get('id'), docId)
   })
 
   it('should get undefined field from empty doc', () => {
@@ -44,7 +44,7 @@ describe('Doc general', () => {
     let doc = new Doc(docId, [op])
 
     let docData = doc.get()
-    assert.equal(JSON.stringify(docData), JSON.stringify({[field]: value, _id: docId}))
+    assert.equal(JSON.stringify(docData), JSON.stringify({[field]: value, id: docId}))
 
     assert.equal(doc.get(field), value)
   })

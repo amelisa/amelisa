@@ -72,7 +72,7 @@ describe.skip('serverRendering5', () => {
     model = store.createModel()
 
     let doc = {
-      _id: docId,
+      id: docId,
       [field]: value
     }
 

@@ -85,7 +85,7 @@ class Collection extends EventEmitter {
         .getAllDocs(this.name)
         .then((docs) => {
           for (let doc of docs) {
-            this.applyOpsOrAttach(doc._id, doc._ops, doc._sv)
+            this.applyOpsOrAttach(doc.id, doc._ops, doc._sv)
           }
           resolve()
         })

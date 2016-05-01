@@ -42,7 +42,7 @@ describe('subscribes join query', () => {
 
     assert.equal(query.get().length, 0)
 
-    setTimeout(() => model2.add(collectionName, getDocData({_id: '2'})))
+    setTimeout(() => model2.add(collectionName, getDocData({id: '2'})))
     await eventToPromise(query, 'change')
 
     assert.equal(query.get().length, 1)

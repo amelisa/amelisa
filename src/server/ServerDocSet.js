@@ -103,7 +103,7 @@ class ServerDocSet {
       let doc = this.data[hash]
       if (!doc) continue
 
-      // if (doc.ops.find((docOp) => docOp._id === op.id)) continue
+      // if (doc.ops.find((docOp) => docOp.id === op.id)) continue
 
       if (doc.loading) {
         doc.once('loaded', () => {
