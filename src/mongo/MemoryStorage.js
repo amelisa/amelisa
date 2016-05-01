@@ -23,8 +23,9 @@ class MemoryStorage extends MongoQueries {
 
   async getDocById (collectionName, docId) {
     let collection = this.getOrCreateCollection(collectionName)
+    if (!collection[docId]) return
 
-    return collection[docId]
+    return this.normalizeIdInDoc({...collection[docId]})
   }
 
   async getDocsByQuery (collectionName, expression) {
@@ -32,11 +33,11 @@ class MemoryStorage extends MongoQueries {
 
     let allDocs = []
     for (let docId in collection) {
-      allDocs.push(collection[docId])
+      allDocs.push({...collection[docId]})
     }
 
     let docs = this.getQueryResultFromArray(allDocs, expression)
-
+    if (this.isDocsQuery(expression)) docs = docs.map(this.normalizeIdInDoc)
     return docs
   }
 

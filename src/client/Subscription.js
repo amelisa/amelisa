@@ -11,8 +11,6 @@ class Subscription extends EventEmitter {
     this.querySet = querySet
 
     this.parseRawSubscribes(rawSubscribes)
-
-    this.onChange = this.onChange.bind(this)
   }
 
   parseRawSubscribes (rawSubscribes) {
@@ -87,9 +85,9 @@ class Subscription extends EventEmitter {
     )
   }
 
-  onChange () {
+  onChange = () => {
     this.emit('change')
-  }
+  };
 
   async changeSubscribes (nextRawSubscribes) {
     this.unsubscribe()

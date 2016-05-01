@@ -8,9 +8,10 @@ const defaultOptions = {
 }
 
 function getModel (options = {}) {
-  options = Object.assign({}, defaultOptions, options)
+  options = {...defaultOptions, ...options}
 
   let { url, wsOptions, modelOptions, Storage } = options
+  modelOptions = modelOptions || {}
   let { channel } = modelOptions
   if (!channel) channel = modelOptions.channel = new WebSocketChannel(url, wsOptions)
 

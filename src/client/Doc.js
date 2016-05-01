@@ -53,12 +53,13 @@ class Doc extends EventEmitter {
   getForSave () {
     if (this.state && this.state._del) {
       return {
-        id: this.docId,
         _del: true
       }
     }
 
-    return this.get()
+    let state = this.get()
+    delete state.id
+    return state
   }
 
   getInternal (field) {

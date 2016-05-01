@@ -114,6 +114,14 @@ class MongoQueries {
     }
   }
 
+  normalizeIdInDoc (doc) {
+    if (!doc) return
+
+    doc.id = doc._id
+    delete doc._id
+    return doc
+  }
+
   isDocsQuery (expression) {
     let query = this.normalizeExpression(expression)
 

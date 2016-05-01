@@ -26,49 +26,48 @@ class MongoStorage extends MongoQueries {
       .find(query)
       .limit(1)
       .next()
-      .then((doc) => {
-        doc.id = doc._id
-        delete doc._id
-      })
+      .then(this.normalizeIdInDoc)
   }
 
   async getDocsByQuery (collectionName, expression) {
-    let query = this.normalizeExpression(expression)
+    expression = this.normalizeExpression(expression)
     let collection = this.db.collection(collectionName)
 
-    if (query.$count) {
+    if (expression.$count) {
       return collection
-        .count(query.$query || {})
+        .count(expression.$query || {})
     }
 
-    if (query.$distinct) {
+    if (expression.$distinct) {
       return collection
-        .distinct(query.$field, query.$query || {})
+        .distinct(expression.$field, expression.$query || {})
     }
 
-    if (query.$aggregate) {
+    if (expression.$aggregate) {
       return collection
-        .aggregate(query.$aggregate)
+        .aggregate(expression.$aggregate)
         .toArray()
     }
 
-    if (query.$mapReduce) {
+    if (expression.$mapReduce) {
       let mapReduceOptions = {
-        query: query.$query || {},
+        query: expression.$query || {},
         out: {inline: 1},
-        scope: query.$scope || {}
+        scope: expression.$scope || {}
       }
       return collection
-        .mapReduce(query.$map, query.$reduce, mapReduceOptions)
+        .mapReduce(expression.$map, expression.$reduce, mapReduceOptions)
     }
 
-    let cursor = collection.find(query.$query)
+    let cursor = collection.find(expression.$query)
 
-    if (query.$orderby) cursor = cursor.sort(query.$orderby)
-    if (query.$skip) cursor = cursor.skip(query.$skip)
-    if (query.$limit) cursor = cursor.limit(query.$limit)
+    if (expression.$orderby) cursor = cursor.sort(expression.$orderby)
+    if (expression.$skip) cursor = cursor.skip(expression.$skip)
+    if (expression.$limit) cursor = cursor.limit(expression.$limit)
 
-    return cursor.toArray()
+    let docs = await cursor.toArray()
+    if (this.isDocsQuery(expression)) docs = docs.map(this.normalizeIdInDoc)
+    return docs
   }
 
   async getOpsByQuery (collectionName) {
@@ -78,10 +77,14 @@ class MongoStorage extends MongoQueries {
       .collection(opsCollectionName)
       .find({})
       .toArray()
+      .then((ops) => ops.map(this.normalizeIdInDoc))
   }
 
   async saveOp (op) {
     let opsCollectionName = this.getOpsCollection(op.collectionName)
+    op = {...op}
+    op._id = op.id
+    delete op.id
 
     return this.db
       .collection(opsCollectionName)

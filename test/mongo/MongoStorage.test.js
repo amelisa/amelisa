@@ -20,6 +20,7 @@ describe.skip('MongoStorage', () => {
 
   it('should save and get op', async () => {
     let op = {
+      id: docId,
       type: 'add',
       collectionName,
       docId,
@@ -49,7 +50,7 @@ describe.skip('MongoStorage', () => {
     let doc = await storage.getDocById(collectionName, docId)
 
     assert(doc)
-    assert.equal(doc._id, docId)
+    assert.equal(doc.id, docId)
     assert.equal(doc._v, version)
     assert.equal(doc[field], value)
   })
@@ -84,7 +85,7 @@ describe.skip('MongoStorage', () => {
 
     assert(docs)
     assert.equal(docs.length, 1)
-    assert.equal(docs[0]._id, docId)
+    assert.equal(docs[0].id, docId)
     assert.equal(docs[0]._v, version)
     assert.equal(docs[0][field], value)
   })

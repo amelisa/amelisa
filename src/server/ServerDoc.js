@@ -209,7 +209,6 @@ class ServerDoc extends Doc {
   }
 
   subscribe (channel, version, ackId) {
-    if (this.channels.indexOf(channel) > -1) return
     if (version) channel._session.setDocVersion(this.collectionName, this.docId, version)
     this.addChannel(channel)
 
