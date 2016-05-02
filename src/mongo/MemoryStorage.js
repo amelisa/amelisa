@@ -3,10 +3,15 @@ import MongoQueries from './MongoQueries'
 class MemoryStorage extends MongoQueries {
   constructor () {
     super()
-    this.data = {}
+    this.clear()
   }
 
   async init () {}
+
+  async clear () {
+    this.data = {}
+    this.opsData = {}
+  }
 
   getOrCreateCollection (collectionName) {
     let collection = this.data[collectionName]
@@ -17,8 +22,13 @@ class MemoryStorage extends MongoQueries {
     return collection
   }
 
-  async clear () {
-    this.data = {}
+  getOrCreateOpsCollection (collectionName) {
+    let collection = this.opsData[collectionName]
+    if (!collection) {
+      collection = this.opsData[collectionName] = {}
+    }
+
+    return collection
   }
 
   async getDocById (collectionName, docId) {
@@ -41,7 +51,22 @@ class MemoryStorage extends MongoQueries {
     return docs
   }
 
-  async saveOp (op) {}
+  async saveOp (op) {
+    let { id, collectionName } = op
+    let collection = this.getOrCreateOpsCollection(collectionName)
+    collection[id] = op
+  }
+
+  async getOpsByQuery (collectionName) {
+    let collection = this.getOrCreateOpsCollection(collectionName)
+
+    let allOps = []
+    for (let docId in collection) {
+      allOps.push({...collection[docId]})
+    }
+
+    return allOps
+  }
 
   async saveDoc (collectionName, docId, state, prevVersion, version, ops) {
     let doc = {
@@ -55,6 +80,12 @@ class MemoryStorage extends MongoQueries {
     }
 
     let collection = this.getOrCreateCollection(collectionName)
+    let prevDoc = collection[docId]
+
+    if (prevVersion && (!prevDoc || prevDoc._v !== prevVersion)) {
+      throw new Error('stale data')
+    }
+
     collection[docId] = doc
   }
 

@@ -30,6 +30,10 @@ const notDocsOperators = {
   $mapReduce: true
 }
 
+function arrayUnique (array) {
+  return [...new Set(array)]
+}
+
 class MongoQueries {
 
   getAllSelector () {
@@ -63,9 +67,11 @@ class MongoQueries {
     if (expression.$count) return cursor.count()
 
     if (expression.$distinct) {
-      return cursor
+      let values = cursor
         .all()
         .map((doc) => doc[expression.$field])
+
+      return arrayUnique(values)
     }
 
     // TODO: implement $mapReduce
