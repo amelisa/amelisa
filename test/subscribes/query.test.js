@@ -1,8 +1,7 @@
 import assert from 'assert'
 import eventToPromise from 'event-to-promise'
-import { MemoryStorage } from '../../src/mongo/server'
 import { Store } from '../../src/server'
-import { collectionName, docId, expression, field, value, value2, getDocData, sleep } from '../util'
+import { getStorage, collectionName, docId, expression, field, value, value2, getDocData, sleep } from '../util'
 
 let storage
 let store
@@ -11,7 +10,7 @@ let model2
 
 describe('subscribes query', () => {
   beforeEach(async () => {
-    storage = new MemoryStorage()
+    storage = await getStorage()
     store = new Store({storage, saveDebounceTimeout: 0})
     await store.init()
     model = store.createModel()
@@ -97,7 +96,7 @@ describe('subscribes query', () => {
 
     assert.equal(query.get().length, 0)
 
-    await sleep(10)
+    await eventToPromise(query, 'change')
 
     assert.equal(query.get().length, 1)
     assert.equal(query.get()[0][field], value)
@@ -126,7 +125,7 @@ describe('subscribes query', () => {
     let query = model.query(collectionName, expression)
     await query.subscribe()
     model.add(collectionName, getDocData())
-    await sleep(10)
+    await sleep(20)
 
     assert.equal(query.get().length, 1)
     assert.equal(query.get()[0][field], value)
@@ -148,7 +147,7 @@ describe('subscribes query', () => {
     await model.add(collectionName, getDocData())
     await query.subscribe()
     await model.set([collectionName, docId, field], value2)
-    // await eventToPromise(query, 'change')
+    await sleep(20)
 
     assert.equal(query.get().length, 1)
     assert.equal(query.get()[0][field], value2)

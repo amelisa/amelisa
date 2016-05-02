@@ -1,9 +1,7 @@
 import assert from 'assert'
 import eventToPromise from 'event-to-promise'
-import { MemoryStorage } from '../src/mongo/server'
-import { MemoryPubsub } from '../src/redis'
 import { Store } from '../src/server'
-import { collectionName, docId, expression, field, value2, getDocData } from './util'
+import { getStorage, getPubsub, collectionName, docId, expression, field, value2, getDocData } from './util'
 
 let storage
 let store
@@ -13,8 +11,8 @@ let model2
 
 describe('multystore', () => {
   beforeEach(async () => {
-    storage = new MemoryStorage()
-    let pubsub = new MemoryPubsub()
+    storage = await getStorage()
+    let pubsub = getPubsub()
     store = new Store({storage, pubsub, source: 'store1', saveDebounceTimeout: 0})
     store2 = new Store({storage, pubsub, source: 'store2', saveDebounceTimeout: 0})
     await store.init()

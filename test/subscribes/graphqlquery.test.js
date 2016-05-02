@@ -1,8 +1,7 @@
 import assert from 'assert'
 import eventToPromise from 'event-to-promise'
-import { MemoryStorage } from '../../src/mongo/server'
 import { Store } from '../../src/server'
-import { collectionName, docId, value } from '../util'
+import { getStorage, collectionName, docId, value } from '../util'
 import {
   GraphQLSchema,
   GraphQLObjectType,
@@ -101,7 +100,7 @@ let graphqlExpression = `
 
 describe('subscribes graphql query', () => {
   beforeEach(async () => {
-    storage = new MemoryStorage()
+    storage = await getStorage()
     store = new Store({storage, createSchema, saveDebounceTimeout: 0})
     await store.init()
     model = store.createModel()

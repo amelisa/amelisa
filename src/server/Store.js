@@ -31,7 +31,7 @@ class Store extends EventEmitter {
     this.pubsub = pubsub
     this.createSchema = createSchema
     this.dbQueries = storage.getDbQueries()
-    this.options = Object.assign({}, defaultOptions, options)
+    this.options = {...defaultOptions, ...options}
     this.docSet = new ServerDocSet(this)
     this.querySet = new ServerQuerySet(this)
     this.clients = []

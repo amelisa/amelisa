@@ -1,3 +1,6 @@
+import { MemoryStorage, MongoStorage, RethinkStorage } from '../src/mongo/server'
+import { MemoryPubsub, RedisPubsub } from '../src/redis'
+
 let source = 'source'
 let source2 = 'source2'
 let collectionName = 'users'
@@ -14,6 +17,20 @@ let value2 = 'Vasya'
 let numValue = 4
 let arrayValue = [1, 2]
 
+async function getStorage () {
+  let storage
+  storage = new MemoryStorage()
+  // storage = new MongoStorage('mongodb://localhost:27017/test')
+  // storage = new RethinkStorage('rethinkdb://localhost:28015/test')
+  await storage.init()
+  await storage.clear()
+  return storage
+}
+
+function getPubsub () {
+  return new MemoryPubsub()
+}
+
 function getDocData (data) {
   let docData = {
     id: docId,
@@ -27,6 +44,8 @@ function sleep (ms = 0) {
 }
 
 export default {
+  getStorage,
+  getPubsub,
   source,
   source2,
   collectionName,

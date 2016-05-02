@@ -135,7 +135,7 @@ function createContainer (Component) {
       let utilProps = {
         resubscribe: this.resubscribe
       }
-      return Object.assign({}, dataProps, this.props || {}, utilProps)
+      return {...dataProps, ...(this.props || {}), ...utilProps}
     }
 
     render () {

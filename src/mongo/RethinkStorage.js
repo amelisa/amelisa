@@ -54,6 +54,8 @@ class RethinkStorage extends MongoQueries {
   }
 
   async getDocById (collectionName, docId) {
+    await this.createTableIfNotExist(collectionName)
+
     return r
       .table(collectionName)
       .get(docId)
@@ -135,6 +137,7 @@ class RethinkStorage extends MongoQueries {
   }
 
   async getDocsByQuery (collectionName, expression) {
+    await this.createTableIfNotExist(collectionName)
     expression = this.normalizeExpression(expression)
 
     let table = r.table(collectionName)
@@ -208,7 +211,8 @@ class RethinkStorage extends MongoQueries {
   }
 
   async getOpsByQuery (collectionName) {
-    let opsCollectionName = this.getOpsCollection(collectionName)
+    let opsCollectionName = this.getOpsCollectionName(collectionName)
+    await this.createTableIfNotExist(opsCollectionName)
 
     let cursor = await r
       .table(opsCollectionName)
@@ -218,7 +222,7 @@ class RethinkStorage extends MongoQueries {
   }
 
   async saveOp (op) {
-    let opsCollectionName = this.getOpsCollection(op.collectionName)
+    let opsCollectionName = this.getOpsCollectionName(op.collectionName)
     await this.createTableIfNotExist(opsCollectionName)
 
     let options = {
@@ -231,7 +235,7 @@ class RethinkStorage extends MongoQueries {
       .run(this.connection)
   }
 
-  getOpsCollection (collectionName) {
+  getOpsCollectionName (collectionName) {
     return `${collectionName}_ops`
   }
 

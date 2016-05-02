@@ -1,8 +1,7 @@
 import assert from 'assert'
 import eventToPromise from 'event-to-promise'
-import { MemoryStorage } from '../../src/mongo/server'
 import { Store } from '../../src/server'
-import { collectionName, docId, field, value, getDocData, sleep } from '../util'
+import { getStorage, collectionName, docId, field, value, getDocData, sleep } from '../util'
 
 let storage
 let store
@@ -11,7 +10,7 @@ let model2
 
 describe('offline doc', () => {
   beforeEach(async () => {
-    storage = new MemoryStorage()
+    storage = await getStorage()
     store = new Store({storage, saveDebounceTimeout: 0})
     await store.init()
     model = store.createModel({isClient: true})
@@ -158,6 +157,7 @@ describe('offline doc', () => {
     await doc.stringInsert(field, 1, '2')
     await doc2.stringInsert(field, 4, '2')
     await doc2.stringInsert(field, 5, '3')
+
     store.connectModel(model)
     store.connectModel(model2)
     await [

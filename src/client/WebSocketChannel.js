@@ -10,7 +10,7 @@ const defaultOptions = {
 class WebSocketChannel extends EventEmitter {
   constructor (url, options = {}) {
     super()
-    options = Object.assign({}, defaultOptions, options)
+    options = {...defaultOptions, ...options}
     let socket = this.socket = new ReconnectableWebSocket(url, null, options)
 
     socket.onopen = () => {

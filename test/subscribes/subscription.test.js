@@ -1,8 +1,7 @@
 import assert from 'assert'
 import eventToPromise from 'event-to-promise'
-import { MemoryStorage } from '../../src/mongo/server'
 import { Store } from '../../src/server'
-import { collectionName, docId, expression, field, value2, getDocData, sleep } from '../util'
+import { getStorage, collectionName, docId, expression, field, value2, getDocData, sleep } from '../util'
 
 let storage
 let store
@@ -11,7 +10,7 @@ let model2
 
 describe('subscribes subscription', () => {
   beforeEach(async () => {
-    storage = new MemoryStorage()
+    storage = await getStorage()
     store = new Store({storage, saveDebounceTimeout: 0})
     await store.init()
     model = store.createModel()
@@ -63,7 +62,7 @@ describe('subscribes subscription', () => {
 
     assert.equal(subscription.get()[0].length, 0)
 
-    await sleep(20)
+    await eventToPromise(subscription, 'change')
 
     assert.equal(subscription.get()[0].length, 1)
   })
@@ -75,7 +74,7 @@ describe('subscribes subscription', () => {
 
     assert.equal(subscription.get()[0].length, 0)
 
-    await sleep(20)
+    await eventToPromise(subscription, 'change')
 
     assert.equal(subscription.get()[0].length, 1)
   })

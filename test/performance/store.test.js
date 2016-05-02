@@ -11,7 +11,7 @@ let model
 
 describe('permormance store', () => {
   beforeEach(async () => {
-    storage = new MemoryStorage()
+    storage = await getStorage()
     await storage.init()
 
     store = new Store(storage)

@@ -3,10 +3,9 @@ import fakeIndexedDb from 'fake-indexeddb'
 import localStorage from 'localStorage'
 import jsdom from 'node-jsdom'
 import { getModel, IndexedDbStorage } from '../../src/web'
-import { MemoryStorage } from '../../src/mongo/server'
 import { Store } from '../../src/server'
 import ServerChannel from '../../src/server/ServerChannel'
-import { value, sleep } from '../util'
+import { getStorage, value, sleep } from '../util'
 
 global.document = jsdom.jsdom('<!doctype html><html><body></body></html>')
 global.window = document.parentWindow
@@ -30,7 +29,7 @@ describe('getModel', () => {
       delete localStorage[key]
     }
     global.window.localStorage = localStorage // HACK
-    let storage = new MemoryStorage()
+    let storage = await getStorage()
     store = new Store({storage, version: 1})
     await store.init()
   })

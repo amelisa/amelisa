@@ -20,7 +20,7 @@ class Model extends EventEmitter {
     this.createSchema = createSchema
     this.projectionHashes = projectionHashes
     this.source = source
-    this.options = Object.assign({}, defaultOptions, options)
+    this.options = {...defaultOptions, ...options}
     this.initing = false
     this.inited = false
     this.ready = false
@@ -603,7 +603,7 @@ class Model extends EventEmitter {
       date
     }
 
-    return Object.assign({}, opData, op)
+    return {...opData, ...op}
   }
 
   async sendOp (opData) {

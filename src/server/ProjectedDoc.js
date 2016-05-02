@@ -8,7 +8,7 @@ class ProjectedDoc extends ServerDoc {
   }
 
   onOp (op, channel) {
-    op = Object.assign({}, op)
+    op = {...op}
 
     let error = this.projection.validateOp(op)
     if (error) {

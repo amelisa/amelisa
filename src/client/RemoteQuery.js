@@ -31,7 +31,7 @@ class RemoteQuery extends ClientQuery {
   }
 
   async subscribe (options) {
-    options = Object.assign({}, defaultSubscribeOptions, options)
+    options = {...defaultSubscribeOptions, ...options}
     this.subscribed++
     if (this.subscribing) return options.fetch ? this.subscribingPromise : undefined
     this.subscribing = true
@@ -104,10 +104,8 @@ class RemoteQuery extends ClientQuery {
 
   refreshDataFromServer (data) {
     this.lastServerData = data
-    this.data = data
-
     this.subscribing = false
-    this.emit('change')
+    this.setData(data)
   }
 
   getSyncData () {

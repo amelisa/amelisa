@@ -1,8 +1,7 @@
 import assert from 'assert'
 import eventToPromise from 'event-to-promise'
-import { MemoryStorage } from '../src/mongo/server'
 import { Store } from '../src/server'
-import { collectionName, dbCollectionName, docId, expression, countExpression, joinExpression,
+import { getStorage, collectionName, dbCollectionName, docId, expression, countExpression, joinExpression,
   field, field2, value, value2, getDocData, sleep } from './util'
 
 let storage
@@ -25,8 +24,8 @@ let options = {
 
 describe('projections', () => {
   beforeEach(async () => {
-    storage = new MemoryStorage()
-    store = new Store(Object.assign({}, options, {storage}))
+    storage = await getStorage()
+    store = new Store({...options, storage})
     await store.init()
     model = store.createModel({isClient: true})
     model2 = store.createModel({isClient: true})
@@ -191,7 +190,10 @@ describe('projections', () => {
     await model2.add(collectionName, getDocData())
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(20)
+    await Promise.all([
+      eventToPromise(model, 'online'),
+      eventToPromise(model2, 'online')
+    ])
 
     assert(doc.get())
   })
@@ -207,7 +209,11 @@ describe('projections', () => {
 
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(40)
+    await Promise.all([
+      eventToPromise(model, 'online'),
+      eventToPromise(model2, 'online')
+    ])
+    if (query.get().length !== 1) await eventToPromise(query, 'change')
 
     assert.equal(query.get().length, 1)
   })
@@ -223,7 +229,11 @@ describe('projections', () => {
 
     store.connectModel(model)
     store.connectModel(model2)
-    await sleep(20)
+    await Promise.all([
+      eventToPromise(model, 'online'),
+      eventToPromise(model2, 'online')
+    ])
+    if (query.get() !== 1) await eventToPromise(query, 'change')
 
     assert.equal(query.get(), 1)
   })

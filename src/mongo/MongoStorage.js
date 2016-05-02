@@ -71,7 +71,7 @@ class MongoStorage extends MongoQueries {
   }
 
   async getOpsByQuery (collectionName) {
-    let opsCollectionName = this.getOpsCollection(collectionName)
+    let opsCollectionName = this.getOpsCollectionName(collectionName)
 
     return this.db
       .collection(opsCollectionName)
@@ -81,7 +81,7 @@ class MongoStorage extends MongoQueries {
   }
 
   async saveOp (op) {
-    let opsCollectionName = this.getOpsCollection(op.collectionName)
+    let opsCollectionName = this.getOpsCollectionName(op.collectionName)
     op = {...op}
     op._id = op.id
     delete op.id
@@ -89,9 +89,19 @@ class MongoStorage extends MongoQueries {
     return this.db
       .collection(opsCollectionName)
       .insert(op)
+      .catch((err) => {
+        // if E11000 duplicate key error on _id field,
+        // it means that with same _id already saved.
+        // this happens
+        if (err.code === 11000 && err.message.indexOf('index: _id_ dup key') !== -1) {
+          return
+        }
+
+        throw err
+      })
   }
 
-  getOpsCollection (collectionName) {
+  getOpsCollectionName (collectionName) {
     return `${collectionName}_ops`
   }
 

@@ -1,9 +1,8 @@
 import assert from 'assert'
-import { MemoryStorage } from '../../src/mongo/server'
 import { Store } from '../../src/server'
 import { RootComponent, createContainer } from '../../src/react'
 import { renderToStaticMarkup } from '../../src/react/server'
-import { collectionName, docId, field, value, sleep } from '../util'
+import { getStorage, collectionName, docId, field, value, sleep } from '../util'
 import React from 'react'
 
 let storage
@@ -52,7 +51,7 @@ class Root extends RootComponent {
 
 describe.skip('serverRendering3', () => {
   beforeEach(async () => {
-    storage = new MemoryStorage()
+    storage = await getStorage()
     store = new Store({storage})
     await store.init()
     model = store.createModel()

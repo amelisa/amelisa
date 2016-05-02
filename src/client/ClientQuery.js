@@ -52,17 +52,18 @@ class ClientQuery extends Query {
   }
 
   refresh () {
-    let prevData = this.data
-
     let docs = this.collection.getDocs()
-    let docDatas = this.model.dbQueries.getQueryResultFromArray(docs, this.expression)
-    if (this.isDocs) {
-      this.data = docDatas.map((docData) => docData.id)
-    } else {
-      this.data = docDatas
-    }
+    let data = this.model.dbQueries.getQueryResultFromArray(docs, this.expression)
+    if (this.isDocs) data = data.map((docData) => docData.id)
 
-    if (this.dataHasChanged(prevData, this.data)) {
+    this.setData(data)
+  }
+
+  setData (data) {
+    let prev = this.data
+    this.data = data
+
+    if (this.dataHasChanged(prev, data)) {
       this.emit('change')
     }
   }

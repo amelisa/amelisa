@@ -67,7 +67,7 @@ class Subscription extends EventEmitter {
       subscribe.on('change', this.onChange)
 
       let subscribeOptions = this.subscribeOptionses[i]
-      subscribeOptions = Object.assign({}, this.options, subscribeOptions)
+      subscribeOptions = {...this.options, ...subscribeOptions}
 
       let promise = subscribe.subscribe(subscribeOptions)
       promises.push(promise)

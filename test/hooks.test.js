@@ -1,14 +1,13 @@
 import assert from 'assert'
-import { MemoryStorage } from '../src/mongo/server'
 import { Store } from '../src/server'
-import { collectionName, docId, field, value, getDocData } from './util'
+import { getStorage, collectionName, docId, field, value, getDocData } from './util'
 
 let store
 let model
 
 describe('hooks', () => {
   beforeEach(async () => {
-    let storage = new MemoryStorage()
+    let storage = await getStorage()
     store = new Store({storage, saveDebounceTimeout: 0})
     await store.init()
     store.onAfterHookError = () => {}

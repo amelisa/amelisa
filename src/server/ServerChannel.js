@@ -22,7 +22,7 @@ class ServerChannel extends EventEmitter {
     this.opened = false
     this.emit('close')
 
-    if (!this.pipedChannel) return
+    if (!this.pipedChannel || !this.pipedChannel.opened) return
     this.pipedChannel.close()
   }
 

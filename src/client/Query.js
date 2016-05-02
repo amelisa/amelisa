@@ -15,7 +15,7 @@ class Query extends EventEmitter {
   get (options) {
     if (!this.isDocs) return this.data
 
-    options = Object.assign({}, defaultGetOptions, options)
+    options = {...defaultGetOptions, ...options}
 
     if (options.map) {
       let map = {}

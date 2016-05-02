@@ -66,8 +66,8 @@ describe('Model other', () => {
     let dateDiff = model.get('_app.dateDiff')
 
     assert(typeof dateDiff === 'number')
-    assert(dateDiff >= -1)
-    assert(dateDiff <= 1)
+    assert(dateDiff >= -3)
+    assert(dateDiff <= 3)
   })
 
   it('should return date', () => {

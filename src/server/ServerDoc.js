@@ -108,7 +108,10 @@ class ServerDoc extends Doc {
       })
       .catch((err) => {
         if (err.message === 'stale data') {
-          this.once('loaded', this.save.bind(this))
+          this.once('loaded', () => {
+            this.saving = false
+            this.save()
+          })
           return this.load()
         } else {
           console.trace('ServerDoc.saveToStorage', err)

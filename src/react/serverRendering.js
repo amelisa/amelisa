@@ -18,7 +18,7 @@ function overrideCreateElement (replacement, callback) {
 }
 
 async function render (method, Component, baseProps = {}, baseChildren = [], promises = []) {
-  baseProps = Object.assign({}, baseProps)
+  baseProps = {...baseProps}
   let nextPromises = []
   let index = 0
   let html

@@ -73,7 +73,7 @@ class RemoteGraphQLQuery extends ClientQuery {
   }
 
   async subscribe (options) {
-    options = Object.assign({}, defaultSubscribeOptions, options)
+    options = {...defaultSubscribeOptions, ...options}
     this.subscribed++
     if (this.subscribing) return options.fetch ? this.subscribingPromise : undefined
     this.subscribing = true

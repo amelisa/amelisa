@@ -3,7 +3,7 @@ import { shouldBehaveLikeMongoQueriesStorage } from './mongoqueriesstorage'
 
 const rethinkUrl = 'rethinkdb://localhost:28015/test'
 
-describe('RethinkStorage', function () {
+describe.skip('RethinkStorage', function () {
   before(async () => {
     this.storage = new RethinkStorage(rethinkUrl)
   })

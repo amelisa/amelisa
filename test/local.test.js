@@ -1,7 +1,6 @@
 import assert from 'assert'
-import { MemoryStorage } from '../src/mongo/server'
 import { Store } from '../src/server'
-import { localCollectionName, docId, expression, getDocData, sleep } from './util'
+import { getStorage, localCollectionName, docId, expression, getDocData, sleep } from './util'
 
 let storage
 let store
@@ -10,7 +9,7 @@ let model2
 
 describe('local', () => {
   beforeEach(async () => {
-    storage = new MemoryStorage()
+    storage = await getStorage()
     store = new Store({storage})
     await store.init()
     model = store.createModel()
