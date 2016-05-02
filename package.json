@@ -50,15 +50,11 @@
     "arraydiff": "^0.1.1",
     "babel-runtime": "^6.6.1",
     "event-to-promise": "^0.7.0",
-    "graphql": "^0.5.0",
     "invariant": "^2.2.1",
     "mingo": "^0.6.0",
     "mongodb": "^2.1.3",
     "node-libs-browser": "^1.0.0",
-    "parse-rethinkdb-url": "0.0.1",
     "reconnectable-websocket": "^0.1.4",
-    "redis-url": "^1.2.1",
-    "rethinkdb": "^2.3.1",
     "uuid": "^2.0.1"
   },
   "devDependencies": {
@@ -77,14 +73,20 @@
     "localStorage": "^1.0.3",
     "mocha": "^2.3.0",
     "node-jsdom": "^3.1.5",
-    "node-phantom-simple": "^2.2.4",
-    "phantomjs2": "^2.2.0",
     "react": "^0.14.6",
     "react-dom": "^0.14.6",
     "snazzy": "^3.0.1",
     "standard": "^6.0.8",
     "webpack": "^1.12.9",
     "ws": "^1.1.0"
+  },
+  "optionalDependencies": {
+    "graphql": "^0.5.0",
+    "node-phantom-simple": "^2.2.4",
+    "parse-rethinkdb-url": "0.0.1",
+    "phantomjs2": "^2.2.0",
+    "redis-url": "^1.2.1",
+    "rethinkdb": "^2.3.1"
   },
   "standard": {
     "globals": [
