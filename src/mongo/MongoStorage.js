@@ -26,7 +26,7 @@ class MongoStorage extends MongoQueries {
       .find(query)
       .limit(1)
       .next()
-      .then(this.normalizeIdInDoc)
+      .then(this.demongolizeDoc)
   }
 
   async getDocsByQuery (collectionName, expression) {
@@ -66,7 +66,7 @@ class MongoStorage extends MongoQueries {
     if (expression.$limit) cursor = cursor.limit(expression.$limit)
 
     let docs = await cursor.toArray()
-    if (this.isDocsQuery(expression)) docs = docs.map(this.normalizeIdInDoc)
+    if (this.isDocsQuery(expression)) docs = docs.map(this.demongolizeDoc)
     return docs
   }
 
@@ -77,7 +77,7 @@ class MongoStorage extends MongoQueries {
       .collection(opsCollectionName)
       .find({})
       .toArray()
-      .then((ops) => ops.map(this.normalizeIdInDoc))
+      .then((ops) => ops.map(this.demongolizeDoc))
   }
 
   async saveOp (op) {

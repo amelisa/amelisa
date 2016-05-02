@@ -95,8 +95,9 @@ class ServerDoc extends Doc {
       this.distillOps()
     }
 
+    let docData = this.getForSave()
     this.store.storage
-      .saveDoc(this.collectionName, this.docId, this.getForSave(), this.prevVersion, version, this.ops)
+      .saveDoc(this.collectionName, this.docId, docData, this.prevVersion, version, this.ops)
       .then(() => {
         this.saving = false
         this.prevVersion = version

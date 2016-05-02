@@ -57,7 +57,7 @@ class Doc extends EventEmitter {
       }
     }
 
-    let state = this.get()
+    let state = deepClone(this.get())
     delete state.id
     return state
   }
