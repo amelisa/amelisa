@@ -1,4 +1,4 @@
-import React, { PropTypes } from 'react-native'
+import React, { PropTypes } from 'react'
 import Loading from './Loading'
 import { deepClone, fastEqual } from '../util'
 

@@ -1,4 +1,4 @@
-import { Component, PropTypes } from 'react-native'
+import { Component, PropTypes } from 'react'
 
 class RootComponent extends Component {
 
