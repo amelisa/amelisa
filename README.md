@@ -7,14 +7,23 @@ Data engine with offline and realtime
 [![js-standard-style](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
 
 ### Features
-- offline (CRDT)
+- offline
 - realtime
-- db-qieries (Mongo)
+- data sync between devices
+- JSON CRDT type which includes operations on objects, arrays, strings, numbers and booleans
+- merging of complex data structures, like array of arrays of objects
+- collaborative text editing
 - isomorphic api
-- React integration with HOC
+- db-queries subscriptions with [amelisa-mongo](https://github.com/amelisa/amelisa-mongo)
+- GraphQL support (POC)
+- React and React Native integration with [react-amelisa](https://github.com/amelisa/react-amelisa)
+- horizontal scaling with [amelisa-redis](https://github.com/amelisa/amelisa-redis)
+- Passport-based auth with [amelisa-auth](https://github.com/amelisa/amelisa-auth)
 - access control
-- server rendering
-- scalable
+- modular structure with plug-able storages, framework adapter, etc.
+
+### Warning
+This software is in alpha stage. Does not follow semver till 1.0 version, breaking changes happen.
 
 ### Inspired by
 - [Racer](https://github.com/derbyjs/racer)
@@ -28,15 +37,13 @@ Amelisa requires [NodeJS](http://nodejs.org/). You will also need to have a [Mon
 $ npm install amelisa
 ```
 
-## Tests
-
-Run the tests with
+### Tests
 
 ```
 $ npm test
 ```
 
-## Usage
+### Usage
 
 Read [documentation](http://amelisajs.com) for more information.
 

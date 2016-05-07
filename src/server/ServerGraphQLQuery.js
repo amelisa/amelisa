@@ -1,7 +1,13 @@
 import eventToPromise from 'event-to-promise'
-import { graphql } from 'graphql'
+// import { graphql } from 'graphql'
 import ServerQuery from './ServerQuery'
 import { arrayRemove } from '../util'
+let graphql
+try {
+  graphql = require('graphql').graphql
+} catch (err) {
+  console.log("GraphQL is disabled. To enable it install 'graphql' package")
+}
 
 class ServerGraphQLQuery extends ServerQuery {
   constructor (collectionName, expression, store, querySet) {

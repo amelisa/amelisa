@@ -2,7 +2,7 @@ import assert from 'assert'
 import ClientQuery from '../../../src/client/ClientQuery'
 import Model from '../../../src/client/Model'
 import ServerChannel from '../../../src/server/ServerChannel'
-import { dbQueries } from '../../../src/mongo'
+import { dbQueries } from 'amelisa-mongo'
 import { source, collectionName, field, value, sleep } from '../../util'
 
 let channel

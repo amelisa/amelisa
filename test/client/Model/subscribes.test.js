@@ -1,6 +1,6 @@
 import Model from '../../../src/client/Model'
 import ServerChannel from '../../../src/server/ServerChannel'
-import { dbQueries } from '../../../src/mongo'
+import { dbQueries } from 'amelisa-mongo'
 import { collectionName, docId, expression } from '../../util'
 
 let channel

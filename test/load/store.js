@@ -1,12 +1,8 @@
-import { MongoStorage } from '../../src/mongo/server'
-import { RedisPubsub } from '../../src/redis'
 import { Store } from '../../src/server'
+import { getStorageSync, getPubsub } from '../util'
 
-const MONGO_URL = 'mongodb://localhost:27017/test'
-const REDIS_URL = 'redis://localhost:6379/15'
-
-let storage = new MongoStorage(MONGO_URL)
-let pubsub = new RedisPubsub(REDIS_URL)
+let storage = getStorageSync()
+let pubsub = getPubsub()
 
 const options = {
   version: 1,

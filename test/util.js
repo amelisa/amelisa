@@ -1,5 +1,8 @@
-import { MemoryStorage, MongoStorage, RethinkStorage } from '../src/mongo/server'
-import { MemoryPubsub, RedisPubsub } from '../src/redis'
+import MemoryStorage from 'amelisa-mongo/MemoryStorage'
+// import MongoStorage from 'amelisa-mongo/MongoStorage'
+// import RethinkStorage from 'amelisa-mongo/RethinkStorage'
+import MemoryPubsub from 'amelisa-redis/MemoryPubsub'
+// import RedisPubsub from 'amelisa-redis/RedisPubsub'
 
 let source = 'source'
 let source2 = 'source2'
@@ -27,8 +30,15 @@ async function getStorage () {
   return storage
 }
 
+function getStorageSync () {
+  return new MemoryStorage()
+  // return MongoStorage('mongodb://localhost:27017/test')
+  // return RethinkStorage('rethinkdb://localhost:28015/test')
+}
+
 function getPubsub () {
   return new MemoryPubsub()
+  // return new RedisPubsub()
 }
 
 function getDocData (data) {
@@ -45,6 +55,7 @@ function sleep (ms = 0) {
 
 export default {
   getStorage,
+  getStorageSync,
   getPubsub,
   source,
   source2,

@@ -1,5 +1,12 @@
-import { graphql } from 'graphql'
+// import { graphql } from 'graphql'
 import ClientQuery from './ClientQuery'
+let graphql
+try {
+  graphql = require('graphql').graphql
+} catch (err) {
+  // we do not log here, because it logs in ServerGraphQLQuery
+  // console.log("GraphQL is disabled. To enable it install 'graphql' package")
+}
 
 let defaultSubscribeOptions = {
   fetch: true
