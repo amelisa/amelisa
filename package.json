@@ -1,6 +1,6 @@
 {
   "name": "amelisa",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "description": "Data engine with offline and realtime",
   "browser": "lib/web",
   "main": "lib/server",
