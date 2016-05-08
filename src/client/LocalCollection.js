@@ -2,10 +2,6 @@ import Collection from './Collection'
 import LocalDoc from './LocalDoc'
 
 class LocalCollection extends Collection {
-  constructor (name, data, model) {
-    super(name, data, model)
-  }
-
   async add (docId, docData) {
     super.add(docId, docData)
   }

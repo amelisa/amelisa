@@ -1,8 +1,7 @@
 import assert from 'assert'
 import eventToPromise from 'event-to-promise'
-import { MemoryStorage, Store } from '../../src/server'
 import ServerChannel from '../../src/server/ServerChannel'
-import { collectionName, docId } from '../util'
+import { getStorage, collectionName, docId } from '../util'
 
 let storage
 let store

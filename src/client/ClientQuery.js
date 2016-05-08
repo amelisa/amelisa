@@ -10,7 +10,7 @@ class ClientQuery extends Query {
     this.model = model
     this.collection = collection
     this.querySet = querySet
-    this.isDocs = expression && this.model.dbQueries.isDocsQuery(expression)
+    this.isDocs = this.model.dbQueries.isDocsQuery(expression)
 
     this.refresh()
   }

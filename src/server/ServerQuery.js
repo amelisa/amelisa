@@ -13,7 +13,7 @@ class ServerQuery extends Query {
     this.loaded = false
     this.loading = false
     this.channels = []
-    this.isDocs = expression && this.store.dbQueries.isDocsQuery(expression)
+    this.isDocs = this.store.dbQueries.isDocsQuery(expression)
 
     this.load()
 

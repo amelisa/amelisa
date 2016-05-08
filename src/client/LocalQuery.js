@@ -1,9 +1,5 @@
 import ClientQuery from './ClientQuery'
 
-class LocalQuery extends ClientQuery {
-  constructor (collectionName, expression, model, collection, querySet) {
-    super(collectionName, expression, model, collection, querySet)
-  }
-}
+class LocalQuery extends ClientQuery {}
 
 export default LocalQuery

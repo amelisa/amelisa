@@ -2,10 +2,6 @@ import Collection from './Collection'
 import RemoteDoc from './RemoteDoc'
 
 class RemoteCollection extends Collection {
-  constructor (name, data, model) {
-    super(name, data, model)
-  }
-
   async add (docId, docData) {
     let doc = super.add(docId, docData)
     doc.save()
