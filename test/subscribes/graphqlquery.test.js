@@ -43,6 +43,16 @@ describe('subscribes graphql query', () => {
     assert.deepEqual(query.get(), {user: {name: value, stories: [{id: docId, text: 'Story 1'}]}})
   })
 
+  it('should fetch graphql query two times and get results', async () => {
+    await model.add('stories', {id: docId, text: 'Story 1', userId: docId})
+    await model.add('users', {id: docId, name: value})
+    let query = model.query(graphqlQuery, {variableValues})
+    await query.fetch()
+    await query.fetch()
+
+    assert.deepEqual(query.get(), {user: {name: value, stories: [{id: docId, text: 'Story 1'}]}})
+  })
+
   it('should subscribe graphql query and get results', async () => {
     await model.add('stories', {id: docId, text: 'Story 1', userId: docId})
     await model.add('users', {id: docId, name: value})

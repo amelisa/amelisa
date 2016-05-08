@@ -33,6 +33,16 @@ describe('subscribes query', () => {
     assert.equal(query.get()[0][field], value)
   })
 
+  it('should fetch query two times', async () => {
+    let query = model.query(collectionName, expression)
+    await model2.add(collectionName, getDocData())
+    await query.fetch()
+    await query.fetch()
+
+    assert.equal(query.get().length, 1)
+    assert.equal(query.get()[0][field], value)
+  })
+
   it('should fetch query with operations', async () => {
     let query = model.query(collectionName, expression)
     await model2.add(collectionName, getDocData())
@@ -83,6 +93,16 @@ describe('subscribes query', () => {
   it('should subscribe query', async () => {
     let query = model.query(collectionName, expression)
     await model2.add(collectionName, getDocData())
+    await query.subscribe()
+
+    assert.equal(query.get().length, 1)
+    assert.equal(query.get()[0][field], value)
+  })
+
+  it('should subscribe query two times', async () => {
+    let query = model.query(collectionName, expression)
+    await model2.add(collectionName, getDocData())
+    await query.subscribe()
     await query.subscribe()
 
     assert.equal(query.get().length, 1)

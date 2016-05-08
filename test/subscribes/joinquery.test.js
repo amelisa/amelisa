@@ -17,12 +17,41 @@ describe('subscribes join query', () => {
     model2 = store.createModel()
   })
 
-  it('should subscribe join query and get doc', async () => {
+  it('should fetch join query and get results', async () => {
+    await model2.add(collectionName, getDocData())
+    await model2.add('categories', getDocData({userId: docId}))
+    let query = model.query(collectionName, joinExpression)
+    await query.fetch()
+
+    assert.equal(query.get().length, 1)
+  })
+
+  it('should fetch join query two times and get results', async () => {
+    await model2.add(collectionName, getDocData())
+    await model2.add('categories', getDocData({userId: docId}))
+    let query = model.query(collectionName, joinExpression)
+    await query.fetch()
+    await query.fetch()
+
+    assert.equal(query.get().length, 1)
+  })
+
+  it('should subscribe join query and get results', async () => {
     let query = model.query(collectionName, joinExpression)
     await query.subscribe()
     setTimeout(() => model2.add(collectionName, getDocData()))
     setTimeout(() => model2.add('categories', getDocData({userId: docId})))
     await eventToPromise(query, 'change')
+
+    assert.equal(query.get().length, 1)
+  })
+
+  it('should subscribe join query two times and get results', async () => {
+    await model2.add(collectionName, getDocData())
+    await model2.add('categories', getDocData({userId: docId}))
+    let query = model.query(collectionName, joinExpression)
+    await query.subscribe()
+    await query.subscribe()
 
     assert.equal(query.get().length, 1)
   })

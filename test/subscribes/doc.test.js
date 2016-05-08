@@ -33,6 +33,16 @@ describe('subscribes doc', () => {
     assert.equal(doc.get(field), value)
   })
 
+  it('should fetch doc two times', async () => {
+    let doc = model.doc(collectionName, docId)
+    await model2.add(collectionName, getDocData())
+    await doc.fetch()
+    await doc.fetch()
+
+    assert(doc.get())
+    assert.equal(doc.get(field), value)
+  })
+
   it('should fetch doc with operations', async () => {
     let doc = model.doc(collectionName, docId)
     await model2.add(collectionName, getDocData())
@@ -71,6 +81,16 @@ describe('subscribes doc', () => {
   it('should subscribe doc', async () => {
     let doc = model.doc(collectionName, docId)
     await model2.add(collectionName, getDocData())
+    await doc.subscribe()
+
+    assert(doc.get())
+    assert.equal(doc.get(field), value)
+  })
+
+  it('should subscribe doc two times', async () => {
+    let doc = model.doc(collectionName, docId)
+    await model2.add(collectionName, getDocData())
+    await doc.subscribe()
     await doc.subscribe()
 
     assert(doc.get())

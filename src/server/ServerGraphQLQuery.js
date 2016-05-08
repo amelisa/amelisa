@@ -54,6 +54,7 @@ class ServerGraphQLQuery extends ServerQuery {
       throw err
     }
 
+    this.loaded = true
     setTimeout(() => this.emit('loaded'))
   }
 
