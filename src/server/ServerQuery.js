@@ -6,7 +6,6 @@ class ServerQuery extends Query {
   constructor (collectionName, expression, store, querySet) {
     super(collectionName, expression)
 
-    if (!expression) expression = this.store.dbQueries.getAllSelector()
     this.expression = expression
     this.originalExpression = deepClone(expression)
     this.store = store
@@ -14,7 +13,7 @@ class ServerQuery extends Query {
     this.loaded = false
     this.loading = false
     this.channels = []
-    this.isDocs = this.store.dbQueries.isDocsQuery(expression)
+    this.isDocs = expression && this.store.dbQueries.isDocsQuery(expression)
 
     this.load()
 

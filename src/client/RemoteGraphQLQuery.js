@@ -1,24 +1,30 @@
-// import { graphql } from 'graphql'
 import ClientQuery from './ClientQuery'
-let graphql
+let execute
+let Source
+let parse
 try {
-  graphql = require('graphql').graphql
-} catch (err) {
-  // we do not log here, because it logs in ServerGraphQLQuery
-  // console.log("GraphQL is disabled. To enable it install 'graphql' package")
-}
+  execute = require('graphql').execute
+  Source = require('graphql').Source
+  parse = require('graphql').parse
+} catch (err) {}
 
 let defaultSubscribeOptions = {
   fetch: true
 }
 
 class RemoteGraphQLQuery extends ClientQuery {
-  constructor (collectionName, expression, model, collection, querySet) {
-    super(collectionName, expression, model, collection, querySet)
+  constructor (graphqlQuery, queryOptions = {}, model, querySet) {
+    super(null, null, model, null, querySet)
+
+    if (!execute) throw new Error("To use GraphQL, please, install 'graphql' package")
+
+    this.graphqlQuery = graphqlQuery
+    this.queryOptions = queryOptions
     this.subscribed = 0
     this.subscribing = false
     this.subscribes = []
     this.isDocs = false
+
     let { createSchema } = model
     this.schema = createSchema(this.resolve)
   }
@@ -31,7 +37,13 @@ class RemoteGraphQLQuery extends ClientQuery {
       subscribe.unsubscribe()
     }
 
-    let { data } = await graphql(this.schema, this.expression)
+    let { rootValue, contextValue, variableValues, operationName } = this.queryOptions
+
+    let source = new Source(this.graphqlQuery)
+    let documentAST = parse(source)
+
+    let { data } = await execute(this.schema, documentAST, rootValue,
+      contextValue, variableValues, operationName)
     this.data = data
 
     if (this.dataHasChanged(prevData, this.data)) {
@@ -71,8 +83,8 @@ class RemoteGraphQLQuery extends ClientQuery {
 
     let op = {
       type: 'qfetch',
-      collectionName: this.collection.name,
-      expression: this.expression
+      collectionName: this.graphqlQuery,
+      expression: this.queryOptions
     }
 
     this.subscribingPromise = this.model.sendOp(op)
@@ -91,8 +103,8 @@ class RemoteGraphQLQuery extends ClientQuery {
 
     let op = {
       type: 'qsub',
-      collectionName: this.collectionName,
-      expression: this.expression
+      collectionName: this.graphqlQuery,
+      expression: this.queryOptions
     }
 
     this.subscribingPromise = this.model.sendOp(op)
@@ -107,8 +119,8 @@ class RemoteGraphQLQuery extends ClientQuery {
 
     return this.model.sendOp({
       type: 'qunsub',
-      collectionName: this.collectionName,
-      expression: this.expression
+      collectionName: this.graphqlQuery,
+      expression: this.queryOptions
     })
   }
 

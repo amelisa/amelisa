@@ -28,8 +28,7 @@ class ServerQuerySet {
   }
 
   createQuery (collectionName, expression) {
-    // TODO: validate graphql
-    let isGraphQLQuery = typeof expression === 'string'
+    let isGraphQLQuery = collectionName.indexOf('{') > -1
 
     if (isGraphQLQuery) {
       return new ServerGraphQLQuery(collectionName, expression, this.store, this)

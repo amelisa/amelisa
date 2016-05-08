@@ -6,12 +6,11 @@ class ClientQuery extends Query {
   constructor (collectionName, expression, model, collection, querySet) {
     super(collectionName, expression)
 
-    if (!expression) expression = this.model.dbQueries.getAllSelector()
     this.expression = expression
     this.model = model
     this.collection = collection
     this.querySet = querySet
-    this.isDocs = this.model.dbQueries.isDocsQuery(expression)
+    this.isDocs = expression && this.model.dbQueries.isDocsQuery(expression)
 
     this.refresh()
   }

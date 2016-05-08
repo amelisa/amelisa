@@ -1,19 +1,23 @@
 import eventToPromise from 'event-to-promise'
-// import { graphql } from 'graphql'
 import ServerQuery from './ServerQuery'
 import { arrayRemove } from '../util'
-let graphql
+let execute
+let Source
+let parse
 try {
-  graphql = require('graphql').graphql
-} catch (err) {
-  console.log("GraphQL is disabled. To enable it install 'graphql' package")
-}
+  execute = require('graphql').execute
+  Source = require('graphql').Source
+  parse = require('graphql').parse
+} catch (err) {}
 
 class ServerGraphQLQuery extends ServerQuery {
-  constructor (collectionName, expression, store, querySet) {
-    super(collectionName, expression, store, querySet)
+  constructor (graphqlQuery, queryOptions = {}, store, querySet) {
+    super(null, null, store, querySet)
 
-    this.notLoad = true
+    if (!execute) throw new Error("To use GraphQL, please, install 'graphql' package")
+
+    this.graphqlQuery = graphqlQuery
+    this.queryOptions = queryOptions
     this.isDocs = false
     this.subscribes = []
 
@@ -24,14 +28,31 @@ class ServerGraphQLQuery extends ServerQuery {
   }
 
   async load () {
+    if (!this.schema) return
+
     for (let subscribe of this.subscribes) {
       for (let channel of this.channels) {
         subscribe.unsubscribe(channel)
       }
     }
 
-    let { data } = await graphql(this.schema, this.expression)
-    this.data = data
+    let { rootValue, contextValue, variableValues, operationName } = this.queryOptions
+
+    let source = new Source(this.graphqlQuery)
+    // TODO: handle errors
+    let documentAST
+    try {
+      documentAST = parse(source)
+    } catch (err) {
+      throw err
+    }
+    try {
+      let { data } = await execute(this.schema, documentAST, rootValue,
+        contextValue, variableValues, operationName)
+      this.data = data
+    } catch (err) {
+      throw err
+    }
 
     setTimeout(() => this.emit('loaded'))
   }
@@ -58,18 +79,18 @@ class ServerGraphQLQuery extends ServerQuery {
     this.load()
   };
 
-  isGraphQLQuery (expression) {
-    return typeof expression === 'string' &&
-      expression.length > 1 &&
-      expression[0] === '{' &&
-      expression[expression.length - 1] === '}'
+  isGraphQLQuery (graphqlQuery) {
+    return typeof graphqlQuery === 'string' &&
+      graphqlQuery.length > 1 &&
+      graphqlQuery[0] === '{' &&
+      graphqlQuery[graphqlQuery.length - 1] === '}'
   }
 
-  async sendQuery (channel, ackId) {
+  async sendNotDocsQuerySnapshotToChannel (channel, ackId) {
     let op = {
       type: 'q',
-      collectionName: this.collectionName,
-      expression: this.originalExpression,
+      collectionName: this.graphqlQuery,
+      expression: this.queryOptions,
       value: this.data,
       ackId
     }
@@ -78,7 +99,7 @@ class ServerGraphQLQuery extends ServerQuery {
   }
 
   async fetch (channel, docIds, ackId) {
-    await this.sendQuery(channel, ackId)
+    await this.sendNotDocsQuerySnapshotToChannel(channel, ackId)
 
     this.maybeUnattach()
   }
@@ -89,7 +110,7 @@ class ServerGraphQLQuery extends ServerQuery {
       subscribe.subscribe(channel)
     }
 
-    await this.sendQuery(channel, ackId)
+    await this.sendNotDocsQuerySnapshotToChannel(channel, ackId)
   }
 
   unsubscribe (channel) {
