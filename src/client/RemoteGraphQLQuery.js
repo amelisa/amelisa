@@ -27,9 +27,13 @@ class RemoteGraphQLQuery extends ClientQuery {
 
     let { createSchema } = model
     this.schema = createSchema(this.resolve)
+
+    this.refresh()
   }
 
   async refresh () {
+    if (!this.schema) return
+
     let prevData = this.data
 
     for (let subscribe of this.subscribes) {
@@ -62,8 +66,8 @@ class RemoteGraphQLQuery extends ClientQuery {
     }
 
     this.subscribes.push(subscribe)
-    subscribe.on('change', this.onChange)
     subscribe.subscribe()
+    subscribe.on('change', this.onChange)
     subscribe.subscribing = false
 
     return subscribe.get()
