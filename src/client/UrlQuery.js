@@ -1,5 +1,9 @@
 import { EventEmitter } from 'events'
 
+const options = {
+  credentials: 'include'
+}
+
 class UrlQuery extends EventEmitter {
   constructor (url, defaultValue, model) {
     super()
@@ -15,7 +19,7 @@ class UrlQuery extends EventEmitter {
   async load () {
     if (!this.model.online) return
 
-    let res = await fetch(this.url)
+    let res = await fetch(this.url, options)
     if (res.status !== 200) {
       throw new Error(`UrlQuery.load: status ${res.status} returned from ${this.url}`)
     }
