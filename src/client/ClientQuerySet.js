@@ -1,6 +1,7 @@
 import LocalQuery from './LocalQuery'
 import RemoteGraphQLQuery from './RemoteGraphQLQuery'
 import RemoteQuery from './RemoteQuery'
+import UrlQuery from './UrlQuery'
 import { isLocalCollection } from '../util'
 
 class ClientQuerySet {
@@ -10,17 +11,18 @@ class ClientQuerySet {
   }
 
   getOrCreateQuery (collectionName, expression) {
-    let isGraphQLQuery = collectionName.indexOf('{') > -1
-    // TODO: remove whitespaces from GraphQL query
-    // if (isGraphQLQuery) collectionName = collectionName.replace(/ /g, '').replace(/\n/g, '')
+    let isUrlQuery = UrlQuery.prototype.isUrlQuery(collectionName, expression)
+    let isGraphQLQuery = !isUrlQuery &&
+      RemoteGraphQLQuery.prototype.isGraphQLQuery(collectionName, expression)
 
+    // if (isGraphQLQuery) collectionName = RemoteGraphQLQuery.prototype.removeWhitespaces(collectionName)
     if (!isGraphQLQuery && !expression) expression = this.model.dbQueries.getAllSelector()
 
     let hash = this.getQueryHash(collectionName, expression)
     let query = this.data[hash]
 
     if (!query) {
-      query = this.createQuery(collectionName, expression, isGraphQLQuery)
+      query = this.createQuery(collectionName, expression, isUrlQuery, isGraphQLQuery)
 
       this.data[hash] = query
     }
@@ -28,7 +30,11 @@ class ClientQuerySet {
     return query
   }
 
-  createQuery (collectionName, expression, isGraphQLQuery) {
+  createQuery (collectionName, expression, isUrlQuery, isGraphQLQuery) {
+    if (isUrlQuery) {
+      return new UrlQuery(collectionName, expression, this.model)
+    }
+
     if (isGraphQLQuery) {
       return new RemoteGraphQLQuery(collectionName, expression, this.model, this)
     }
@@ -65,6 +71,10 @@ class ClientQuerySet {
   getQueryHash (collectionName, expression) {
     let args = [collectionName, expression]
     return JSON.stringify(args).replace(/\./g, '|')
+  }
+
+  isQuery (collectionName, expression) {
+    
   }
 }
 

@@ -1,6 +1,5 @@
 import MutableDoc from './MutableDoc'
 import ClientQuery from './ClientQuery'
-import UrlQuery from './UrlQuery'
 import { parsePath } from '../util'
 import { EventEmitter } from 'events'
 
@@ -28,18 +27,13 @@ class Subscription extends EventEmitter {
       let subscribeOptions
       if (rawSubscribe instanceof MutableDoc || rawSubscribe instanceof ClientQuery) {
         subscribe = rawSubscribe
-      } else if (Array.isArray(rawSubscribe) && typeof rawSubscribe[0] === 'string' &&
-          (rawSubscribe[0].indexOf('http') === 0 || rawSubscribe[0].indexOf('/') === 0)) {
-        let [url, defaultValue, options] = rawSubscribe
-        subscribe = new UrlQuery(url, defaultValue, this.collectionSet.model)
-        subscribeOptions = options
       } else if (typeof rawSubscribe === 'object' && !Array.isArray(rawSubscribe)) {
         this.options = rawSubscribe
         continue
       } else {
         let [collectionName, docIdOrExpression, options, options2] = parsePath(rawSubscribe)
 
-        if (typeof docIdOrExpression === 'string') {
+        if (docIdOrExpression && typeof docIdOrExpression === 'string') {
           subscribe = this.collectionSet.getOrCreateDoc(collectionName, docIdOrExpression)
           subscribeOptions = options2 || options
         } else {

@@ -1,7 +1,7 @@
 import MutableDoc from './MutableDoc'
 import { arrayRemove } from '../util'
 
-let defaultSubscribeOptions = {
+const defaultSubscribeOptions = {
   fetch: true
 }
 
@@ -18,25 +18,25 @@ class RemoteDoc extends MutableDoc {
   }
 
   async fetch () {
-    if (this.subscribing) return this.subscribingPromise
-    this.subscribing = true
+    if (this.fetching) return this.fetchingPromise
+    this.fetching = true
 
-    this.subscribingPromise = this.model.sendOp({
+    this.fetchingPromise = this.model.sendOp({
       type: 'fetch',
       collectionName: this.collection.name,
       docId: this.docId
     })
-    return this.subscribingPromise
+    return this.fetchingPromise
   }
 
   async subscribe (options) {
     options = {...defaultSubscribeOptions, ...options}
     this.subscribed++
-    if (this.subscribed !== 1) return options.fetch ? this.subscribingPromise : undefined
-    this.subscribing = true
+    if (this.subscribed !== 1) return options.fetch ? this.fetchingPromise : undefined
+    this.fetching = true
 
-    this.subscribingPromise = this.sendSubscribeOp()
-    return options.fetch ? this.subscribingPromise : undefined
+    this.fetchingPromise = this.sendSubscribeOp()
+    return options.fetch ? this.fetchingPromise : undefined
   }
 
   async sendSubscribeOp () {
@@ -62,7 +62,7 @@ class RemoteDoc extends MutableDoc {
   onDataFromServer (serverVersion, ops) {
     this.serverVersion = serverVersion
     this.applyOps(ops)
-    this.subscribing = false
+    this.fetching = false
     this.emit('change')
     this.save()
 

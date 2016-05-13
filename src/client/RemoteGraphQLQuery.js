@@ -8,7 +8,7 @@ try {
   parse = require('graphql').parse
 } catch (err) {}
 
-let defaultSubscribeOptions = {
+const defaultSubscribeOptions = {
   fetch: true
 }
 
@@ -21,7 +21,7 @@ class RemoteGraphQLQuery extends ClientQuery {
     this.graphqlQuery = graphqlQuery
     this.queryOptions = queryOptions
     this.subscribed = 0
-    this.subscribing = false
+    this.fetching = false
     this.subscribes = []
     this.isDocs = false
 
@@ -68,7 +68,7 @@ class RemoteGraphQLQuery extends ClientQuery {
     this.subscribes.push(subscribe)
     subscribe.subscribe()
     subscribe.on('change', this.onChange)
-    subscribe.subscribing = false
+    subscribe.fetching = false
 
     return subscribe.get()
   };
@@ -79,8 +79,8 @@ class RemoteGraphQLQuery extends ClientQuery {
   };
 
   async fetch () {
-    if (this.subscribing) return this.subscribingPromise
-    this.subscribing = true
+    if (this.fetching) return this.fetchingPromise
+    this.fetching = true
 
     await this.refresh()
     this.lastServerData = this.data
@@ -91,15 +91,15 @@ class RemoteGraphQLQuery extends ClientQuery {
       expression: this.queryOptions
     }
 
-    this.subscribingPromise = this.model.sendOp(op)
-    return this.subscribingPromise
+    this.fetchingPromise = this.model.sendOp(op)
+    return this.fetchingPromise
   }
 
   async subscribe (options) {
     options = {...defaultSubscribeOptions, ...options}
     this.subscribed++
-    if (this.subscribing) return options.fetch ? this.subscribingPromise : undefined
-    this.subscribing = true
+    if (this.fetching) return options.fetch ? this.fetchingPromise : undefined
+    this.fetching = true
     if (this.subscribed !== 1) return
 
     await this.refresh()
@@ -111,8 +111,8 @@ class RemoteGraphQLQuery extends ClientQuery {
       expression: this.queryOptions
     }
 
-    this.subscribingPromise = this.model.sendOp(op)
-    return options.fetch ? this.subscribingPromise : undefined
+    this.fetchingPromise = this.model.sendOp(op)
+    return options.fetch ? this.fetchingPromise : undefined
   }
 
   async unsubscribe () {
@@ -132,8 +132,18 @@ class RemoteGraphQLQuery extends ClientQuery {
     this.lastServerData = data
     this.data = data
 
-    this.subscribing = false
+    this.fetching = false
     this.emit('change')
+  }
+
+  isGraphQLQuery (graphqlQuery) {
+    return graphqlQuery &&
+      typeof graphqlQuery === 'string' &&
+      graphqlQuery.indexOf('{') > -1
+  }
+
+  removeWhitespaces (graphqlQuery) {
+    return graphqlQuery.replace(/ /g, '').replace(/\n/g, '')
   }
 }
 

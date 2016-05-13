@@ -1,7 +1,11 @@
 import { EventEmitter } from 'events'
 
-const options = {
+const fetchOptions = {
   credentials: 'include'
+}
+
+const defaultSubscribeOptions = {
+  fetch: true
 }
 
 class UrlQuery extends EventEmitter {
@@ -10,6 +14,7 @@ class UrlQuery extends EventEmitter {
     this.url = url
     this.data = defaultValue
     this.model = model
+    this.fetching = false
   }
 
   get () {
@@ -18,24 +23,44 @@ class UrlQuery extends EventEmitter {
 
   async load () {
     if (!this.model.online) return
+    this.fetching = true
 
-    let res = await fetch(this.url, options)
+    let res = await fetch(this.url, fetchOptions)
     if (res.status !== 200) {
-      throw new Error(`UrlQuery.load: status ${res.status} returned from ${this.url}`)
+      this.fetching = false
+      return
     }
 
-    this.data = await res.json()
+    try {
+      this.data = await res.json()
+    } catch (err) {
+      this.fetching = false
+      return
+    }
+    this.fetching = false
   }
 
   async fetch () {
+    if (this.fetching) return this.fetchingPromise
+
     return this.load()
   }
 
-  async subscribe () {
-    return this.load()
+  async subscribe (options) {
+    options = {...defaultSubscribeOptions, ...options}
+    if (this.fetching) return options.fetch ? this.fetchingPromise : undefined
+
+    this.fetchingPromise = this.load()
+    return options.fetch ? this.fetchingPromise : undefined
   }
 
   async unsubscribe () {}
+
+  isUrlQuery (url, defaultValue) {
+    return url &&
+      typeof url === 'string' &&
+      (url.indexOf('http') === 0 || url.indexOf('/') === 0)
+  }
 }
 
 export default UrlQuery

@@ -68,7 +68,7 @@ class ClientQuery extends Query {
   }
 
   onCollectionChange = (op) => {
-    if (!this.subscribing) this.refresh(op)
+    if (!this.fetching) this.refresh(op)
   };
 
   dataHasChanged (prev, data) {

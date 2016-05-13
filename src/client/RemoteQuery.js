@@ -1,6 +1,6 @@
 import ClientQuery from './ClientQuery'
 
-let defaultSubscribeOptions = {
+const defaultSubscribeOptions = {
   fetch: true
 }
 
@@ -8,12 +8,12 @@ class RemoteQuery extends ClientQuery {
   constructor (collectionName, expression, model, collection, querySet) {
     super(collectionName, expression, model, collection, querySet)
     this.subscribed = 0
-    this.subscribing = false
+    this.fetching = false
   }
 
   async fetch () {
-    if (this.subscribing) return this.subscribingPromise
-    this.subscribing = true
+    if (this.fetching) return this.fetchingPromise
+    this.fetching = true
 
     this.refresh()
     this.lastServerData = this.data
@@ -26,15 +26,15 @@ class RemoteQuery extends ClientQuery {
 
     if (this.isDocs) op.docIds = this.data
 
-    this.subscribingPromise = this.model.sendOp(op)
-    return this.subscribingPromise
+    this.fetchingPromise = this.model.sendOp(op)
+    return this.fetchingPromise
   }
 
   async subscribe (options) {
     options = {...defaultSubscribeOptions, ...options}
     this.subscribed++
-    if (this.subscribing) return options.fetch ? this.subscribingPromise : undefined
-    this.subscribing = true
+    if (this.fetching) return options.fetch ? this.fetchingPromise : undefined
+    this.fetching = true
     if (this.subscribed !== 1) return
 
     super.subscribe()
@@ -48,8 +48,8 @@ class RemoteQuery extends ClientQuery {
 
     if (this.isDocs) op.docIds = this.data
 
-    this.subscribingPromise = this.model.sendOp(op)
-    return options.fetch ? this.subscribingPromise : undefined
+    this.fetchingPromise = this.model.sendOp(op)
+    return options.fetch ? this.fetchingPromise : undefined
   }
 
   async unsubscribe () {
@@ -104,7 +104,7 @@ class RemoteQuery extends ClientQuery {
 
   refreshDataFromServer (data) {
     this.lastServerData = data
-    this.subscribing = false
+    this.fetching = false
     this.setData(data)
   }
 
