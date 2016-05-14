@@ -36,18 +36,17 @@ class ServerQuerySet {
 
     let projection = this.store.projections[collectionName]
     let isJoinQuery = this.store.dbQueries.isJoinQuery(expression)
-    let joinFields = isJoinQuery ? this.store.dbQueries.getJoinFields(expression) : null
 
     if (projection && !isJoinQuery) {
       return new ProjectedQuery(collectionName, projection, expression, this.store, this)
     }
 
     if (projection && isJoinQuery) {
-      return new ProjectedJoinQuery(collectionName, projection, expression, this.store, this, joinFields)
+      return new ProjectedJoinQuery(collectionName, projection, expression, this.store, this)
     }
 
     if (isJoinQuery) {
-      return new ServerJoinQuery(collectionName, expression, this.store, this, joinFields)
+      return new ServerJoinQuery(collectionName, expression, this.store, this)
     }
 
     return new ServerQuery(collectionName, expression, this.store, this)

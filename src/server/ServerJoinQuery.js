@@ -1,14 +1,14 @@
 import ServerQuery from './ServerQuery'
 
 class ServerJoinQuery extends ServerQuery {
-  constructor (collectionName, expression, store, querySet, joinFields) {
+  constructor (collectionName, expression, store, querySet) {
     super(collectionName, expression, store, querySet)
 
-    this.notLoad = true
-
-    setTimeout(() => this.emit('loaded'))
+    this.canLoad = false
 
     this.joinFieldValues = {}
+
+    let joinFields = this.store.dbQueries.getJoinFields(expression)
 
     for (let field in joinFields) {
       let value = joinFields[field]
@@ -27,31 +27,28 @@ class ServerJoinQuery extends ServerQuery {
   }
 
   load () {
-    if (this.notLoad) return
+    if (!this.canLoad) return
+
     super.load()
   }
 
   onJoinFieldsChange = () => {
-    let loadedFields = []
+    if (this.loading) return
 
     for (let field in this.joinFieldValues) {
-      let joinFieldValue = this.joinFieldValues[field]
-      let { doc, fields } = joinFieldValue
+      let { doc, fields } = this.joinFieldValues[field]
 
       let value = doc.get(fields)
-      if (value === undefined) return
-      if (loadedFields.indexOf(field) === -1) loadedFields.push(field)
-
-      if (loadedFields.length < Object.keys(this.joinFieldValues).length) return
+      if (value === undefined) value = null
 
       this.expression[field] = value
-
-      if (this.notLoad) this.notLoad = false
-      this.load()
     }
+
+    this.load()
   };
 
   async loadJoinFields () {
+    this.loading = true
     let promises = []
 
     for (let field in this.joinFieldValues) {
@@ -63,13 +60,15 @@ class ServerJoinQuery extends ServerQuery {
         .then((doc) => {
           joinFieldValue.doc = doc
           doc.on('saved', this.onJoinFieldsChange)
-
-          this.onJoinFieldsChange()
         })
       promises.push(promise)
     }
 
     await Promise.all(promises)
+    this.loading = false
+    this.canLoad = true
+
+    this.onJoinFieldsChange()
   }
 }
 

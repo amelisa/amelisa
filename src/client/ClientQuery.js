@@ -50,9 +50,9 @@ class ClientQuery extends Query {
     }
   }
 
-  refresh () {
+  refresh (expression = this.expression) {
     let docs = this.collection.getDocs()
-    let data = this.model.dbQueries.getQueryResultFromArray(docs, this.expression)
+    let data = this.model.dbQueries.getQueryResultFromArray(docs, expression)
     if (this.isDocs) data = data.map((docData) => docData.id)
 
     this.setData(data)
@@ -68,7 +68,7 @@ class ClientQuery extends Query {
   }
 
   onCollectionChange = (op) => {
-    if (!this.fetching) this.refresh(op)
+    if (!this.fetching) this.refresh()
   };
 
   dataHasChanged (prev, data) {

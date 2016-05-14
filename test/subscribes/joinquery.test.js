@@ -56,7 +56,7 @@ describe('subscribes join query', () => {
     assert.equal(query.get().length, 1)
   })
 
-  it('should subscribe join query and handle changes', async () => {
+  it.skip('should subscribe join query and handle changes', async () => {
     let query = model.query(collectionName, joinExpression)
     await query.subscribe()
     setTimeout(() => model2.add(collectionName, getDocData()))

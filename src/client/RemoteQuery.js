@@ -20,7 +20,7 @@ class RemoteQuery extends ClientQuery {
 
     let op = {
       type: 'qfetch',
-      collectionName: this.collection.name,
+      collectionName: this.collectionName,
       expression: this.expression
     }
 

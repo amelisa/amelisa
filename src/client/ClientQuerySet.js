@@ -1,6 +1,7 @@
 import LocalQuery from './LocalQuery'
 import RemoteGraphQLQuery from './RemoteGraphQLQuery'
 import RemoteQuery from './RemoteQuery'
+import RemoteJoinQuery from './RemoteJoinQuery'
 import UrlQuery from './UrlQuery'
 import { isLocalCollection } from '../util'
 
@@ -14,6 +15,9 @@ class ClientQuerySet {
     let isUrlQuery = UrlQuery.prototype.isUrlQuery(collectionName, expression)
     let isGraphQLQuery = !isUrlQuery &&
       RemoteGraphQLQuery.prototype.isGraphQLQuery(collectionName, expression)
+    let isJoinQuery = !isUrlQuery &&
+      !isGraphQLQuery &&
+      this.model.dbQueries.isJoinQuery(expression)
 
     // if (isGraphQLQuery) collectionName = RemoteGraphQLQuery.prototype.removeWhitespaces(collectionName)
     if (!isGraphQLQuery && !expression) expression = this.model.dbQueries.getAllSelector()
@@ -22,7 +26,7 @@ class ClientQuerySet {
     let query = this.data[hash]
 
     if (!query) {
-      query = this.createQuery(collectionName, expression, isUrlQuery, isGraphQLQuery)
+      query = this.createQuery(collectionName, expression, isUrlQuery, isGraphQLQuery, isJoinQuery)
 
       this.data[hash] = query
     }
@@ -30,7 +34,7 @@ class ClientQuerySet {
     return query
   }
 
-  createQuery (collectionName, expression, isUrlQuery, isGraphQLQuery) {
+  createQuery (collectionName, expression, isUrlQuery, isGraphQLQuery, isJoinQuery) {
     if (isUrlQuery) {
       return new UrlQuery(collectionName, expression, this.model)
     }
@@ -40,6 +44,11 @@ class ClientQuerySet {
     }
 
     let collection = this.model.collectionSet.getOrCreateCollection(collectionName)
+
+    // TODO: add local join query
+    if (isJoinQuery) {
+      return new RemoteJoinQuery(collectionName, expression, this.model, collection, this)
+    }
 
     if (isLocalCollection(collectionName)) {
       return new LocalQuery(collectionName, expression, this.model, collection, this)
@@ -74,7 +83,7 @@ class ClientQuerySet {
   }
 
   isQuery (collectionName, expression) {
-    
+
   }
 }
 
