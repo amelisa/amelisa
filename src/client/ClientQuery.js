@@ -69,7 +69,7 @@ class ClientQuery extends Query {
 
   onCollectionChange = (op) => {
     if (!this.fetching) this.refresh()
-  };
+  }
 
   dataHasChanged (prev, data) {
     if (typeof prev !== typeof data) return true

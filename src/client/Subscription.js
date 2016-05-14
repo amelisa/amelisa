@@ -81,7 +81,7 @@ class Subscription extends EventEmitter {
 
   onChange = () => {
     this.emit('change')
-  };
+  }
 
   async changeSubscribes (nextRawSubscribes) {
     this.unsubscribe()

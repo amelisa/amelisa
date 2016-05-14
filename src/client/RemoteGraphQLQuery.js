@@ -71,12 +71,12 @@ class RemoteGraphQLQuery extends ClientQuery {
     subscribe.fetching = false
 
     return subscribe.get()
-  };
+  }
 
   onChange = () => {
     if (this.model.online) return
     this.refresh()
-  };
+  }
 
   async fetch () {
     if (this.fetching) return this.fetchingPromise

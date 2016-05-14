@@ -45,7 +45,7 @@ class ServerJoinQuery extends ServerQuery {
     }
 
     this.load()
-  };
+  }
 
   async loadJoinFields () {
     this.loading = true

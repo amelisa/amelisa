@@ -104,7 +104,7 @@ class Store extends EventEmitter {
     }
 
     this.onChannel(channel)
-  };
+  }
 
   onChannel = (channel) => {
     channel._session = new ChannelSession()
@@ -137,7 +137,7 @@ class Store extends EventEmitter {
     })
 
     this.emit('channel', channel)
-  };
+  }
 
   async onDocOps (ackId, collectionName, docId, field, newOps, channel, opsType, index, howMany) {
     let doc = await this.docSet.getOrCreateDoc(collectionName, docId)

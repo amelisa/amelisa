@@ -74,11 +74,11 @@ class ServerGraphQLQuery extends ServerQuery {
     if (subscribe.loaded) return subscribe.get()
     await eventToPromise(subscribe, 'loaded')
     return subscribe.get()
-  };
+  }
 
   onChange = () => {
     this.load()
-  };
+  }
 
   isGraphQLQuery (graphqlQuery) {
     return typeof graphqlQuery === 'string' &&
