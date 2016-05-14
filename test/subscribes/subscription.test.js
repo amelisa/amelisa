@@ -19,7 +19,7 @@ describe('subscribes subscription', () => {
 
   it('should subscribe doc and get it', async () => {
     let doc = model.doc(collectionName, docId)
-    let subscription = await model.subscribe([doc])
+    let subscription = await model.subscribe(doc)
     setTimeout(() => model2.add(collectionName, getDocData()), 0)
     await eventToPromise(subscription, 'change')
 
@@ -28,7 +28,7 @@ describe('subscribes subscription', () => {
 
   it('should subscribe query and get it', async () => {
     let query = model.query(collectionName, expression)
-    let subscription = await model.subscribe([query])
+    let subscription = await model.subscribe(query)
     setTimeout(() => model2.add(collectionName, getDocData()), 0)
     await eventToPromise(subscription, 'change')
 
@@ -37,7 +37,7 @@ describe('subscribes subscription', () => {
 
   it('should subscribe query, and get doc changes', async () => {
     let query = model.query(collectionName, expression)
-    let subscription = await model.subscribe([query])
+    let subscription = await model.subscribe(query)
     setTimeout(() => model2.add(collectionName, getDocData()), 0)
     await eventToPromise(subscription, 'change')
     setTimeout(() => model2.set([collectionName, docId, field], value2), 0)

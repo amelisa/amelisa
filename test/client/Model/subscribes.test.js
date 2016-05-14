@@ -24,18 +24,9 @@ describe('Model subscribes', () => {
     await model.fetch([collectionName, docId])
   })
 
-  it('should fetch doc when array of arrays', async () => {
-    await model.fetch([[collectionName, docId]])
-  })
-
   it('should fetch doc when doc', async () => {
     let doc = model.doc(collectionName, docId)
     await model.fetch(doc)
-  })
-
-  it('should fetch doc when array of docs', async () => {
-    let doc = model.doc(collectionName, docId)
-    await model.fetch([doc])
   })
 
   it('should subscribe doc when no array', async () => {
@@ -50,18 +41,9 @@ describe('Model subscribes', () => {
     await model.subscribe([collectionName, docId])
   })
 
-  it('should subscribe doc when array of arrays', async () => {
-    await model.subscribe([[collectionName, docId]])
-  })
-
   it('should subscribe doc when doc', async () => {
     let doc = model.doc(collectionName, docId)
     await model.subscribe(doc)
-  })
-
-  it('should subscribe doc when array of docs', async () => {
-    let doc = model.doc(collectionName, docId)
-    await model.subscribe([doc])
   })
 
   it('should fetchAndGet doc', async () => {

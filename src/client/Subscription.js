@@ -16,12 +16,6 @@ class Subscription extends EventEmitter {
     let subscribes = []
     let subscribeOptionses = []
 
-    if (Array.isArray(rawSubscribes) &&
-      rawSubscribes.length === 1 &&
-      Array.isArray(rawSubscribes[0])) {
-      rawSubscribes = rawSubscribes[0]
-    }
-
     for (let rawSubscribe of rawSubscribes) {
       let subscribe
       let subscribeOptions
@@ -71,11 +65,11 @@ class Subscription extends EventEmitter {
   }
 
   async unsubscribe () {
+    for (let subscribe of this.subscribes) {
+      subscribe.removeListener('change', this.onChange)
+    }
     return Promise.all(
-      this.subscribes.map((subscribe) => {
-        subscribe.removeListener('change', this.onChange)
-        return subscribe.unsubscribe()
-      })
+      this.subscribes.map((subscribe) => subscribe.unsubscribe())
     )
   }
 
