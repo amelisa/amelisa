@@ -246,7 +246,12 @@ class MutableDoc extends Doc {
 
     let positionId = array.getRemovePositionIdByIndex(from)
     if (!positionId) return
-    let itemId = array.getSetPositionIdByIndex(to)
+    let itemId
+    if (from > to) {
+      itemId = array.getInsertPositionIdByIndex(to)
+    } else {
+      itemId = array.getSetPositionIdByIndex(to)
+    }
 
     for (let i = 0; i < howMany; i++) {
       if (i !== 0) {

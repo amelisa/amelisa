@@ -187,6 +187,13 @@ describe('Model mutators array', () => {
     assert.deepEqual(model.get(collectionName, docId, field), [value2, value])
   })
 
+  it('should move on array when two items from 1 to 0', () => {
+    model.set([collectionName, docId, field], [value, value2])
+    model.move([collectionName, docId, field], 1, 0)
+
+    assert.deepEqual(model.get(collectionName, docId, field), [value2, value])
+  })
+
   it('should move to zero index', () => {
     model.set([collectionName, docId, field], [1, 2, 3])
     model.move([collectionName, docId, field], 1, 0)
@@ -299,6 +306,20 @@ describe('Model mutators array', () => {
     model.arrayDiff([collectionName, docId, field], arrayValue)
 
     assert.deepEqual(model.get(collectionName, docId, field), arrayValue)
+  })
+
+  it('should arrayDiff when move form start to end', () => {
+    model.arrayDiff([collectionName, docId, field], [1, 2, 3])
+    model.arrayDiff([collectionName, docId, field], [2, 3, 1])
+
+    assert.deepEqual(model.get(collectionName, docId, field), [2, 3, 1])
+  })
+
+  it('should arrayDiff when move from end to start', () => {
+    model.arrayDiff([collectionName, docId, field], [1, 2, 3])
+    model.arrayDiff([collectionName, docId, field], [3, 1, 2])
+
+    assert.deepEqual(model.get(collectionName, docId, field), [3, 1, 2])
   })
 
   it('should arrayDiff some times', () => {
