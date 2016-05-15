@@ -352,6 +352,7 @@ class Store extends EventEmitter {
       case 'stringInsert':
       case 'stringRemove':
       case 'stringSet':
+      case 'rich':
         valid = await this.validateOp(message, channel)
         if (!valid) break
 

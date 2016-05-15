@@ -255,6 +255,7 @@ class Model extends EventEmitter {
       case 'stringInsert':
       case 'stringRemove':
       case 'stringSet':
+      case 'rich':
         collection = this.collectionSet.getOrCreateCollection(collectionName)
         doc = collection.getDoc(docId)
 
@@ -264,8 +265,6 @@ class Model extends EventEmitter {
           collection.attach(docId, [message])
         }
         break
-
-      default:
     }
 
     if (ackId) {
@@ -522,17 +521,30 @@ class Model extends EventEmitter {
     return doc.stringDiff(field, value)
   }
 
-  async richDiff (path, value) {
+  async rich (path, value) {
     let [collectionName, docId, field] = parsePath(path)
 
-    invariant(collectionName && typeof collectionName === 'string', 'Model.richDiff collectionName is required and should be a string')
-    invariant(docId && typeof docId === 'string', 'Model.richDiff docId is required and should be a string')
-    invariant(!field || typeof field === 'string', 'Model.richDiff field should be a string')
-    invariant(Array.isArray(value), 'Model.richDiff value should be a array')
+    invariant(collectionName && typeof collectionName === 'string', 'Model.rich collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.rich docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.rich field should be a string')
+    invariant(value && typeof value === 'object', 'Model.rich value should be an object')
 
     let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
 
-    return doc.richDiff(field, value)
+    return doc.rich(field, value)
+  }
+
+  async draftDiff (path, value) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    invariant(collectionName && typeof collectionName === 'string', 'Model.draftDiff collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.draftDiff docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.draftDiff field should be a string')
+    invariant(Array.isArray(value), 'Model.draftDiff value should be a array')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.draftDiff(field, value)
   }
 
   doc (collectionName, docId) {

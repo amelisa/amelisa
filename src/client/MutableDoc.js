@@ -549,7 +549,21 @@ class MutableDoc extends Doc {
     return Promise.all(promises)
   }
 
-  richDiff (field, value) {
+  async rich (field, value) {
+    field = this.getFieldConsideringArrays(field)
+
+    let op = this.model.createOp({
+      type: 'rich',
+      collectionName: this.collection.name,
+      docId: this.docId,
+      field,
+      value
+    })
+
+    return this.onOp(op)
+  }
+
+  draftDiff (field, value) {
     let previous = this.get(field)
     if (!Array.isArray(previous)) previous = []
 

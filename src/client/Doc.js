@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { ArrayType, BooleanType, NumberType, StringType } from '../types'
+import { ArrayType, BooleanType, NumberType, RichTextType, StringType } from '../types'
 import { deepClone } from '../util'
 
 class Doc extends EventEmitter {
@@ -33,6 +33,7 @@ class Doc extends EventEmitter {
     if (value instanceof ArrayType) return this.getValue(value.get())
     if (value instanceof BooleanType) return value.get()
     if (value instanceof NumberType) return value.get()
+    if (value instanceof RichTextType) return value.get()
     if (value instanceof StringType) return value.get()
 
     if (typeof value === 'object') {
@@ -297,6 +298,12 @@ class Doc extends EventEmitter {
         if (!(fieldState instanceof StringType)) fieldState = new StringType()
 
         fieldState.setStringSetValue(value)
+        break
+
+      case 'rich':
+        if (!(fieldState instanceof RichTextType)) fieldState = new RichTextType()
+
+        fieldState.pushDelta(value)
         break
     }
 
