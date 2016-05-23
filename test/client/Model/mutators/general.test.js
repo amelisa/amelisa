@@ -234,4 +234,88 @@ describe('Model mutators general', () => {
 
     assert.equal(model.get(collectionName, docId, field), value)
   })
+
+  it('should setDiff doc', () => {
+    model.setDiff([collectionName, docId], getDocData())
+    model.setDiff([collectionName, docId], value)
+
+    assert.deepEqual(model.get(collectionName, docId), value)
+  })
+
+  it('should setDiff doc when args as path', () => {
+    model.setDiff(`${collectionName}.${docId}`, getDocData())
+    model.setDiff(`${collectionName}.${docId}`, value)
+
+    assert.deepEqual(model.get(collectionName, docId), value)
+  })
+
+  it('should setDiff value as doc', () => {
+    model.setDiff([collectionName, docId], value)
+    model.setDiff([collectionName, docId], value2)
+
+    assert.deepEqual(model.get(collectionName, docId), value2)
+  })
+
+  it('should setDiff value as doc on local collection', () => {
+    model.setDiff([localCollectionName, docId], value)
+    model.setDiff([localCollectionName, docId], value2)
+
+    assert.deepEqual(model.get(localCollectionName, docId), value2)
+  })
+
+  it('should setDiff value as doc on local collection when args as path', () => {
+    model.setDiff(`${collectionName}.${docId}`, value)
+    model.setDiff(`${collectionName}.${docId}`, value2)
+
+    assert.deepEqual(model.get(collectionName, docId), value2)
+  })
+
+  it('should setDiff when args as array', () => {
+    model.add(collectionName, getDocData())
+
+    model.setDiff([collectionName, docId, field2], value2)
+    model.setDiff([collectionName, docId, field2], value)
+
+    assert.equal(model.get(collectionName, docId, field2), value)
+  })
+
+  it('should setDiff when args as path', () => {
+    model.add(collectionName, getDocData())
+
+    model.setDiff(`${collectionName}.${docId}.${field2}`, value2)
+    model.setDiff(`${collectionName}.${docId}.${field2}`, value)
+
+    assert.equal(model.get(collectionName, docId, field2), value)
+  })
+
+  it('should setDiff when args as path with nested field', () => {
+    model.add(collectionName, getDocData())
+
+    model.setDiff(`${collectionName}.${docId}.nested.${field}`, value2)
+    model.setDiff(`${collectionName}.${docId}.nested.${field}`, value)
+
+    assert.deepEqual(model.get(collectionName, docId, 'nested'), {[field]: value})
+  })
+
+  it('should setDiff field when doc is value', () => {
+    model.setDiff([collectionName, docId], value)
+    model.setDiff([collectionName, docId, field], value)
+    model.setDiff([collectionName, docId, field], value2)
+
+    assert.equal(model.get(collectionName, docId, field), value2)
+  })
+
+  it('should setDiff on empty doc', () => {
+    model.setDiff([collectionName, docId, field], value)
+    model.setDiff([collectionName, docId, field], value2)
+
+    assert.equal(model.get(collectionName, docId, field), value2)
+  })
+
+  it('should not setDiff when value is same', () => {
+    model.setDiff([collectionName, docId, field], value)
+    model.setDiff([collectionName, docId, field], value)
+
+    assert.equal(model.get(collectionName, docId, field), value)
+  })
 })

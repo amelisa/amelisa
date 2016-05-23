@@ -1,6 +1,7 @@
 import arraydiff from 'arraydiff'
 import Doc from './Doc'
 import { ArrayType, StringType } from '../types'
+import { fastEqual } from '../util'
 
 class MutableDoc extends Doc {
   constructor (docId, ops, collection, model) {
@@ -64,6 +65,15 @@ class MutableDoc extends Doc {
     let previous = this.get(arraysField)
 
     if (previous !== undefined && previous !== null) return
+
+    return this.set(field, value)
+  }
+
+  async setDiff (field, value) {
+    let arraysField = this.getFieldConsideringArrays(field)
+    let previous = this.get(arraysField)
+
+    if (fastEqual(previous, value)) return
 
     return this.set(field, value)
   }

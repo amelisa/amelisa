@@ -326,6 +326,18 @@ class Model extends EventEmitter {
     return doc.setNull(field, value)
   }
 
+  async setDiff (path, value) {
+    let [collectionName, docId, field] = parsePath(path)
+
+    invariant(collectionName && typeof collectionName === 'string', 'Model.setDiff collectionName is required and should be a string')
+    invariant(docId && typeof docId === 'string', 'Model.setDiff docId is required and should be a string')
+    invariant(!field || typeof field === 'string', 'Model.setDiff field should be a string')
+
+    let doc = this.collectionSet.getOrCreateDoc(collectionName, docId)
+
+    return doc.setDiff(field, value)
+  }
+
   async del (...path) {
     let [collectionName, docId, field] = parsePath(path)
 
