@@ -14,7 +14,9 @@ class ProjectedQuery extends ServerQuery {
       let projectedDocs = {}
       for (let docId in op.docOps) {
         let ops = op.docOps[docId]
-        let projectedOps = ops.map((docOp) => this.projection.projectOp(docOp))
+        let projectedOps = ops
+          .map((docOp) => this.projection.projectOp(docOp))
+          .filter((docOp) => docOp)
         projectedDocs[docId] = projectedOps
       }
       op.docOps = projectedDocs

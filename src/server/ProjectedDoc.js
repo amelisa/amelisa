@@ -28,7 +28,7 @@ class ProjectedDoc extends ServerDoc {
 
   receiveOp (op) {
     op = this.projection.projectOp(op)
-    super.receiveOp(op)
+    if (op) super.receiveOp(op)
   }
 
   sendOp (op, channel) {
@@ -36,11 +36,14 @@ class ProjectedDoc extends ServerDoc {
 
     if (op.type === 'add' || op.type === 'set' || op.type === 'del') {
       op = this.projection.projectOp(op)
+      if (!op) return
     } else if (op.type === 'fetch' || op.type === 'sub') {
-      op.ops = op.ops.map((docOp) => this.projection.projectOp(docOp))
+      op.ops = op.ops
+        .map((docOp) => this.projection.projectOp(docOp))
+        .filter((docOp) => docOp)
     }
 
-    if (op) super.sendOp(op, channel)
+    super.sendOp(op, channel)
   }
 
   destroy () {
