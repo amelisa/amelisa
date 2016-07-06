@@ -15,6 +15,7 @@ class UrlQuery extends EventEmitter {
     this.data = defaultValue
     this.model = model
     this.fetching = false
+    this.fetched = false
   }
 
   get () {
@@ -22,7 +23,7 @@ class UrlQuery extends EventEmitter {
   }
 
   async load () {
-    if (!this.model.online) return
+    if (!this.model.online || this.fetched) return
     this.fetching = true
 
     let res = await fetch(this.url, fetchOptions)
@@ -37,7 +38,10 @@ class UrlQuery extends EventEmitter {
       this.fetching = false
       return
     }
+
     this.fetching = false
+    this.fetched = true
+    this.emit('change')
   }
 
   async fetch () {
