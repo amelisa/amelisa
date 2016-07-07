@@ -28,6 +28,8 @@ class ClientQuerySet {
     if (!query) {
       query = this.createQuery(collectionName, expression, isUrlQuery, isGraphQLQuery, isJoinQuery)
 
+      if (this.queryDatas && this.queryDatas[hash]) query.data = this.queryDatas[hash]
+
       this.data[hash] = query
     }
 
@@ -84,6 +86,21 @@ class ClientQuerySet {
 
   isQuery (collectionName, expression) {
 
+  }
+
+  bundle () {
+    let data = {}
+
+    for (let hash in this.data) {
+      let query = this.data[hash]
+      data[hash] = query.get()
+    }
+
+    return data
+  }
+
+  unbundle (data) {
+    this.queryDatas = data
   }
 }
 

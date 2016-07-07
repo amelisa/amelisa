@@ -665,13 +665,13 @@ class Model extends EventEmitter {
   }
 
   bundleJsonFromDom () {
-    if (!this.getBundleJsonFromDom) return JSON.stringify({collections: {}})
+    if (!this.getBundleJsonFromDom) return JSON.stringify({collections: {}, queries: {}})
 
     try {
       return this.getBundleJsonFromDom()
     } catch (err) {
       console.error('Error while reading bundle from dom', err)
-      return JSON.stringify({collections: {}})
+      return JSON.stringify({collections: {}, queries: {}})
     }
   }
 
@@ -679,7 +679,8 @@ class Model extends EventEmitter {
     if (!isServer) return this.bundleJsonFromDom()
 
     let bundle = {
-      collections: this.collectionSet.bundle()
+      collections: this.collectionSet.bundle(),
+      queries: this.querySet.bundle()
     }
 
     let json = JSON.stringify(bundle)
@@ -693,6 +694,7 @@ class Model extends EventEmitter {
     let json = this.bundleJsonFromDom()
     let bundle = JSON.parse(json)
     this.collectionSet.unbundle(bundle.collections)
+    this.querySet.unbundle(bundle.queries)
   }
 
   prepareBundle () {
