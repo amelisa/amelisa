@@ -1,7 +1,12 @@
 import { EventEmitter } from 'events'
 
 const fetchOptions = {
-  credentials: 'include'
+  credentials: 'include',
+  headers: {
+    expires: '0',
+    pragma: 'no-cache',
+    'cache-control': 'no-cache'
+  }
 }
 
 const defaultSubscribeOptions = {
