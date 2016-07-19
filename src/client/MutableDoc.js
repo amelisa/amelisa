@@ -198,7 +198,7 @@ class MutableDoc extends Doc {
       ops
     })
 
-    return this.model.send(op)
+    return this.send(op)
   }
 
   async remove (field, index, howMany = 1) {
@@ -242,7 +242,7 @@ class MutableDoc extends Doc {
       ops
     })
 
-    return this.model.send(op)
+    return this.send(op)
   }
 
   async move (field, from, to, howMany = 1) {
@@ -297,7 +297,7 @@ class MutableDoc extends Doc {
       ops
     })
 
-    return this.model.send(op)
+    return this.send(op)
   }
 
   async swap (field, from, to) {
@@ -451,7 +451,7 @@ class MutableDoc extends Doc {
       howMany
     })
 
-    return this.model.send(op)
+    return this.send(op)
   }
 
   async stringRemove (field, index, howMany = 1) {
@@ -507,7 +507,7 @@ class MutableDoc extends Doc {
       howMany
     })
 
-    return this.model.send(op)
+    return this.send(op)
   }
 
   async stringSet (field, value) {
@@ -645,6 +645,10 @@ class MutableDoc extends Doc {
   refresh () {
     this.refreshState()
     this.emit('change')
+  }
+
+  async send (op) {
+    return this.model.send(op)
   }
 
   async onOp (op) {
