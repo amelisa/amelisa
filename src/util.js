@@ -40,6 +40,8 @@ function parsePath (path) {
 
   if (Array.isArray(path)) return path
 
+  if (path.indexOf('http') === 0 || path.indexOf('/') === 0) return [path]
+
   let [collectionName, docId, ...fields] = path.split('.')
 
   if (!fields.length) return [collectionName, docId]
