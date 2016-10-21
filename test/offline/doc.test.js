@@ -47,7 +47,7 @@ describe('offline doc', () => {
     assert(doc.get())
   })
 
-  it('should send and receive ops on online when subscribed to doc', async () => {
+  it.skip('should send and receive ops on online when subscribed to doc', async () => {
     let doc = model.doc(collectionName, docId)
     await doc.subscribe()
     model.close()
