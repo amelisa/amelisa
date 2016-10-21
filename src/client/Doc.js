@@ -36,7 +36,7 @@ class Doc extends EventEmitter {
     if (value instanceof RichTextType) return value.get()
     if (value instanceof StringType) return value.get()
 
-    if (typeof value === 'object') {
+    if (value && typeof value === 'object') {
       if (Array.isArray(value)) {
         return value.map((item) => this.getValue(item))
       }

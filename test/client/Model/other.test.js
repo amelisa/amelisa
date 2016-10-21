@@ -3,7 +3,7 @@ import ClientQuery from '../../../src/client/ClientQuery'
 import Model from '../../../src/client/Model'
 import ServerChannel from '../../../src/server/ServerChannel'
 import { dbQueries } from 'amelisa-mongo'
-import { source, collectionName, field, value, sleep } from '../../util'
+import { source, collectionName, docId, field, value, sleep } from '../../util'
 
 let channel
 let model
@@ -102,5 +102,13 @@ describe('Model other', () => {
     assert.equal(collectionNames.length, 2)
     assert.equal(collectionNames[0], 'orders')
     assert.equal(collectionNames[1], 'products')
+  })
+
+  it('should save null', () => {
+    model.set([collectionName, docId, field], null)
+
+    let value = model.get(collectionName, docId, field)
+
+    assert(value === null)
   })
 })
